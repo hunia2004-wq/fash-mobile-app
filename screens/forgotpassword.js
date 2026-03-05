@@ -3,20 +3,12 @@ import {View, Text, TextInput, TouchableOpacity, StyleSheet, Image, KeyboardAvoi
 import { FontAwesome } from "@expo/vector-icons";
 import { StatusBar } from "expo-status-bar";
 
-export default function SignupScreen({ navigation }) {
+export default function ForgotPasswordScreen({ navigation }) {
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  const handleSignUp = () => {
-    if (!email || !password || !confirmPassword) {
-      alert("Please fill in all fields");
-      return;
-    }
-    if (password !== confirmPassword) {
-      alert("Passwords do not match");
+  const handleSendReset = () => {
+    if (!email) {
+      alert("Please enter your email");
       return;
     }
     navigation.navigate("Verification");
@@ -33,27 +25,23 @@ export default function SignupScreen({ navigation }) {
       >
         <StatusBar style="dark" />
 
-        {/* Back Button */}
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
           <FontAwesome name="arrow-left" size={18} color="#C17C74" />
           <Text style={styles.backText}>Back</Text>
         </TouchableOpacity>
 
-        {/* Logo */}
         <Image
           source={require("../source/assets/images/Blacklogo.png")}
           style={styles.logo}
           resizeMode="contain"
         />
 
-        {/* Title */}
-        <Text style={styles.title}>Create Account</Text>
-        <Text style={styles.subtitle}>Sign up to get started with FASH!</Text>
+        <Text style={styles.title}>Reset Password</Text>
+        <Text style={styles.subtitle}>
+          Enter your email and we'll send you a reset link.
+        </Text>
 
-        {/* Form Card */}
         <View style={styles.card}>
-
-          {/* Email */}
           <Text style={styles.label}>Email</Text>
           <TextInput
             style={styles.input}
@@ -64,69 +52,13 @@ export default function SignupScreen({ navigation }) {
             autoCapitalize="none"
           />
 
-          {/* Password */}
-          <Text style={styles.label}>Password</Text>
-          <View style={styles.passwordContainer}>
-            <TextInput
-              style={styles.passwordInput}
-              placeholder="Enter your password"
-              secureTextEntry={!showPassword}
-              value={password}
-              onChangeText={setPassword}
-            />
-            <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-              <FontAwesome
-                name={showPassword ? "eye" : "eye-slash"}
-                size={20}
-                color="gray"
-              />
-            </TouchableOpacity>
-          </View>
-
-          {/* Confirm Password */}
-          <Text style={styles.label}>Confirm Password</Text>
-          <View style={styles.passwordContainer}>
-            <TextInput
-              style={styles.passwordInput}
-              placeholder="Confirm your password"
-              secureTextEntry={!showConfirmPassword}
-              value={confirmPassword}
-              onChangeText={setConfirmPassword}
-            />
-            <TouchableOpacity onPress={() => setShowConfirmPassword(!showConfirmPassword)}>
-              <FontAwesome
-                name={showConfirmPassword ? "eye" : "eye-slash"}
-                size={20}
-                color="gray"
-              />
-            </TouchableOpacity>
-          </View>
-
-          {/* Sign Up Button */}
-          <TouchableOpacity style={styles.button} onPress={handleSignUp}>
-            <Text style={styles.buttonText}>Sign Up</Text>
+          <TouchableOpacity style={styles.button} onPress={handleSendReset}>
+            <Text style={styles.buttonText}>Send Reset Link</Text>
           </TouchableOpacity>
         </View>
 
-        {/* Divider */}
-        <Text style={styles.or}>Or continue with</Text>
-
-        {/* Social Buttons */}
-        <View style={styles.socialContainer}>
-          <TouchableOpacity style={[styles.social, { backgroundColor: "#DB4437" }]} onPress={() => alert("Google signup")}>
-            <FontAwesome name="google" size={20} color="white" />
-          </TouchableOpacity>
-          <TouchableOpacity style={[styles.social, { backgroundColor: "#000" }]} onPress={() => alert("Apple signup")}>
-            <FontAwesome name="apple" size={20} color="white" />
-          </TouchableOpacity>
-          <TouchableOpacity style={[styles.social, { backgroundColor: "#1877F2" }]} onPress={() => alert("Facebook signup")}>
-            <FontAwesome name="facebook" size={20} color="white" />
-          </TouchableOpacity>
-        </View>
-
-        {/* Login Link */}
         <Text style={styles.loginText}>
-          Already a member?{" "}
+          Remembered your password?{" "}
           <Text style={styles.loginLink} onPress={() => navigation.navigate("Login")}>
             Log In
           </Text>
@@ -173,9 +105,10 @@ const styles = StyleSheet.create({
     textAlign: "center",
     color: "gray",
     marginBottom: 25,
+    paddingHorizontal: 10,
   },
   card: {
-    backgroundColor: "#CFCFCF",
+    backgroundColor: "#F2E6E3",
     borderRadius: 12,
     padding: 20,
   },
@@ -190,18 +123,6 @@ const styles = StyleSheet.create({
     padding: 10,
     marginBottom: 15,
   },
-  passwordContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "white",
-    borderRadius: 8,
-    paddingHorizontal: 10,
-    marginBottom: 15,
-  },
-  passwordInput: {
-    flex: 1,
-    paddingVertical: 10,
-  },
   button: {
     backgroundColor: "#C17C74",
     padding: 12,
@@ -214,27 +135,9 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     fontSize: 16,
   },
-  or: {
-    textAlign: "center",
-    marginTop: 25,
-    marginBottom: 15,
-    color: "gray",
-  },
-  socialContainer: {
-    flexDirection: "row",
-    justifyContent: "center",
-    gap: 15,
-  },
-  social: {
-    width: 45,
-    height: 45,
-    borderRadius: 25,
-    alignItems: "center",
-    justifyContent: "center",
-  },
   loginText: {
     textAlign: "center",
-    marginTop: 20,
+    marginTop: 25,
     color: "#333",
   },
   loginLink: {

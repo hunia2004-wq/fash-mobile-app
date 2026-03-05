@@ -3,7 +3,7 @@ import {View, Text, TextInput, TouchableOpacity, StyleSheet, Image, KeyboardAvoi
 import { FontAwesome } from "@expo/vector-icons";
 import { StatusBar } from "expo-status-bar";
 
-export default function SignupScreen({ navigation }) {
+export default function SignupScreen({ navigation, signUp }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -33,7 +33,6 @@ export default function SignupScreen({ navigation }) {
       >
         <StatusBar style="dark" />
 
-        {/* Back Button */}
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
           <FontAwesome name="arrow-left" size={18} color="#C17C74" />
           <Text style={styles.backText}>Back</Text>
@@ -46,14 +45,11 @@ export default function SignupScreen({ navigation }) {
           resizeMode="contain"
         />
 
-        {/* Title */}
         <Text style={styles.title}>Create Account</Text>
         <Text style={styles.subtitle}>Sign up to get started with FASH!</Text>
 
-        {/* Form Card */}
         <View style={styles.card}>
 
-          {/* Email */}
           <Text style={styles.label}>Email</Text>
           <TextInput
             style={styles.input}
@@ -64,7 +60,6 @@ export default function SignupScreen({ navigation }) {
             autoCapitalize="none"
           />
 
-          {/* Password */}
           <Text style={styles.label}>Password</Text>
           <View style={styles.passwordContainer}>
             <TextInput
@@ -83,7 +78,6 @@ export default function SignupScreen({ navigation }) {
             </TouchableOpacity>
           </View>
 
-          {/* Confirm Password */}
           <Text style={styles.label}>Confirm Password</Text>
           <View style={styles.passwordContainer}>
             <TextInput
@@ -102,16 +96,13 @@ export default function SignupScreen({ navigation }) {
             </TouchableOpacity>
           </View>
 
-          {/* Sign Up Button */}
           <TouchableOpacity style={styles.button} onPress={handleSignUp}>
             <Text style={styles.buttonText}>Sign Up</Text>
           </TouchableOpacity>
         </View>
 
-        {/* Divider */}
         <Text style={styles.or}>Or continue with</Text>
 
-        {/* Social Buttons */}
         <View style={styles.socialContainer}>
           <TouchableOpacity style={[styles.social, { backgroundColor: "#DB4437" }]} onPress={() => alert("Google signup")}>
             <FontAwesome name="google" size={20} color="white" />
@@ -124,7 +115,6 @@ export default function SignupScreen({ navigation }) {
           </TouchableOpacity>
         </View>
 
-        {/* Login Link */}
         <Text style={styles.loginText}>
           Already a member?{" "}
           <Text style={styles.loginLink} onPress={() => navigation.navigate("Login")}>
@@ -175,7 +165,7 @@ const styles = StyleSheet.create({
     marginBottom: 25,
   },
   card: {
-    backgroundColor: "#CFCFCF",
+    backgroundColor: "#F2E6E3",
     borderRadius: 12,
     padding: 20,
   },

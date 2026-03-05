@@ -3,17 +3,17 @@ import { StatusBar } from "expo-status-bar";
 import { useState } from "react";
 import { Image, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 
-export default function LoginScreen({ navigation }) {
+export default function LoginScreen({ navigation, signIn }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
     if (!email || !password) {
       alert("Please fill in all fields");
       return;
     }
-    navigation.navigate("Home");
+    await signIn();
   };
 
   return (
@@ -27,17 +27,14 @@ export default function LoginScreen({ navigation }) {
       >
         <StatusBar style="dark" />
 
-        {/* Logo */}
         <Image
           source={require("../source/assets/images/Blacklogo.png")}
           style={styles.logo}
           resizeMode="contain"
         />
 
-        {/* Welcome Text */}
         <Text style={styles.welcome}>Welcome to FASH!</Text>
 
-        {/* Form Card */}
         <View style={styles.card}>
           <Text style={styles.label}>Email</Text>
           <TextInput
@@ -72,12 +69,10 @@ export default function LoginScreen({ navigation }) {
           </TouchableOpacity>
         </View>
 
-        {/* Forgot Password */}
         <TouchableOpacity onPress={() => navigation.navigate("ForgotPassword")}>
           <Text style={styles.forgot}>Forgot password?</Text>
         </TouchableOpacity>
 
-        {/* Register */}
         <Text style={styles.register}>
           Not a member?{" "}
           <Text style={styles.registerNow} onPress={() => navigation.navigate("Signup")}>
@@ -85,10 +80,8 @@ export default function LoginScreen({ navigation }) {
           </Text>
         </Text>
 
-        {/* Divider */}
         <Text style={styles.or}>Or continue with</Text>
 
-        {/* Social Buttons */}
         <View style={styles.socialContainer}>
           <TouchableOpacity style={[styles.social, { backgroundColor: "#DB4437" }]} onPress={() => alert("Google login")}>
             <FontAwesome name="google" size={20} color="white" />
@@ -128,7 +121,7 @@ const styles = StyleSheet.create({
     color: "gray",
   },
   card: {
-    backgroundColor: "#CFCFCF",
+    backgroundColor: "#F2E6E3",
     borderRadius: 12,
     padding: 20,
   },
