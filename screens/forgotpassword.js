@@ -2,16 +2,24 @@ import { useState } from 'react';
 import { Image, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
+import { forgotPassword } from '../services/authService';
 
 export default function ForgotPasswordScreen({ navigation }) {
   const [email, setEmail] = useState('');
 
-  const handleSendReset = () => {
-    if (!email) {
-      alert('Please enter your email');
-      return;
+  const handleSendReset = async() => {
+    setLoading(true);
+    try{
+      await forgotPassword({email});
+      navigation.navigate("Verification", {email, mode: "reset"});
     }
-    navigation.navigate('Verification');
+    catch (err) {
+      SyntheticError(err.message);
+    }
+    finally{
+      setLoading(false);
+    }
+  
   };
 
   return (

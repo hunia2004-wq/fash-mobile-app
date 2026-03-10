@@ -4,72 +4,66 @@ import { FontAwesome } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
 import { AuthContext } from '../App';
 
-export default function VerificationScreen({ navigation }) {
-  const { signIn } = useContext(AuthContext);
-  const [code, setCode] = useState('');
-
-  const handleVerify = async () => {
-    if (!code) {
-      alert('Please enter the verification code');
-      return;
-    }
-    if (code.length < 4) {
-      alert('Please enter a valid code');
-      return;
-    }
-    await signIn();
-  };
+export default function VerificationScreen({ navigation, route }) {
+  const { email = '', mode } = route.params || {};
+  const isReset = mode === 'reset';
 
   return (
-    <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-      <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
-        <StatusBar style="dark" />
+    <ScrollView contentContainerStyle={styles.container}>
+      <StatusBar style="dark" />
 
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <FontAwesome name="arrow-left" size={18} color="#C17C74" />
-          <Text style={styles.backText}>Back</Text>
-        </TouchableOpacity>
+      <Image
+        source={require('../source/assets/images/Blacklogo.png')}
+        style={styles.logo}
+        resizeMode="contain"
+      />
 
-        <Image
-          source={require('../source/assets/images/Blacklogo.png')}
-          style={styles.logo}
-          resizeMode="contain"
-        />
+    <View style={styles.card}>
+      <View style={styles.iconCircle}>
+        <FontAwesome name="envelope-o" size={40} color="#C17C74" />
+      </View>
 
-        <Text style={styles.title}>Verification</Text>
-        <Text style={styles.subtitle}>Enter the code we sent to your email.</Text>
+      <Text style={styles.title}>
+        {isReset ? 'Check Your Email' : 'Verify Your Email'}
+      </Text>
 
-        <View style={styles.card}>
-          <Text style={styles.label}>Verification Code</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Enter the code"
-            value={code}
-            onChangeText={setCode}
-            keyboardType="number-pad"
-            maxLength={6}
-          />
+      <Text style={styles.body}>
+        {isReset
+          ? 'We sent a password reset link to:'
+          : 'We sent a verification link to:'}
+      </Text>
 
-          <TouchableOpacity style={styles.button} onPress={handleVerify}>
-            <Text style={styles.buttonText}>Verify</Text>
-          </TouchableOpacity>
-        </View>
+      <Text style={styles.email}>{email}</Text>
 
-        <Text style={styles.resendText}>
-          Didn't receive a code?{' '}
-          <Text style={styles.resendLink} onPress={() => alert('Code resent!')}>
-            Resend
-          </Text>
+      <Text style={styles.hint}>
+        {isReset
+          ? 'Click the link in the email to reset your password. It expires in 1 hour.'
+          : 'Click the link in the email to activate your account, then come back to log in.'}
+      </Text>
+
+      <TouchableOpacity
+        style={styles.button}
+        onPress={() => navigation.navigate('Login')}
+      >
+        <Text style={styles.buttonText}>Go to Log In</Text>
+      </TouchableOpacity>
+
+      <Text style={styles.resendText}>
+        Didn't receive an email?{'\n'}Check your spam folder or{' '}
+        <Text style={styles.resendLink} onPress={() => navigation.goBack()}>
+          try again
         </Text>
-      </ScrollView>
-    </KeyboardAvoidingView>
+        .
+      </Text>
+    </View> 
+    </ScrollView>
   );
 }
-
 const styles = StyleSheet.create({
-  scrollContent: {
+  container: {
     flexGrow: 1,
     backgroundColor: '#F5F5F5',
+    alignItems: "center",
     paddingHorizontal: 25,
     paddingTop: 60,
     paddingBottom: 40,
@@ -88,13 +82,24 @@ const styles = StyleSheet.create({
     width: 150,
     height: 100,
     alignSelf: 'center',
-    marginBottom: 20,
+    marginBottom: 30,
+    marginTop: 40,
+  },
+  iconCircle: {
+    width: 88,
+    height: 88,
+    borderRadius: 44,
+    backgroundColor: '#F2E6E3',
+    alignItems: 'center',
+    justifyContent: 'center',
+    alignSelf: "center",
+    marginBottom: 24,
   },
   title: {
     fontSize: 26,
     fontWeight: 'bold',
     textAlign: 'center',
-    marginBottom: 6,
+    marginBottom: 16,
     color: '#333',
   },
   subtitle: {
@@ -105,7 +110,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
   },
   card: {
-    backgroundColor: '#CFCFCF',
+    backgroundColor: '#F2E6E3',
     borderRadius: 12,
     padding: 20,
   },
@@ -123,12 +128,36 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     letterSpacing: 6,
   },
+  body: {
+    fontSize: 15,
+    color: 'gray',
+    textAlign: 'center',
+    marginBottom: 6,
+  },
+  email: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#C17C74',
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  hint: {
+    fontSize: 13,
+    color: 'gray',
+    textAlign: 'center',
+    lineHeight: 20,
+    marginBottom: 36,
+    paddingHorizontal: 10,
+  },
   button: {
     backgroundColor: '#C17C74',
-    padding: 12,
-    borderRadius: 8,
+    paddingVertical: 14,
+    paddingHorizontal: 40,
+    borderRadius: 10,
     alignItems: 'center',
-    marginTop: 5,
+    alignSelf: "center",
+    marginBottom: 28,
+    width: "75%",
   },
   buttonText: {
     color: '#fff',
@@ -136,8 +165,9 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   resendText: {
+    fontSize: 13,
     textAlign: 'center',
-    marginTop: 25,
+    lineHeight: 20,
     color: '#333',
   },
   resendLink: {

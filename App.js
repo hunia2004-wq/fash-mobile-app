@@ -10,6 +10,7 @@ import ForgotPasswordScreen from './screens/forgotpassword';
 import VerificationScreen from './screens/verification';
 import WelcomeScreen from './screens/welcome';
 import HomeScreen from './screens/home';
+import { logout } from './services/authService';
 
 const Stack = createNativeStackNavigator();
 export const AuthContext = React.createContext();
@@ -52,12 +53,16 @@ export default function App() {
   }, []);
 
   const authContext = React.useMemo(() => ({
-    signIn: async () => {
-      dispatch({ type: 'SIGN_IN', token: 'dummy-auth-token' });
+    signIn: async (token) => {
+      await SecureStore.setItemAsync("usertoken", token);
+      dispatch({ type: 'SIGN_IN', token});
     },
     signOut: () => dispatch({ type: 'SIGN_OUT' }),
     signUp: async () => {
-      dispatch({ type: 'SIGN_IN', token: 'dummy-auth-token' });
+      const token = await SecureStore.getItemAsync("usertoken");
+      if (token) await logout(token);
+      await SecureStore.deleteItemAsync("usertoken");
+      dispatch({ type: 'SIGN_IN'});
     },
   }), []);
 

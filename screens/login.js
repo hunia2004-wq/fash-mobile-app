@@ -3,6 +3,7 @@ import { Image, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, Te
 import { FontAwesome } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
 import { AuthContext } from '../App';
+import { login } from '../services/authService';
 
 export default function LoginScreen({ navigation }) {
   const { signIn } = useContext(AuthContext);
@@ -11,11 +12,22 @@ export default function LoginScreen({ navigation }) {
   const [showPassword, setShowPassword] = useState(false);
 
   const handleLogin = async () => {
+    SetError("");
     if (!email || !password) {
-      alert('Please fill in all fields');
+      SetError('Please fill in all fields');
       return;
     }
-    await signIn();
+    setLoading(true);
+    try{
+      const data = await login({email, password});
+      await signIn(data.access_token);
+    }
+    catch (err){
+      SetError(err.message || "Login failed. Please try again.");
+    }
+    finally{
+      setLoading(false);
+    }
   };
 
   return (

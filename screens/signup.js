@@ -6,6 +6,7 @@ import { AuthContext } from '../App';
 
 export default function SignupScreen({ navigation }) {
   const { signUp } = useContext(AuthContext);
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -21,7 +22,9 @@ export default function SignupScreen({ navigation }) {
       alert('Passwords do not match');
       return;
     }
-    navigation.navigate('Verification');
+
+    await signUp({name, email, password});
+    navigation.navigate('Verification', {email});
   };
 
   return (
@@ -42,8 +45,19 @@ export default function SignupScreen({ navigation }) {
 
         <Text style={styles.title}>Create Account</Text>
         <Text style={styles.subtitle}>Sign up to get started with FASH!</Text>
-
+        
         <View style={styles.card}>
+
+          <Text style={styles.label}>Name</Text>
+          <TextInput
+          style={styles.input}
+          placeholder="Enter your name"
+          value={name}
+          onChangeText={setName}
+          autoCapitalize="words"
+          />
+
+
           <Text style={styles.label}>Email</Text>
           <TextInput
             style={styles.input}
