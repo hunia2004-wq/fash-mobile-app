@@ -1,30 +1,42 @@
-import { useContext, useState } from 'react';
-import { Image, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { useState } from 'react';
+import { Image, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View, ActivityIndicator } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
-import { AuthContext } from '../App';
+
+import { signup } from '../services/authService';
 
 export default function SignupScreen({ navigation }) {
-  const { signUp } = useContext(AuthContext);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleSignUp = async () => {
-    if (!email || !password || !confirmPassword) {
-      alert('Please fill in all fields');
+    setError("");
+    if (!name || !email || !password || !confirmPassword) {
+      setError('Please fill in all fields');
       return;
     }
     if (password !== confirmPassword) {
-      alert('Passwords do not match');
+      setError('Passwords do not match');
       return;
     }
-
-    await signUp({name, email, password});
+    
+    setLoading(true);
+    try {
+    await signup({name, email, password});
     navigation.navigate('Verification', {email});
+    }
+    catch (err) {
+      setError(err.message || "Sign up failed. Please try again");
+    }
+    finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -96,8 +108,11 @@ export default function SignupScreen({ navigation }) {
             </TouchableOpacity>
           </View>
 
-          <TouchableOpacity style={styles.button} onPress={handleSignUp}>
-            <Text style={styles.buttonText}>Sign Up</Text>
+          <TouchableOpacity style={styles.button} onPress={handleSignUp} disabled={loading}> 
+            {loading
+              ? <ActivityIndicator color='#fff'/>
+              :  <Text style={styles.buttonText}>Sign Up</Text>
+            }
           </TouchableOpacity>
         </View>
 

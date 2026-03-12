@@ -1,29 +1,32 @@
 import { useContext, useState } from 'react';
-import { Image, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Image, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View, ActivityIndicator,} from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
 import { AuthContext } from '../App';
 import { login } from '../services/authService';
 
 export default function LoginScreen({ navigation }) {
-  const { signIn } = useContext(AuthContext);
+  const { logIn } = useContext(AuthContext);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
 
   const handleLogin = async () => {
-    SetError("");
+    setError("");
     if (!email || !password) {
-      SetError('Please fill in all fields');
+      setError('Please fill in all fields');
       return;
     }
     setLoading(true);
     try{
       const data = await login({email, password});
-      await signIn(data.access_token);
+      await logIn(data.access_token);
     }
     catch (err){
-      SetError(err.message || "Login failed. Please try again.");
+      setError(err.message || "Login failed. Please try again.");
     }
     finally{
       setLoading(false);
@@ -67,6 +70,9 @@ export default function LoginScreen({ navigation }) {
               <FontAwesome name={showPassword ? 'eye' : 'eye-slash'} size={20} color="gray" />
             </TouchableOpacity>
           </View>
+
+          {error ? <Text style={styles.errorText}>{error}</Text> : null}
+
 
           <TouchableOpacity style={styles.button} onPress={handleLogin}>
             <Text style={styles.buttonText}>Log In</Text>
@@ -148,6 +154,12 @@ const styles = StyleSheet.create({
   passwordInput: {
     flex: 1,
     paddingVertical: 10,
+  },
+  errorText: { 
+    color: '#c0392b', 
+    fontSize: 13, 
+    marginBottom: 10, 
+    textAlign: 'center' 
   },
   button: {
     backgroundColor: '#C17C74',

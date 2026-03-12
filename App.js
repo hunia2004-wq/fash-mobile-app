@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import React from 'react';
 import { View, Text, ActivityIndicator } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -10,6 +10,7 @@ import ForgotPasswordScreen from './screens/forgotpassword';
 import VerificationScreen from './screens/verification';
 import WelcomeScreen from './screens/welcome';
 import HomeScreen from './screens/home';
+
 import { logout } from './services/authService';
 
 const Stack = createNativeStackNavigator();
@@ -30,45 +31,66 @@ export default function App() {
       switch (action.type) {
         case 'RESTORE_TOKEN':
           return { ...prevState, userToken: action.token, isLoading: false };
-        case 'SIGN_IN':
-          return { ...prevState, isSignout: false, userToken: action.token };
-        case 'SIGN_OUT':
-          return { ...prevState, isSignout: true, userToken: null };
+        case 'LOG_IN':
+          return { ...prevState, isLogOut: false, userToken: action.token };
+        case 'LOG_OUT':
+          return { ...prevState, isLogOut: true, userToken: null };
         default:
           return prevState;
       }
     },
-    { isLoading: true, isSignout: false, userToken: null }
+    { isLoading: true, isLogOut: false, userToken: null }
   );
 
   React.useEffect(() => {
     const bootstrapAsync = async () => {
-      let userToken;
+      let userToken = null;
       try {
         userToken = await SecureStore.getItemAsync('userToken');
-      } catch (e) {}
+      } catch (e) {
+        console.warn("Failed to restore token:", e);
+      }
       dispatch({ type: 'RESTORE_TOKEN', token: userToken });
     };
     bootstrapAsync();
   }, []);
 
   const authContext = React.useMemo(() => ({
-    signIn: async (token) => {
-      await SecureStore.setItemAsync("usertoken", token);
-      dispatch({ type: 'SIGN_IN', token});
+    logIn: async (token) => {
+      try {
+        await SecureStore.setItemAsync("userToken", token);
+      }
+      catch (e) {
+        console.warn("Failed to save token:", e);
+      }
+       dispatch({ type: 'LOG_IN', token});
     },
-    signOut: () => dispatch({ type: 'SIGN_OUT' }),
-    signUp: async () => {
-      const token = await SecureStore.getItemAsync("usertoken");
-      if (token) await logout(token);
-      await SecureStore.deleteItemAsync("usertoken");
-      dispatch({ type: 'SIGN_IN'});
+
+    logOut: async () => {
+      try {
+        const token = await SecureStore.getItemAsync('userToken');
+        if (token) await logout(token);
+        await SecureStore.deleteItemAsync('userToken');
+      } catch (e) {
+        console.warn('Logout error:', e);
+      } finally {
+        dispatch({ type: 'LOG_OUT' });
+      }
+    },
+
+    getToken: async() =>{
+      try {
+        return await SecureStore.getItemAsync("userToken");
+      }
+      catch {
+        return null;
+      }
     },
   }), []);
 
-  if (state.isLoading) {
+  if (state.isLoading) 
     return <SplashScreen />;
-  }
+  
 
   return (
     <AuthContext.Provider value={authContext}>

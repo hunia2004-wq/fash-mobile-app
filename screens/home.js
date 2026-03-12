@@ -3,12 +3,12 @@ import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { AuthContext } from '../App';
 
 export default function HomeScreen() {
-  const { signOut } = useContext(AuthContext);
+  const { logOut } = useContext(AuthContext);
 
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Welcome to FASH!</Text>
-      <TouchableOpacity style={styles.button} onPress={signOut}>
+      <TouchableOpacity style={styles.button} onPress={logOut}>
         <Text style={styles.buttonText}>Log Out</Text>
       </TouchableOpacity>
     </View>

@@ -1,25 +1,31 @@
 import { useState } from 'react';
-import { Image, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Image, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View, ActivityIndicator, } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
 import { forgotPassword } from '../services/authService';
 
 export default function ForgotPasswordScreen({ navigation }) {
   const [email, setEmail] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
   const handleSendReset = async() => {
+    setError('');
+    if (!email) {
+      setError('Please enter your email');
+      return;
+    }
     setLoading(true);
     try{
       await forgotPassword({email});
       navigation.navigate("Verification", {email, mode: "reset"});
     }
     catch (err) {
-      SyntheticError(err.message);
+      setError(err.message || 'Failed to send reset email. Please try again.');
     }
     finally{
       setLoading(false);
     }
-  
   };
 
   return (
@@ -50,10 +56,16 @@ export default function ForgotPasswordScreen({ navigation }) {
             onChangeText={setEmail}
             keyboardType="email-address"
             autoCapitalize="none"
+            autoCorrect={false}
           />
 
-          <TouchableOpacity style={styles.button} onPress={handleSendReset}>
-            <Text style={styles.buttonText}>Send Reset Link</Text>
+        {error ? <Text style={styles.errorText}>{error}</Text> : null} 
+
+          <TouchableOpacity style={styles.button} onPress={handleSendReset} disabled={loading}>
+          {loading
+            ? <ActivityIndicator color="#fff" />
+            : <Text style={styles.buttonText}>Send Reset Link</Text>
+          }
           </TouchableOpacity>
         </View>
 
@@ -121,6 +133,12 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     padding: 10,
     marginBottom: 15,
+  },
+  errorText: { 
+    color: '#c0392b', 
+    fontSize: 13, 
+    marginBottom: 10, 
+    textAlign: 'center' 
   },
   button: {
     backgroundColor: '#C17C74',
