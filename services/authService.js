@@ -1,10 +1,13 @@
 const BASE_URL = "http://localhost:3000/api/v1";
 
 async function request(endpoint, options ={}) {
+    const {headers: customHeaders, ...restOptions } = options;
     const response = await fetch(`${BASE_URL}${endpoint}` , {
-        headers: {"Content-Type": "application/json"},
-        ...options,
-    });
+        headers: {"Content-Type": "application/json",
+        ...customHeaders,
+    },
+    ...restOptions
+  });
     const data = await response.json();
     if (!response.ok) {
         throw new Error(data.error?.message || data.message || "Something went wrong");
@@ -16,6 +19,13 @@ export async function signup({ name, email, password }) {
     return request('/auth/signup', {
       method: 'POST',
       body: JSON.stringify({ name, email, password }),
+    });
+  }
+
+  export async function verifyOtp({ email, otp }) {
+    return request("/auth/verify-otp", {
+      method: "POST",
+      body: JSON.stringify({ email, otp }),
     });
   }
   
@@ -32,12 +42,19 @@ export async function signup({ name, email, password }) {
       body: JSON.stringify({ email }),
     });
   }
+
+  export async function verifyResetOtp({ email, otp, newPassword }) {
+    return request("/auth/verify-reset-otp", {
+      method: "POST",
+      body: JSON.stringify({ email, otp, newPassword }),
+    });
+  }
+  
   
   export async function logout(token) {
     return request('/auth/logout', {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
         Authorization: `Bearer ${token}`,
       },
     });
@@ -46,7 +63,6 @@ export async function signup({ name, email, password }) {
   export async function getProfile(token) {
     return request('/auth/profile', {
       headers: {
-        'Content-Type': 'application/json',
         Authorization: `Bearer ${token}`,
       },
     });

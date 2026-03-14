@@ -38,6 +38,11 @@ export default function LoginScreen({ navigation }) {
       <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
         <StatusBar style="dark" />
 
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+        <FontAwesome name="arrow-left" size={18} color="#C17C74" />
+        <Text style={styles.backText}>Back</Text>
+        </TouchableOpacity>
+
         <Image
           source={require('../source/assets/images/Blacklogo.png')}
           style={styles.logo}
@@ -171,6 +176,16 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: '600',
   },
+  backButton: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    marginBottom: 10, 
+    gap: 6 
+  },
+backText: { 
+  color: '#C17C74', 
+  fontSize: 16 
+},
   forgot: {
     marginTop: 15,
     textDecorationLine: 'underline',

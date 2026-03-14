@@ -1,15 +1,54 @@
 import { useContext, useState } from 'react';
-import { Image, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Image, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View, ActivityIndicator } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
 import { AuthContext } from '../App';
+import { verifyOtp, verifyResetOtp } from '../services/authService';
+
 
 export default function VerificationScreen({ navigation, route }) {
+  const { logIn } = useContext(AuthContext);
   const { email = '', mode } = route.params || {};
   const isReset = mode === 'reset';
 
-  return (
-    <ScrollView contentContainerStyle={styles.container}>
+  const [otp, setOtp] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  const handleVerify = async () => {
+    setError('');
+    if (!otp || otp.length < 6) {
+      setError('Please enter the 6-digit code');
+      return;
+    }
+    if (isReset && !newPassword) {
+      setError('Please enter your new password');
+      return;
+    }
+    setLoading(true);
+    try {
+      if (isReset) {
+        // Verify reset OTP and set new password
+        await verifyResetOtp({ email, otp, newPassword });
+        navigation.navigate('Login');
+      } else {
+        // Verify signup OTP
+        await verifyOtp({ email, otp });
+        navigation.navigate('Login');
+      }
+    } catch (err) {
+      setError(err.message || 'Verification failed. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+
+return (
+  <KeyboardAvoidingView style={{ flex:1}} behavior={Platform.OS === "ios" ? "padding" : "height"}>
+    <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
       <StatusBar style="dark" />
 
       <Image
@@ -20,47 +59,83 @@ export default function VerificationScreen({ navigation, route }) {
 
     <View style={styles.card}>
       <View style={styles.iconCircle}>
-        <FontAwesome name="envelope-o" size={40} color="#C17C74" />
+        <FontAwesome name="envelope-o" size={36} color="#C17C74" />
       </View>
 
       <Text style={styles.title}>
-        {isReset ? 'Check Your Email' : 'Verify Your Email'}
+        {isReset ? 'Reset Password' : 'Verify Your Email'}
       </Text>
 
       <Text style={styles.body}>
-        {isReset
-          ? 'We sent a password reset link to:'
-          : 'We sent a verification link to:'}
+        We sent a 6-digit code to:
       </Text>
 
       <Text style={styles.email}>{email}</Text>
 
-      <Text style={styles.hint}>
-        {isReset
-          ? 'Click the link in the email to reset your password. It expires in 1 hour.'
-          : 'Click the link in the email to activate your account, then come back to log in.'}
-      </Text>
+      <Text style={styles.label}>Enter Code</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="******"
+          value={otp}
+          onChangeText={setOtp}
+          keyboardType="number-pad"
+          maxLength={6}
+        />
+
+        {isReset && (
+          <>
+            <Text style={styles.label}>New Password</Text>
+            <View style={styles.passwordContainer}>
+              <TextInput
+                style={styles.passwordInput}
+                placeholder="Min 6 chars"
+                value={newPassword}
+                onChangeText={setNewPassword}
+                secureTextEntry={!showPassword}
+              />
+
+      <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+                <FontAwesome
+                  name={showPassword ? 'eye' : 'eye-slash'}
+                  size={20}
+                  color="gray"
+                />
+              </TouchableOpacity>
+            </View>
+          </>
+        )}
+
+      {error ? <Text style={styles.errorText}>{error}</Text> : null}
+
 
       <TouchableOpacity
         style={styles.button}
-        onPress={() => navigation.navigate('Login')}
+        onPress={handleVerify} disabled={loading}
       >
-        <Text style={styles.buttonText}>Go to Log In</Text>
+
+        {loading
+          ? <ActivityIndicator color="#fff" />
+          : <Text style={styles.buttonText}>
+              {isReset ? "Reset Password" : "Verify"}
+            </Text>  
+        }
+
       </TouchableOpacity>
 
       <Text style={styles.resendText}>
-        Didn't receive an email?{'\n'}Check your spam folder or{' '}
+        Didn't receive a code?{''}
         <Text style={styles.resendLink} onPress={() => navigation.goBack()}>
-          try again
+          Try again
         </Text>
-        .
+        
       </Text>
     </View> 
     </ScrollView>
+    </KeyboardAvoidingView> 
   );
 }
 const styles = StyleSheet.create({
-  container: {
+  scrollContent: {
     flexGrow: 1,
     backgroundColor: '#F5F5F5',
     alignItems: "center",
@@ -113,6 +188,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#F2E6E3',
     borderRadius: 12,
     padding: 20,
+    width: "100%"
   },
   label: {
     fontSize: 14,
@@ -141,13 +217,23 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     textAlign: 'center',
   },
-  hint: {
-    fontSize: 13,
-    color: 'gray',
-    textAlign: 'center',
-    lineHeight: 20,
-    marginBottom: 36,
-    paddingHorizontal: 10,
+  passwordContainer: {
+    flexDirection: 'row', 
+    alignItems: 'center',
+    backgroundColor: 'white', 
+    borderRadius: 8,
+    paddingHorizontal: 10, 
+    marginBottom: 15,
+  },
+  passwordInput: { 
+    flex: 1, 
+    paddingVertical: 10 
+  },
+  errorText: { 
+    color: '#c0392b', 
+    fontSize: 13, 
+    marginBottom: 10, 
+    textAlign: 'center' 
   },
   button: {
     backgroundColor: '#C17C74',

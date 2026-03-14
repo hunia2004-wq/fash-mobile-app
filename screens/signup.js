@@ -108,6 +108,8 @@ export default function SignupScreen({ navigation }) {
             </TouchableOpacity>
           </View>
 
+          {error ? <Text style={styles.errorText}>{error}</Text> : null}
+
           <TouchableOpacity style={styles.button} onPress={handleSignUp} disabled={loading}> 
             {loading
               ? <ActivityIndicator color='#fff'/>
@@ -133,7 +135,7 @@ export default function SignupScreen({ navigation }) {
         <Text style={styles.loginText}>
           Already a member?{' '}
           <Text style={styles.loginLink} onPress={() => navigation.navigate('Login')}>
-            Go back
+            Log In
           </Text>
         </Text>
       </ScrollView>
@@ -205,6 +207,12 @@ const styles = StyleSheet.create({
   passwordInput: {
     flex: 1,
     paddingVertical: 10,
+  },
+  errorText: { 
+    color: '#c0392b', 
+    fontSize: 13, 
+    marginBottom: 10, 
+    textAlign: 'center' 
   },
   button: {
     backgroundColor: '#C17C74',
