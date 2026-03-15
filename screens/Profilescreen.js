@@ -7,17 +7,21 @@ export default function ProfileScreen() {
 
   return (
     <View style={styles.container}>
-
-      <Image
-        
-      />
-
-      <Text style={styles.name}>Aynour Mohamed </Text>
-      <Text style={styles.email}>Aynour@email.com</Text>
-
-      <TouchableOpacity style={styles.button}>
-        <Text style={styles.buttonText}>Edit Profile</Text>
-      </TouchableOpacity>
+      
+      {/* Profile Header */}
+      <View style={styles.header}>
+        <Image
+          source={require('../assets/avatar.jpg')} 
+          style={styles.avatar}
+        />
+        <View style={styles.userInfo}>
+          <Text style={styles.name}>Aynour ahmed</Text>
+          <Text style={styles.email}>Aynour@email.com</Text>
+        </View>
+        <TouchableOpacity style={styles.editButton}>
+          <Text style={styles.editButtonText}>Edit</Text>
+        </TouchableOpacity>
+      </View>
 
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Style Preferences</Text>
@@ -29,67 +33,67 @@ export default function ProfileScreen() {
         <Text>Your favorite looks will appear here</Text>
       </View>
 
+     
       <TouchableOpacity style={styles.logout} onPress={logOut}>
         <Text style={styles.logoutText}>Logout</Text>
       </TouchableOpacity>
-
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container:{
-    flex:1,
-    alignItems:"center",
-    backgroundColor:"#F5F5F5",
-    paddingTop:60
+  container: {
+    flex: 1,
+    backgroundColor: "#F5F5F5",
+    padding: 20,
   },
-
-  avatar:{
-    width:120,
-    height:120,
-    borderRadius:60,
-    marginBottom:10
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 30,
   },
-
-  name:{
-    fontSize:22,
-    fontWeight:"bold"
+  avatar: {
+    width: 90,
+    height: 90,
+    borderRadius: 45,
   },
-
-  email:{
-    color:"gray",
-    marginBottom:20
+  userInfo: {
+    flex: 1,
+    marginLeft: 15,
   },
-
-  button:{
-    backgroundColor:"#C17C74",
-    padding:10,
-    borderRadius:10,
-    marginBottom:20
+  name: {
+    fontSize: 22,
+    fontWeight: "bold",
   },
-
-  buttonText:{
-    color:"white"
+  email: {
+    color: "gray",
+    marginTop: 4,
   },
-
-  section:{
-    width:"80%",
-    marginTop:15
+  editButton: {
+    backgroundColor: "#C17C74",
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
   },
-
-  sectionTitle:{
-    fontSize:18,
-    fontWeight:"bold",
-    marginBottom:5
+  editButtonText: {
+    color: "white",
+    fontWeight: "bold",
   },
-
-  logout:{
-    marginTop:40
+  section: {
+    marginBottom: 20,
   },
-
-  logoutText:{
-    color:"#C17C74",
-    fontWeight:"bold"
-  }
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    marginBottom: 5,
+  },
+  logout: {
+    marginTop: 40,
+    alignItems: "center",
+  },
+  logoutText: {
+    color: "#C17C74",
+    fontWeight: "bold",
+    fontSize: 16,
+  },
 });
