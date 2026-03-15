@@ -9,12 +9,11 @@ export default function ProfileScreen() {
     <View style={styles.container}>
 
       <Image
-        source={{ uri: "https://i.pravatar.cc/150" }}
-        style={styles.avatar}
+        
       />
 
-      <Text style={styles.name}>Sophia Ahmed</Text>
-      <Text style={styles.email}>sophia@email.com</Text>
+      <Text style={styles.name}>Aynour Mohamed </Text>
+      <Text style={styles.email}>Aynour@email.com</Text>
 
       <TouchableOpacity style={styles.button}>
         <Text style={styles.buttonText}>Edit Profile</Text>
