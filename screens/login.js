@@ -1,27 +1,47 @@
 import { useContext, useState } from 'react';
-import { Image, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Image, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View, ActivityIndicator,} from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
 import { AuthContext } from '../App';
+import { login } from '../services/authService';
 
 export default function LoginScreen({ navigation }) {
-  const { signIn } = useContext(AuthContext);
+  const { logIn } = useContext(AuthContext);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
 
   const handleLogin = async () => {
+    setError("");
     if (!email || !password) {
-      alert('Please fill in all fields');
+      setError('Please fill in all fields');
       return;
     }
-    await signIn();
+    setLoading(true);
+    try{
+      const data = await login({email, password});
+      await logIn(data.access_token);
+    }
+    catch (err){
+      setError(err.message || "Login failed. Please try again.");
+    }
+    finally{
+      setLoading(false);
+    }
   };
 
   return (
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
       <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
         <StatusBar style="dark" />
+
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+        <FontAwesome name="arrow-left" size={18} color="#C17C74" />
+        <Text style={styles.backText}>Back</Text>
+        </TouchableOpacity>
 
         <Image
           source={require('../source/assets/images/Blacklogo.png')}
@@ -55,6 +75,9 @@ export default function LoginScreen({ navigation }) {
               <FontAwesome name={showPassword ? 'eye' : 'eye-slash'} size={20} color="gray" />
             </TouchableOpacity>
           </View>
+
+          {error ? <Text style={styles.errorText}>{error}</Text> : null}
+
 
           <TouchableOpacity style={styles.button} onPress={handleLogin}>
             <Text style={styles.buttonText}>Log In</Text>
@@ -137,6 +160,12 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: 10,
   },
+  errorText: { 
+    color: '#c0392b', 
+    fontSize: 13, 
+    marginBottom: 10, 
+    textAlign: 'center' 
+  },
   button: {
     backgroundColor: '#C17C74',
     padding: 12,
@@ -147,6 +176,16 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: '600',
   },
+  backButton: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    marginBottom: 10, 
+    gap: 6 
+  },
+backText: { 
+  color: '#C17C74', 
+  fontSize: 16 
+},
   forgot: {
     marginTop: 15,
     textDecorationLine: 'underline',

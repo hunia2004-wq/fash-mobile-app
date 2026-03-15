@@ -1,27 +1,42 @@
-import { useContext, useState } from 'react';
-import { Image, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { useState } from 'react';
+import { Image, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View, ActivityIndicator } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
-import { AuthContext } from '../App';
+
+import { signup } from '../services/authService';
 
 export default function SignupScreen({ navigation }) {
-  const { signUp } = useContext(AuthContext);
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleSignUp = async () => {
-    if (!email || !password || !confirmPassword) {
-      alert('Please fill in all fields');
+    setError("");
+    if (!name || !email || !password || !confirmPassword) {
+      setError('Please fill in all fields');
       return;
     }
     if (password !== confirmPassword) {
-      alert('Passwords do not match');
+      setError('Passwords do not match');
       return;
     }
-    navigation.navigate('Verification');
+    
+    setLoading(true);
+    try {
+    await signup({name, email, password});
+    navigation.navigate('Verification', {email});
+    }
+    catch (err) {
+      setError(err.message || "Sign up failed. Please try again");
+    }
+    finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -42,8 +57,19 @@ export default function SignupScreen({ navigation }) {
 
         <Text style={styles.title}>Create Account</Text>
         <Text style={styles.subtitle}>Sign up to get started with FASH!</Text>
-
+        
         <View style={styles.card}>
+
+          <Text style={styles.label}>Name</Text>
+          <TextInput
+          style={styles.input}
+          placeholder="Enter your name"
+          value={name}
+          onChangeText={setName}
+          autoCapitalize="words"
+          />
+
+
           <Text style={styles.label}>Email</Text>
           <TextInput
             style={styles.input}
@@ -82,8 +108,13 @@ export default function SignupScreen({ navigation }) {
             </TouchableOpacity>
           </View>
 
-          <TouchableOpacity style={styles.button} onPress={handleSignUp}>
-            <Text style={styles.buttonText}>Sign Up</Text>
+          {error ? <Text style={styles.errorText}>{error}</Text> : null}
+
+          <TouchableOpacity style={styles.button} onPress={handleSignUp} disabled={loading}> 
+            {loading
+              ? <ActivityIndicator color='#fff'/>
+              :  <Text style={styles.buttonText}>Sign Up</Text>
+            }
           </TouchableOpacity>
         </View>
 
@@ -104,7 +135,7 @@ export default function SignupScreen({ navigation }) {
         <Text style={styles.loginText}>
           Already a member?{' '}
           <Text style={styles.loginLink} onPress={() => navigation.navigate('Login')}>
-            Go back
+            Log In
           </Text>
         </Text>
       </ScrollView>
@@ -176,6 +207,12 @@ const styles = StyleSheet.create({
   passwordInput: {
     flex: 1,
     paddingVertical: 10,
+  },
+  errorText: { 
+    color: '#c0392b', 
+    fontSize: 13, 
+    marginBottom: 10, 
+    textAlign: 'center' 
   },
   button: {
     backgroundColor: '#C17C74',
