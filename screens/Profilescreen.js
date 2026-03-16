@@ -23,9 +23,14 @@ const MenuItem = ({ title }) => (
 
 export default function ProfileScreen() {
   const { logOut, getToken } = useContext(AuthContext);
+
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [avatar, setAvatar] = useState(null);
+
+  const [personalOpen, setPersonalOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [ordersOpen, setOrdersOpen] = useState(false);
 
   const avatarSize = width * 0.25;
 
@@ -85,7 +90,6 @@ export default function ProfileScreen() {
   return (
     <ScrollView style={styles.container}>
 
-      {/* Profile Header */}
       <View style={styles.content}>
 
         <TouchableOpacity onPress={pickImage} style={styles.avatarWrapper}>
@@ -136,69 +140,63 @@ export default function ProfileScreen() {
 
       </View>
 
-
-      {/* Profile Information */}
       <View style={styles.box}>
-        <Text style={styles.sectionTitle}>Profile Information</Text>
+        <TouchableOpacity
+          style={styles.dropdownHeader}
+          onPress={() => setPersonalOpen(!personalOpen)}
+        >
+          <Text style={styles.sectionTitle}>Personal Information</Text>
+          <Text>{personalOpen ? "▲" : "▼"}</Text>
+        </TouchableOpacity>
 
-        <MenuItem title="Full Name" />
-        <MenuItem title="Username" />
-        <MenuItem title="Bio" />
-        <MenuItem title="Phone Number" />
+        {personalOpen && (
+          <>
+            <MenuItem title="Full Name" />
+            <MenuItem title="Username" />
+            <MenuItem title="Email" />
+            <MenuItem title="Phone Number" />
+            <MenuItem title="Bio" />
+          </>
+        )}
       </View>
 
-
-      {/* Account Info */}
       <View style={styles.box}>
-        <Text style={styles.sectionTitle}>Account Information</Text>
+        <TouchableOpacity
+          style={styles.dropdownHeader}
+          onPress={() => setOrdersOpen(!ordersOpen)}
+        >
+          <Text style={styles.sectionTitle}>Order History</Text>
+          <Text>{ordersOpen ? "▲" : "▼"}</Text>
+        </TouchableOpacity>
 
-        <MenuItem title="Date Joined" />
-        <MenuItem title="Account Type" />
+        {ordersOpen && (
+          <>
+            <MenuItem title="View Orders" />
+            <MenuItem title="Track Orders" />
+            <MenuItem title="Returns" />
+          </>
+        )}
       </View>
 
-
-      {/* Settings */}
       <View style={styles.box}>
-        <Text style={styles.sectionTitle}>Settings</Text>
+        <TouchableOpacity
+          style={styles.dropdownHeader}
+          onPress={() => setSettingsOpen(!settingsOpen)}
+        >
+          <Text style={styles.sectionTitle}>Settings</Text>
+          <Text>{settingsOpen ? "▲" : "▼"}</Text>
+        </TouchableOpacity>
 
-        <MenuItem title="Change Password" />
-        <MenuItem title="Privacy Settings" />
-        <MenuItem title="Notification Settings" />
-        <MenuItem title="Language Preferences" />
+        {settingsOpen && (
+          <>
+            <MenuItem title="Change Password" />
+            <MenuItem title="Privacy Settings" />
+            <MenuItem title="Notification Settings" />
+            <MenuItem title="Language Preferences" />
+          </>
+        )}
       </View>
 
-
-      {/* Activity */}
-      <View style={styles.box}>
-        <Text style={styles.sectionTitle}>Activity</Text>
-
-        <MenuItem title="Orders" />
-        <MenuItem title="Favorites / Wishlist" />
-        <MenuItem title="Saved Items" />
-      </View>
-
-
-      {/* Security */}
-      <View style={styles.box}>
-        <Text style={styles.sectionTitle}>Security</Text>
-
-        <MenuItem title="Two-Factor Authentication" />
-        <MenuItem title="Login Devices" />
-        <MenuItem title="Connected Accounts" />
-      </View>
-
-
-      {/* Support */}
-      <View style={styles.box}>
-        <Text style={styles.sectionTitle}>Support</Text>
-
-        <MenuItem title="Help Center" />
-        <MenuItem title="Contact Support" />
-        <MenuItem title="FAQ" />
-      </View>
-
-
-      {/* Logout */}
       <TouchableOpacity style={styles.logoutbutton} onPress={logOut}>
         <Text style={styles.logoutbuttonText}>Logout</Text>
       </TouchableOpacity>
@@ -255,10 +253,15 @@ const styles = StyleSheet.create({
     marginBottom: 15
   },
 
+  dropdownHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center"
+  },
+
   sectionTitle: {
     fontSize: 16,
-    fontWeight: "bold",
-    marginBottom: 10
+    fontWeight: "bold"
   },
 
   menuItem: {
