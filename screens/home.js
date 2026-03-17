@@ -1,16 +1,10 @@
 import { useState } from 'react';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  ScrollView,
-  StyleSheet,
-  TextInput,
-  Image,
-  Dimensions
+import {View, Text, TouchableOpacity, ScrollView, StyleSheet, TextInput, Image, Dimensions
 } from 'react-native';
 import { FontAwesome, Ionicons, Feather } from '@expo/vector-icons';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import ProfileScreen from './profile'; 
+
 
 const { width } = Dimensions.get('window');
 const Tab = createBottomTabNavigator();
@@ -18,21 +12,23 @@ const Tab = createBottomTabNavigator();
 function HomeContent() {
 
   const boutiqueItems = [
-    { id: '1', label: 'Limited Editions', bid: true, image: require('../source/assets/images/bidnow.jpg') },
-    { id: '2', label: 'Newborn\nAccessories', bid: false, image: require('../source/assets/images/newborn.jpg') },
-    { id: '3', label: 'Exclusive\nFragrances', bid: false, image: require('../source/assets/images/perfume.jpg') },
+    { id: '1', label: 'Limited Editions', bid: true, image: require('../source/assets/images/bidnow.png') },
+    { id: '2', label: 'Newborn\nAccessories', bid: false, image: require('../source/assets/images/newborn.png') },
+    { id: '3', label: 'Exclusive\nFragrances', bid: false, image: require('../source/assets/images/perfume.png') },
+    { id: '4', label: 'Kids\nCostumes', bid: false, image: require('../source/assets/images/costumes2.png') },
+
   ];
 
   const sustainabilityItems = [
-    { id: '1', label: 'FASH\nPacking', image: require('../source/assets/images/packing.png') },
-    { id: '2', label: 'FASH\nDonation', image: require('../source/assets/images/donations.png') },
-    { id: '3', label: 'FASH\nRent &\nBorrow', image: require('../source/assets/images/borrow.png') },
+    { id: '1',  image: require('../source/assets/images/packing.png') },
+    { id: '2', image: require('../source/assets/images/donations.png') },
+    { id: '3', image: require('../source/assets/images/borrowcropped.png') },
   ];
 
   return (
     <ScrollView style={styles.screen} showsVerticalScrollIndicator={false}>
 
-      {/* HEADER */}
+      {/*header*/}
       <View style={styles.header}>
         <Image
           source={require('../source/assets/images/Blacklogo.png')}
@@ -41,12 +37,12 @@ function HomeContent() {
         />
       </View>
 
-      {/* SEARCH */}
+         {/*search*/}
       <View style={styles.searchRow}>
         <View style={styles.searchBar}>
-          <FontAwesome name="search" size={16} color="gray" style={{ marginRight: 8 }} />
+          <FontAwesome name="search" size={16} color="#C17C74" style={{ marginRight: 8 }} />
           <TextInput placeholder="Search" style={styles.searchInput} placeholderTextColor="gray" />
-          <FontAwesome name="microphone" size={16} color="gray" />
+          <FontAwesome name="microphone" size={16} color="#C17C74" />
         </View>
 
         <TouchableOpacity style={styles.filterBtn}>
@@ -54,23 +50,16 @@ function HomeContent() {
         </TouchableOpacity>
       </View>
 
-      {/* BANNER */}
+          {/*banner*/}
       <View style={styles.banner}>
         <Image
           source={require("../source/assets/images/headercropped.png")}
           style={styles.bannerImage}
           resizeMode="cover"
         />
-
-        <Text style={styles.bannerAR}>AR</Text>
-        <Text style={styles.bannerFASH}>FASH</Text>
-
-        <View style={styles.bannerTrialBadge}>
-          <Text style={styles.bannerTrialText}>TRIAL</Text>
-        </View>
       </View>
-
-      {/* DIGITAL CLOSET */}
+           
+           {/*first card*/}
       <Text style={styles.sectionTitle}>Your Digital Closet</Text>
 
       <View style={styles.closetRow}>
@@ -81,25 +70,39 @@ function HomeContent() {
             <Text style={styles.closetCardSub}>Organize &{"\n"}Visualize</Text>
           </View>
 
-          <Ionicons name="phone-portrait-outline" size={26} color="#222" />
+          <Image
+      source={require('../source/assets/images/wardrobecropped.png')}
+      style={styles.closetCardImage} 
+      resizeMode="contain"
+    />
         </TouchableOpacity>
 
+
+           {/*second card*/}
         <TouchableOpacity style={styles.closetCard}>
           <View>
             <Text style={styles.closetCardTitle}>AI Styling</Text>
             <Text style={styles.closetCardSub}>Smart Outfit Picks</Text>
           </View>
 
-          <Feather name="scissors" size={26} color="#222" />
+          <Image
+      source={require('../source/assets/images/aistyling.png')}
+      style={styles.closetCardImage} 
+      resizeMode="contain"
+    />
         </TouchableOpacity>
 
       </View>
 
-      {/* FASH BOUTIQUE */}
-      <Text style={styles.sectionTitle}>Fash Boutique</Text>
+      {/*boutique*/}
+      <Text style={styles.sectionTitle}>FASH Marketplace</Text>
 
-      <View style={styles.boutiqueRow}>
-        {boutiqueItems.map((item) => (
+      <ScrollView
+  horizontal
+  showsHorizontalScrollIndicator={false}
+  style={{ paddingLeft: 20 }}
+>
+  {boutiqueItems.map((item) => (
           <TouchableOpacity key={item.id} style={styles.boutiqueCard}>
 
             <Image
@@ -108,34 +111,58 @@ function HomeContent() {
               resizeMode="cover"
             />
 
-            <Ionicons
-              name="heart-outline"
-              size={18}
-              color="white"
-              style={styles.heartIcon}
-            />
-
-            {item.bid && (
-              <View style={styles.bidBadge}>
-                <Text style={styles.bidText}>Bid Now</Text>
-              </View>
-            )}
-
             <Text style={styles.boutiqueLabel}>{item.label}</Text>
 
           </TouchableOpacity>
         ))}
-      </View>
+      </ScrollView>
+        
+      <View style={styles.biddingSection}>
+  
+  <View style={styles.biddingHeader}>
+    <Text style={styles.liveDot}></Text>
+    <Text style={styles.biddingTitle}>LIVE BIDDING</Text>
+  </View>
 
-      {/* DOTS */}
-      <View style={styles.dots}>
-        <View style={styles.dot} />
-        <View style={[styles.dot, styles.activeDot]} />
-        <View style={styles.dot} />
-      </View>
+  <Text style={styles.biddingSubtitle}>
+    Bid on exclusive pieces before they're gone
+  </Text>
 
-      {/* SUSTAINABILITY HUB */}
-      <Text style={[styles.sectionTitle, { marginTop: 24 }]}>Sustainability Hub</Text>
+  <View style={styles.auctionRow}>
+
+    <TouchableOpacity style={styles.auctionCard}>
+      <Image
+        source={require("../source/assets/images/shoes.png")}
+        style={styles.auctionImage}
+        resizeMode="contain"
+      />
+      <Text style={styles.itemName}>YSL Heels</Text>
+      <Text style={styles.bidPrice}>Current bid: $400</Text>
+      <Text style={styles.bidTime}>1h left</Text>
+    </TouchableOpacity>
+
+    <TouchableOpacity style={styles.auctionCard}>
+      <Image
+        source={require("../source/assets/images/bag.png")}
+        style={styles.auctionImage}
+        resizeMode="contain"
+      />
+      <Text style={styles.itemName}>Miu Miu Bag</Text>
+      <Text style={styles.bidPrice}>Current bid: $345</Text>
+      <Text style={styles.bidTime}>2h left</Text>
+    </TouchableOpacity>
+
+  </View>
+
+
+  <TouchableOpacity style={styles.bidButton}>
+    <Text style={styles.bidButtonText}>Join the Auction</Text>
+  </TouchableOpacity>
+
+</View>
+
+      {/*sustainability*/}
+      <Text style={[styles.sectionTitle, { marginTop: 24 }]}>FASH Share</Text>
 
       <ScrollView
         horizontal
@@ -175,10 +202,6 @@ function WishlistScreen() {
   return <View style={styles.placeholder}><Text>Wishlist</Text></View>;
 }
 
-function ProfileScreen() {
-  return <View style={styles.placeholder}><Text>Profile</Text></View>;
-}
-
 export default function HomeScreen() {
   return (
     <Tab.Navigator
@@ -192,7 +215,7 @@ export default function HomeScreen() {
     >
 
       <Tab.Screen
-        name="Home"
+        name="HomeTab"
         component={HomeContent}
         options={{
           tabBarIcon: ({ color }) => (
@@ -204,11 +227,12 @@ export default function HomeScreen() {
       <Tab.Screen
         name="Upload"
         component={WardrobeScreen}
+        listeners={{
+          tabPress: e => e.preventDefault(), 
+        }}
         options={{
-          tabBarButton: () => (
-            <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-              <Ionicons name="shirt-outline" size={24} color="#999" />
-            </View>
+          tabBarIcon: ({ color }) => (
+            <Ionicons name="shirt-outline" size={24} color={color} />
           ),
         }}
       />
@@ -216,11 +240,12 @@ export default function HomeScreen() {
       <Tab.Screen
         name="SearchTab"
         component={SearchScreen}
+        listeners={{
+          tabPress: e => e.preventDefault(), 
+        }}
         options={{
-          tabBarButton: () => (
-            <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-              <Feather name="upload" size={24} color="#999" />
-            </View>
+          tabBarIcon: ({ color }) => (
+            <Feather name="upload" size={24} color={color} />
           ),
         }}
       />
@@ -228,11 +253,12 @@ export default function HomeScreen() {
       <Tab.Screen
         name="WishList"
         component={WishlistScreen}
+        listeners={{
+          tabPress: e => e.preventDefault(), 
+        }}
         options={{
-          tabBarButton: () => (
-            <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-              <Ionicons name="heart-outline" size={24} color="#999" />
-            </View>
+          tabBarIcon: ({ color }) => (
+            <Ionicons name="heart-outline" size={24} color={color} />
           ),
         }}
       />
@@ -251,11 +277,13 @@ export default function HomeScreen() {
   );
 }
 
+const boxSize = width * 0.45; 
+
 const styles = StyleSheet.create({
 
   screen:{
     flex:1,
-    backgroundColor:'#FAFAFA'
+    backgroundColor:'#F5F5F5'
   },
 
   placeholder:{
@@ -272,7 +300,7 @@ const styles = StyleSheet.create({
 
   logo:{
     width:120,
-    height:50
+    height:50,
   },
 
   searchRow:{
@@ -355,7 +383,7 @@ const styles = StyleSheet.create({
   sectionTitle:{
     fontSize:18,
     fontWeight:'600',
-    color:'#111',
+    color:'#C17C74',
     marginBottom:14,
     paddingHorizontal:20
   },
@@ -381,6 +409,10 @@ const styles = StyleSheet.create({
     shadowRadius:6,
     elevation:3
   },
+  closetCardImage: {
+    width: 80,
+    height: 80,
+  },
 
   closetCardTitle:{
     fontSize:15,
@@ -398,15 +430,15 @@ const styles = StyleSheet.create({
   boutiqueRow:{
     flexDirection:'row',
     paddingHorizontal:20,
-    justifyContent:'space-between'
   },
 
   boutiqueCard:{
-    width:width*0.28,
+    width: width * 0.35,
     height:170,
     borderRadius:16,
     overflow:'hidden',
-    justifyContent:'flex-end'
+    justifyContent:'flex-end',
+    marginRight:12
   },
 
   boutiqueImage:{
@@ -425,7 +457,8 @@ const styles = StyleSheet.create({
     color:'white',
     fontWeight:'600',
     fontSize:12,
-    padding:8
+    padding:8,
+    textAlign: "center",
   },
 
   bidBadge:{
@@ -463,20 +496,20 @@ const styles = StyleSheet.create({
   },
 
   sustainCard:{
-    width:140,
-    height:120,
-    borderRadius:18,
-    marginRight:12,
-    overflow:'hidden',
-    justifyContent:'center',
-    alignItems:'center'
-  },
+  width:140,
+  height:120,
+  borderRadius:18,
+  marginRight:12,
+  overflow:'hidden',
+  justifyContent:'center',
+  alignItems:'center'
+},
 
-  sustainImage:{
-    position:'absolute',
-    width:'100%',
-    height:'100%'
-  },
+sustainImage:{
+  position:'absolute',
+  width:'100%',
+  height:'100%'
+},
 
   sustainLabel:{
     color:'white',
@@ -496,6 +529,86 @@ const styles = StyleSheet.create({
     shadowOffset:{ width:0,height:-2 },
     shadowOpacity:0.08,
     shadowRadius:8
-  }
+  },
+
+  biddingSection: {
+    backgroundColor: "#F6E9E6",
+    padding: 18,
+    borderRadius: 16,
+    marginVertical: 20,
+    marginTop: 50,
+  },
+  
+  biddingHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 5
+  },
+  
+  liveDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: "red",
+    marginRight: 6
+  },
+  
+  biddingTitle: {
+    fontSize: 18,
+    fontWeight: "bold"
+  },
+  
+  biddingSubtitle: {
+    color: "#666",
+    marginBottom: 15
+  },
+  
+  auctionRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
+  
+  auctionCard: {
+    width: boxSize,
+    borderRadius: 12,
+    backgroundColor: "#F5F5F5",
+    overflow: "hidden",      
+    marginBottom: 20,
+  },
+  
+  auctionImage: {
+    width: "100%",            
+    height: boxSize * 0.65,   
+    borderTopLeftRadius: 12,
+    borderTopRightRadius: 12,
+  },
+  
+  itemName: {
+    fontWeight: "600",
+    marginTop: 6,
+    textAlign: "center",
+  },
+  
+  bidPrice: {
+    fontWeight: "bold",
+    color: "#C17C74",
+    textAlign: "center",
+  },
+  
+  bidTime: {
+    fontSize: 12,
+    color: "#888",
+    marginBottom: 20,
+    textAlign: "center",
+  },
+  bidButtonText: {
+    textAlign: "center",
+    padding: 15,
+    borderRadius: 10,
+    alignItems: "center",
+    backgroundColor: "white",
+    borderWidth: 1.5,
+    borderColor: "#C17C74",
+  },
 
 });
