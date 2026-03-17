@@ -15,7 +15,6 @@ function HomeContent() {
     { id: '1', label: 'Limited Editions', bid: true, image: require('../source/assets/images/bidnow.png') },
     { id: '2', label: 'Newborn\nAccessories', bid: false, image: require('../source/assets/images/newborn.png') },
     { id: '3', label: 'Exclusive\nFragrances', bid: false, image: require('../source/assets/images/perfume.png') },
-    { id: '4', label: 'Kids\nCostumes', bid: false, image: require('../source/assets/images/costumes2.png') },
 
   ];
 
@@ -391,12 +390,12 @@ const styles = StyleSheet.create({
   closetRow:{
     flexDirection:'row',
     paddingHorizontal:20,
-    gap:14,
+    justifyContent:'space-between',
     marginBottom:24
   },
 
   closetCard:{
-    flex:1,
+    width: width * 0.43,
     backgroundColor:'white',
     borderRadius:16,
     padding:16,
@@ -410,10 +409,9 @@ const styles = StyleSheet.create({
     elevation:3
   },
   closetCardImage: {
-    width: 80,
-    height: 80,
+    width: width * 0.18,
+    height: width * 0.18,
   },
-
   closetCardTitle:{
     fontSize:15,
     fontWeight:'600',
