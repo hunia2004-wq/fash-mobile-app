@@ -11,6 +11,18 @@ import VerificationScreen from './screens/verification';
 import WelcomeScreen from './screens/welcome';
 import HomeScreen from './screens/home';
 
+import EditProfileScreen from './screens/editpersonal';
+
+import SecurityScreen from './screens/security screens/securitymain';
+import TwoFactorAuthScreen from './screens/security screens/twofa';
+import LoginDevicesScreen from './screens/security screens/devices';
+import ConnectedAccountsScreen from './screens/security screens/accounts';
+
+import SupportScreen from './screens/support screens/supportmain';
+import HelpCenterScreen from './screens/support screens/helpcenter';
+import ContactSupportScreen from './screens/support screens/contact';
+import FAQScreen from './screens/support screens/faq';
+
 import { logout } from './services/authService';
 
 const Stack = createNativeStackNavigator();
@@ -99,20 +111,35 @@ export default function App() {
           {state.userToken == null ? (
             <>
               <Stack.Screen name="Welcome" component={WelcomeScreen} />
-              <Stack.Screen
-                name="Login"
-                component={LoginScreen}
+              <Stack.Screen name="Login" component={LoginScreen}
                 options={{
                   animationTypeForReplace: state.isSignout ? 'pop' : 'push',
                 }}
               />
+
               <Stack.Screen name="Signup" component={SignupScreen} />
               <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
               <Stack.Screen name="Verification" component={VerificationScreen} />
-            </>
+
+              </>
           ) : (
             <Stack.Screen name="Home" component={HomeScreen} />
           )}
+
+              <Stack.Screen name="EditProfileScreen" component={EditProfileScreen} />
+
+              <Stack.Screen name="SecurityScreen" component={SecurityScreen} options={{ headerShown: false }} />
+              <Stack.Screen name="TwoFactorAuthScreen" component={TwoFactorAuthScreen} options={{ headerShown: false }} />
+              <Stack.Screen name="LoginDevicesScreen" component={LoginDevicesScreen} options={{ headerShown: false }} />
+              <Stack.Screen name="ConnectedAccountsScreen" component={ConnectedAccountsScreen} options={{ headerShown: false }} />
+
+              <Stack.Screen name="SupportScreen" component={SupportScreen} options={{ headerShown: false }} />
+              <Stack.Screen name="HelpCenterScreen" component={HelpCenterScreen} options={{ headerShown: false }} />
+              <Stack.Screen name="ContactSupportScreen" component={ContactSupportScreen} options={{ headerShown: false }} />
+              <Stack.Screen name="FAQScreen" component={FAQScreen} options={{ headerShown: false }} />
+
+              
+           
         </Stack.Navigator>
       </NavigationContainer>
     </AuthContext.Provider>

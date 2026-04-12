@@ -1,12 +1,5 @@
 import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  TextInput,
-} from 'react-native';
+import {View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput,} from 'react-native';
 
 const articles = [
   { id: '1', title: 'How to place an order', desc: 'Step-by-step guide to buying items' },
@@ -80,8 +73,9 @@ const HelpCenterScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5EDE6',
+    backgroundColor: '#F5F5F5',
   },
+  
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -90,20 +84,24 @@ const styles = StyleSheet.create({
     paddingBottom: 12,
     gap: 10,
   },
+
   backBtn: {
     fontSize: 28,
-    color: '#8B5A5A',
+    color: '#C17C74',
     lineHeight: 32,
   },
+
   headerTitle: {
     fontSize: 17,
     fontWeight: '700',
-    color: '#2C1F1F',
+    color: '#C17C74',
   },
+
   scrollContent: {
     padding: 16,
     gap: 12,
   },
+
   searchInput: {
     backgroundColor: '#EDE0D8',
     borderRadius: 12,
@@ -111,6 +109,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#2C1F1F',
   },
+
   sectionLabel: {
     fontSize: 11,
     fontWeight: '700',
@@ -119,32 +118,39 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     marginLeft: 4,
   },
+
   card: {
-    backgroundColor: '#EDE0D8',
+    backgroundColor: '#F2E6E3',
     borderRadius: 16,
     overflow: 'hidden',
   },
+
   articleItem: {
     padding: 16,
   },
+
   articleBorder: {
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: 'rgba(140,100,100,0.2)',
   },
+
   articleTitle: {
     fontSize: 14,
     fontWeight: '600',
     color: '#2C1F1F',
   },
+
   articleDesc: {
     fontSize: 12,
     color: '#7A6060',
     marginTop: 2,
   },
+
   emptyState: {
     padding: 24,
     alignItems: 'center',
   },
+
   emptyText: {
     fontSize: 13,
     color: '#7A6060',

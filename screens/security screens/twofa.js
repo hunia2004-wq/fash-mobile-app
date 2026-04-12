@@ -1,12 +1,5 @@
 import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  Switch,
-} from 'react-native';
+import {View, Text, StyleSheet, ScrollView, TouchableOpacity, Switch,} from 'react-native';
 
 const TwoFactorAuthScreen = ({ navigation }) => {
   const [authApp, setAuthApp] = useState(true);
@@ -20,7 +13,8 @@ const TwoFactorAuthScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      {/* Header */}
+
+      {/* header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Text style={styles.backBtn}>‹</Text>
@@ -29,7 +23,8 @@ const TwoFactorAuthScreen = ({ navigation }) => {
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        {/* Info Box */}
+
+        {/* info box */}
         <View style={styles.infoBox}>
           <Text style={styles.infoText}>
             Two-factor authentication adds an extra layer of security to your account by requiring a
@@ -37,7 +32,7 @@ const TwoFactorAuthScreen = ({ navigation }) => {
           </Text>
         </View>
 
-        {/* Toggle Options */}
+        {/* toggle options */}
         <View style={styles.card}>
           <View style={styles.toggleRow}>
             <View style={styles.toggleLeft}>
@@ -79,7 +74,7 @@ const TwoFactorAuthScreen = ({ navigation }) => {
           </View>
         </View>
 
-        {/* Backup Section */}
+        {/* backup section */}
         <Text style={styles.sectionLabel}>Backup</Text>
         <View style={styles.card}>
           {backupOptions.map((item, index) => (
@@ -104,8 +99,9 @@ const TwoFactorAuthScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5EDE6',
+    backgroundColor: '#F5F5F5',
   },
+
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -114,49 +110,62 @@ const styles = StyleSheet.create({
     paddingBottom: 12,
     gap: 10,
   },
+
   backBtn: {
     fontSize: 28,
-    color: '#8B5A5A',
+    color: '#C17C74',
     lineHeight: 32,
   },
+
   headerTitle: {
     fontSize: 17,
     fontWeight: '700',
-    color: '#2C1F1F',
+    color: '#C17C74',
   },
+
   scrollContent: {
     padding: 16,
     gap: 12,
   },
+
   infoBox: {
-    backgroundColor: 'rgba(74,110,154,0.1)',
+    backgroundColor: '#F5F5F5',
     borderRadius: 12,
     padding: 14,
+    borderWidth: 1.5,
+    borderColor: "#C17C74",
   },
+
   infoText: {
     fontSize: 13,
-    color: '#4A6E9A',
+    color: '#C17C74',
     lineHeight: 20,
+    fontWeight: 'bold',
   },
+
   card: {
-    backgroundColor: '#EDE0D8',
+    backgroundColor: '#F2E6E3',
     borderRadius: 16,
     overflow: 'hidden',
   },
+
   toggleRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     padding: 16,
   },
+
   rowBorder: {
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: 'rgba(140,100,100,0.2)',
   },
+
   toggleLeft: {
     flex: 1,
     paddingRight: 12,
   },
+
   sectionLabel: {
     fontSize: 11,
     fontWeight: '700',
@@ -166,26 +175,31 @@ const styles = StyleSheet.create({
     marginLeft: 4,
     marginTop: 4,
   },
+
   listItem: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     padding: 16,
   },
+
   listItemBorder: {
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: 'rgba(140,100,100,0.2)',
   },
+
   itemTitle: {
     fontSize: 15,
     fontWeight: '500',
     color: '#2C1F1F',
   },
+
   itemSubtitle: {
     fontSize: 12,
     color: '#7A6060',
     marginTop: 2,
   },
+
   chevron: {
     fontSize: 20,
     color: '#7A6060',

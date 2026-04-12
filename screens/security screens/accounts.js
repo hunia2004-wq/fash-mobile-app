@@ -1,12 +1,5 @@
 import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  Alert,
-} from 'react-native';
+import {View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert,} from 'react-native';
 
 const ConnectedAccountsScreen = ({ navigation }) => {
   const [accounts, setAccounts] = useState([
@@ -35,7 +28,8 @@ const ConnectedAccountsScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      {/* Header */}
+
+      {/* header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Text style={styles.backBtn}>‹</Text>
@@ -59,12 +53,12 @@ const ConnectedAccountsScreen = ({ navigation }) => {
                 index < accounts.length - 1 && styles.rowBorder,
               ]}
             >
-              {/* Icon */}
+              {/* icon */}
               <View style={styles.accountIcon}>
                 <Text style={styles.accountIconText}>{account.icon}</Text>
               </View>
 
-              {/* Info */}
+              {/* info */}
               <View style={styles.accountInfo}>
                 <Text style={styles.accountName}>{account.name}</Text>
                 <Text
@@ -77,7 +71,7 @@ const ConnectedAccountsScreen = ({ navigation }) => {
                 </Text>
               </View>
 
-              {/* Button */}
+              {/* button */}
               <TouchableOpacity
                 style={[
                   styles.toggleBtn,
@@ -105,8 +99,9 @@ const ConnectedAccountsScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5EDE6',
+    backgroundColor: '#F5F5F5',
   },
+  
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -115,45 +110,57 @@ const styles = StyleSheet.create({
     paddingBottom: 12,
     gap: 10,
   },
+
   backBtn: {
     fontSize: 28,
-    color: '#8B5A5A',
+    color: '#C17C74',
     lineHeight: 32,
   },
+
   headerTitle: {
     fontSize: 17,
     fontWeight: '700',
-    color: '#2C1F1F',
+    color: '#C17C74',
   },
+
   scrollContent: {
     padding: 16,
     gap: 12,
   },
+
   infoBox: {
-    backgroundColor: 'rgba(140,100,100,0.08)',
+    backgroundColor: '#F5F5F5',
     borderRadius: 12,
     padding: 14,
+    borderWidth: 1.5,
+    borderColor: '#C17C74'
   },
+
   infoText: {
     fontSize: 13,
-    color: '#7A6060',
+    color: '#C17C74',
     lineHeight: 20,
+    fontWeight: 'bold',
   },
+
   card: {
-    backgroundColor: '#EDE0D8',
+    backgroundColor: '#F2E6E3',
     borderRadius: 16,
     overflow: 'hidden',
   },
+
   accountRow: {
     flexDirection: 'row',
     alignItems: 'center',
     padding: 14,
     gap: 12,
   },
+
   rowBorder: {
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: 'rgba(140,100,100,0.2)',
   },
+
   accountIcon: {
     width: 36,
     height: 36,
@@ -162,47 +169,59 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+
   accountIconText: {
     fontSize: 16,
     fontWeight: '700',
     color: '#2C1F1F',
   },
+
   accountInfo: {
     flex: 1,
   },
+
   accountName: {
     fontSize: 14,
     fontWeight: '600',
     color: '#2C1F1F',
   },
+
   accountStatus: {
     fontSize: 12,
     marginTop: 2,
   },
+
   statusConnected: {
     color: '#5A8B6A',
   },
+
   statusDisconnected: {
     color: '#7A6060',
   },
+
   toggleBtn: {
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 8,
   },
+
   btnConnect: {
     backgroundColor: 'rgba(90,139,106,0.15)',
   },
+
   btnDisconnect: {
     backgroundColor: 'rgba(192,68,74,0.1)',
   },
+
   toggleBtnText: {
     fontSize: 12,
     fontWeight: '600',
   },
+
   btnTextConnect: {
     color: '#5A8B6A',
   },
+  
   btnTextDisconnect: {
     color: '#C0444A',
   },

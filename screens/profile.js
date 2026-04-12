@@ -1,39 +1,41 @@
 import React, { useContext, useEffect, useState } from "react";
-import { View, Text, StyleSheet, Image, TouchableOpacity, ActivityIndicator, ScrollView, Dimensions } from "react-native";
+import {View, Text, StyleSheet, Image, TouchableOpacity, ActivityIndicator, ScrollView, Dimensions,} from "react-native";
 import { AuthContext } from "../App";
 import { getProfile } from "../services/authService";
 import * as ImagePicker from "expo-image-picker";
-import { Feather } from '@expo/vector-icons';
 
 const { width, height } = Dimensions.get("window");
+const avatarSize = width * 0.22;
 
-const MenuItem = ({ title }) => (
-    <TouchableOpacity style={styles.menuItem}>
-      <Text style={styles.menuText}>{title}</Text>
-    </TouchableOpacity>
-  );
+const InfoRow = ({ label, value }) => (
+  <View style={styles.infoRow}>
+    <Text style={styles.infoLabel}>{label}</Text>
+    <Text style={styles.infoValue} numberOfLines={1}>{value || "—"}</Text>
+  </View>
+);
 
-export default function ProfileScreen() {
+const MenuRow = ({ title, subtitle, onPress }) => (
+  <TouchableOpacity style={styles.menuRow} onPress={onPress} activeOpacity={0.7}>
+    <View style={styles.menuRowLeft}>
+      <Text style={styles.menuRowTitle}>{title}</Text>
+      {subtitle ? <Text style={styles.menuRowSubtitle}>{subtitle}</Text> : null}
+    </View>
+    <Text style={styles.menuRowChevron}>›</Text>
+  </TouchableOpacity>
+);
+
+
+export default function ProfileScreen({ navigation }) {
   const { logOut, getToken } = useContext(AuthContext);
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [avatar, setAvatar] = useState(null);
-
-  const [personalOpen, setPersonalOpen] = useState(false);
-  const [settingsOpen, setSettingsOpen] = useState(false);
-  const [ordersOpen, setOrdersOpen] = useState(false);
-  const [activityOpen, setActivityOpen] = useState(false);
-  const [securityOpen, setSecurityOpen] = useState(false);
-  const [supportOpen, setSupportOpen] = useState(false);
-
-  const avatarSize = width * 0.25; 
 
   useEffect(() => {
     const fetchProfile = async () => {
       try {
         const token = await getToken();
         if (!token) return;
-
         const profile = await getProfile(token);
         setUser(profile);
       } catch (e) {
@@ -45,9 +47,21 @@ export default function ProfileScreen() {
     fetchProfile();
   }, []);
 
+  useEffect(() => {
+    const unsubscribe = navigation.addListener("focus", async () => {
+      try {
+        const token = await getToken();
+        if (!token) return;
+        const profile = await getProfile(token);
+        setUser(profile);
+      } catch (e) {}
+    });
+    return unsubscribe;
+  }, [navigation]);
+
   const pickImage = async () => {
-    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!permissionResult.granted) {
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permission.granted) {
       alert("Permission is required to choose an image!");
       return;
     }
@@ -71,17 +85,17 @@ export default function ProfileScreen() {
   if (!user) {
     return (
       <View style={styles.centered}>
-          Failed to load profile.
+        <Text style={{ color: "#7A6060" }}>Failed to load profile.</Text>
       </View>
     );
   }
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-
-
-      {/*profile header*/}
-      <View style={styles.content}>
+    <ScrollView
+      contentContainerStyle={styles.container}
+      showsVerticalScrollIndicator={false}
+    >
+      <View style={styles.heroSection}>
         <TouchableOpacity onPress={pickImage} style={styles.avatarWrapper}>
           <Image
             source={
@@ -89,233 +103,249 @@ export default function ProfileScreen() {
                 ? { uri: avatar }
                 : require("../source/assets/images/avatar.jpg")
             }
-            style={{
-                width: avatarSize,
-                height: avatarSize,
-                borderRadius: avatarSize / 2,
-              }}          
-              />
-            <View     
-            style={{
-              position: "absolute",
-              bottom: 0,
-              right: 0,
-              backgroundColor: "#C17C74",
-              width: avatarSize * 0.25,
-              height: avatarSize * 0.25,
-              borderRadius: (avatarSize * 0.25) / 2,
-              justifyContent: "center",
-              alignItems: "center",
-            }}
-          >           
-           <Text
-              style={{
-                color: "white",
-                fontWeight: "bold",
-                fontSize: avatarSize * 0.2,
-              }}
-            >
-              +</Text>
+            style={styles.avatar}
+          />
+          <View style={styles.avatarBadge}>
+            <Text style={styles.avatarBadgeText}>+</Text>
           </View>
         </TouchableOpacity>
 
-          <Text style={styles.name}>{user.name}</Text>
-          <Text style={styles.email}>{user.email}</Text>
-        </View>
+        <Text style={styles.name}>{user.name}</Text>
+        <Text style={styles.email}>{user.email}</Text>
 
-        {/*edit button*/}
-        <TouchableOpacity style={styles.editButton}>
-        <Feather name="edit-2" size={16} color="white" />
+        <TouchableOpacity
+          style={styles.editButton}
+          onPress={() => navigation.navigate("EditProfileScreen", { user })}
+        >
           <Text style={styles.editButtonText}>Edit Profile</Text>
         </TouchableOpacity>
-
-
-      <View style={styles.box}>
-        <TouchableOpacity
-          style={styles.dropdownHeader}
-          onPress={() => setPersonalOpen(!personalOpen)}
-        >
-          <Text style={styles.sectionTitle}>Personal Information</Text>
-          <Text>{personalOpen ? "▲" : "▼"}</Text>
-        </TouchableOpacity>
-
-        {personalOpen && (
-          <>
-            <MenuItem title="Full Name:" />
-            <MenuItem title="Username:" />
-            <MenuItem title="Email:" />
-            <MenuItem title="Phone Number:" />
-            <MenuItem title="Bio:" />
-          </>
-        )}
       </View>
 
+      {/* profile information */}
+      <View style={styles.card}>
+        <Text style={styles.cardSectionLabel}>Profile Information</Text>
 
-      <View style={styles.box}>
-        <TouchableOpacity
-          style={styles.dropdownHeader}
-          onPress={() => setOrdersOpen(!ordersOpen)}
-        >
-          <Text style={styles.sectionTitle}>Order History</Text>
-          <Text>{ordersOpen ? "▲" : "▼"}</Text>
-        </TouchableOpacity>
+        <InfoRow label="Full Name" value={user.name} />
+        <InfoRow label="Username" value={user.username} />
+        <InfoRow label="Bio" value={user.bio} />
+        <InfoRow label="Phone" value={user.phone} />
 
-        {ordersOpen && (
-          <>
-            <MenuItem title="View Orders" />
-            <MenuItem title="Track Orders" />
-            <MenuItem title="Returns" />
-          </>
-        )}
+        <View style={styles.cardDivider} />
+
+        {/* account information */}
+        <Text style={styles.cardSectionLabel}>Account Information</Text>
+
+        <InfoRow label="Email" value={user.email} />
+        <InfoRow label="Date Joined" value={user.date_joined} />
+        <InfoRow label="Account Type" value={user.account_type || "Standard"} />
       </View>
 
-      <View style={styles.box}>
-        <TouchableOpacity
-          style={styles.dropdownHeader}
-          onPress={() => setSettingsOpen(!settingsOpen)}
-        >
-          <Text style={styles.sectionTitle}>Settings</Text>
-          <Text>{settingsOpen ? "▲" : "▼"}</Text>
-        </TouchableOpacity>
+      {/* settings */}
+      <View style={styles.card}>
+        <MenuRow
+          title="Settings"
+          subtitle="Password, Privacy, Notifications, Languages"
+          onPress={() => navigation.navigate("SettingsScreen")}
+        />
 
-        {settingsOpen && (
-          <>
-            <MenuItem title="Change Password" />
-            <MenuItem title="Privacy Settings" />
-            <MenuItem title="Notification Settings" />
-            <MenuItem title="Language Preferences" />
-          </>
-        )}
+        {/* activity */}
+        <View style={styles.rowDivider} />
+        <MenuRow
+          title="Activity"
+          subtitle="Orders, Favorites, Saved items"
+          onPress={() => navigation.navigate("ActivityScreen")}
+        />
+
+        {/* security */}
+        <View style={styles.rowDivider} />
+        <MenuRow
+          title="Security"
+          subtitle="2FA, Login devices, Connected accounts"
+          onPress={() => navigation.navigate("SecurityScreen")}
+        />
+
+        {/* support */}
+        <View style={styles.rowDivider} />
+        <MenuRow
+          title="Support"
+          subtitle="Help Center, Contact support, FAQ"
+          onPress={() => navigation.navigate("SupportScreen")}
+        />
       </View>
 
-<View style={styles.box}>
-  <TouchableOpacity
-    style={styles.dropdownHeader}
-    onPress={() => setActivityOpen(!activityOpen)}
-  >
-    <Text style={styles.sectionTitle}>Activity</Text>
-    <Text>{activityOpen ? "▲" : "▼"}</Text>
-  </TouchableOpacity>
-  {activityOpen && (
-    <>
-      <MenuItem title="Orders" />
-      <MenuItem title="Favorites / Wishlist" />
-      <MenuItem title="Saved Items" />
-    </>
-  )}
-</View>
-
-<View style={styles.box}>
-  <TouchableOpacity
-    style={styles.dropdownHeader}
-    onPress={() => setSecurityOpen(!securityOpen)}
-  >
-    <Text style={styles.sectionTitle}>Security</Text>
-    <Text>{securityOpen ? "▲" : "▼"}</Text>
-  </TouchableOpacity>
-  {securityOpen && (
-    <>
-      <MenuItem title="Two-Factor Authentication" />
-      <MenuItem title="Login Devices" />
-      <MenuItem title="Connected Accounts" />
-    </>
-  )}
-</View>
-
-<View style={styles.box}>
-  <TouchableOpacity
-    style={styles.dropdownHeader}
-    onPress={() => setSupportOpen(!supportOpen)}
-  >
-    <Text style={styles.sectionTitle}>Support</Text>
-    <Text>{supportOpen ? "▲" : "▼"}</Text>
-  </TouchableOpacity>
-  {supportOpen && (
-    <>
-      <MenuItem title="Help Center" />
-      <MenuItem title="Contact Support" />
-      <MenuItem title="FAQ" />
-    </>
-  )}
-</View>
-
-
-      <TouchableOpacity style={styles.logoutbutton} onPress={logOut}>
-        <Text style={styles.logoutbuttonText}>Logout</Text>
+      {/* logout button */}
+      <TouchableOpacity style={styles.logoutButton} onPress={logOut}>
+        <Text style={styles.logoutButtonText}>Logout</Text>
       </TouchableOpacity>
+
+      <View style={{ height: 32 }} />
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flexGrow: 1,
-        padding: 20,
-        backgroundColor: "#F5F5F5",        
-      },
-      content: {
-        alignItems: "center",
-        flex: 1,
-        justifyContent: "flex-start",
-        marginTop: height * 0.15, // push avatar & name lower
-      },
-      avatarWrapper: {
-        marginBottom: 20,
-      },
-      userInfoContainer: {
-        alignItems: "center",
-        marginTop: 10,
-      },
-  name: {
-    fontSize: 24,
+  container: {
+    flexGrow: 1,
+    padding: 20,
+    backgroundColor: "#F5F5F5",        
+  },
+
+  content: {
+    alignItems: "center",
+    flex: 1,
+    justifyContent: "flex-start",
+    marginTop: height * 0.15, // push avatar & name lower
+  },
+
+  centered: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#F5EDE6",
+  },
+
+  heroSection: {
+    alignItems: "center",
+    paddingTop: height * 0.08,
+    paddingBottom: 24,
+  },
+
+  avatarWrapper: {
+    marginBottom: 14,
+  },
+
+  avatar: {
+    width: avatarSize,
+    height: avatarSize,
+    borderRadius: avatarSize / 2,
+  },
+
+  avatarBadge: {
+    position: "absolute",
+    bottom: 0,
+    right: 0,
+    backgroundColor: "#C17C74",
+    width: avatarSize * 0.28,
+    height: avatarSize * 0.28,
+    borderRadius: (avatarSize * 0.28) / 2,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+
+  avatarBadgeText: {
+    color: "white",
     fontWeight: "bold",
+    fontSize: avatarSize * 0.18,
+  },
+
+  name: {
+    fontSize: 22,
+    fontWeight: "700",
+    color: "#2C1F1F",
     marginBottom: 4,
   },
+
   email: {
-    color: "gray",
-    marginTop: 8,
+    fontSize: 13,
+    color: "black",
     marginBottom: 16,
   },
+
   editButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    alignSelf: "flex-end",
+    alignSelf: "center",
     backgroundColor: "#C17C74",
-    paddingHorizontal: 15,
-    paddingVertical: 8,
-    borderRadius: 8,
-    gap: 6,
-    marginBottom: 15
+    paddingHorizontal: 40,
+    paddingVertical: 10,
+    borderRadius: 10,
+    marginBottom: 15,
   },
+
   editButtonText: {
     color: "white",
     fontWeight: "bold",
   },
-  box: {
+
+  card: {
     backgroundColor: "#F2E6E3",
-    borderRadius: 12,
-    padding: 15,
-    marginBottom: 15,
-    marginTop: 5,
-  },
-sectionTitle: {
-    fontSize: 16,
-    fontWeight: "bold",
-    marginBottom: 10
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    marginBottom: 14,
   },
 
-  menuItem: {
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: "#e5d6d2"
+  cardSectionLabel: {
+    fontSize: 11,
+    fontWeight: "700",
+    color: "black",
+    letterSpacing: 0.8,
+    textTransform: "uppercase",
+    marginBottom: 10,
+    marginTop: 4,
   },
 
-  menuText: {
+  cardDivider: {
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: "rgba(140,100,100,0.3)",
+    marginVertical: 14,
+  },
+
+  infoRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingVertical: 10,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: "rgba(140,100,100,0.15)",
+  },
+
+  infoLabel: {
+    fontSize: 13,
+    color: "black",
+    flex: 1,
+  },
+
+  infoValue: {
+    fontSize: 13,
+    color: "#2C1F1F",
+    fontWeight: "500",
+    flex: 2,
+    textAlign: "right",
+  },
+
+  menuRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingVertical: 13,
+  },
+
+  menuRowLeft: {
+    flex: 1,
+  },
+
+  menuRowTitle: {
     fontSize: 15,
-    color: "#333"
+    fontWeight: "600",
+    color: "#2C1F1F",
   },
 
-  logoutbutton: {
+  menuRowSubtitle: {
+    fontSize: 12,
+    color: "#7A6060",
+    marginTop: 2,
+  },
+
+  menuRowChevron: {
+    fontSize: 20,
+    color: "#B09090",
+  },
+
+  rowDivider: {
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: "rgba(140,100,100,0.15)",
+  },
+
+  logoutButton: {
     padding: 15,
     borderRadius: 10,
     alignItems: "center",
@@ -323,20 +353,10 @@ sectionTitle: {
     borderWidth: 1.5,
     borderColor: "#C17C74",
   },
-  logoutbuttonText: {
+
+  logoutButtonText: {
     color: "#C17C74",
     fontWeight: "bold",
     fontSize: 16,
-  },
-  centered: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "#F5F5F5",
-  },
-  dropdownHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
   },
 });

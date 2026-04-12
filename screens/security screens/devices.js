@@ -1,12 +1,5 @@
 import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  Alert,
-} from 'react-native';
+import {View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert,} from 'react-native';
 
 const LoginDevicesScreen = ({ navigation }) => {
   const [devices, setDevices] = useState([
@@ -104,8 +97,9 @@ const LoginDevicesScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5EDE6',
+    backgroundColor: '#F5F5F5',
   },
+
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -114,20 +108,24 @@ const styles = StyleSheet.create({
     paddingBottom: 12,
     gap: 10,
   },
+
   backBtn: {
     fontSize: 28,
-    color: '#8B5A5A',
+    color: '#C17C74',
     lineHeight: 32,
   },
+
   headerTitle: {
     fontSize: 17,
     fontWeight: '700',
-    color: '#2C1F1F',
+    color: '#C17C74',
   },
+
   scrollContent: {
     padding: 16,
     gap: 12,
   },
+
   sectionLabel: {
     fontSize: 11,
     fontWeight: '700',
@@ -137,39 +135,47 @@ const styles = StyleSheet.create({
     marginLeft: 4,
     marginBottom: 4,
   },
+
   card: {
-    backgroundColor: '#EDE0D8',
+    backgroundColor: '#F2E6E3',
     borderRadius: 16,
     overflow: 'hidden',
   },
+
   deviceItem: {
     padding: 16,
   },
+
   deviceBorder: {
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: 'rgba(140,100,100,0.2)',
   },
+
   deviceName: {
     fontSize: 14,
     fontWeight: '600',
     color: '#2C1F1F',
   },
+
   deviceMeta: {
     fontSize: 12,
     color: '#7A6060',
     marginTop: 2,
   },
+
   currentLabel: {
     fontSize: 12,
     color: '#5A8B6A',
     fontWeight: '600',
     marginTop: 4,
   },
+
   removeBtn: {
     fontSize: 12,
     color: '#C0444A',
     marginTop: 4,
   },
+
   dangerBtn: {
     backgroundColor: 'rgba(192,68,74,0.1)',
     borderWidth: 1,
@@ -178,6 +184,7 @@ const styles = StyleSheet.create({
     padding: 14,
     alignItems: 'center',
   },
+  
   dangerBtnText: {
     fontSize: 14,
     fontWeight: '600',

@@ -1,14 +1,5 @@
 import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  LayoutAnimation,
-  Platform,
-  UIManager,
-} from 'react-native';
+import {View, Text, StyleSheet, ScrollView, TouchableOpacity, LayoutAnimation, Platform, UIManager,} from 'react-native';
 
 if (Platform.OS === 'android') {
   UIManager.setLayoutAnimationEnabledExperimental?.(true);
@@ -99,8 +90,9 @@ const FAQScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5EDE6',
+    backgroundColor: '#F5F5F5',
   },
+
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -109,36 +101,44 @@ const styles = StyleSheet.create({
     paddingBottom: 12,
     gap: 10,
   },
+
   backBtn: {
     fontSize: 28,
-    color: '#8B5A5A',
+    color: '#C17C74',
     lineHeight: 32,
   },
+
   headerTitle: {
     fontSize: 17,
     fontWeight: '700',
-    color: '#2C1F1F',
+    color: '#C17C74',
   },
+
   scrollContent: {
     padding: 16,
   },
+
   card: {
-    backgroundColor: '#EDE0D8',
+    backgroundColor: '#F2E6E3',
     borderRadius: 16,
     overflow: 'hidden',
   },
+
   faqItem: {
     padding: 16,
   },
+
   faqBorder: {
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: 'rgba(140,100,100,0.2)',
   },
+
   questionRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
   },
+
   questionText: {
     fontSize: 14,
     fontWeight: '600',
@@ -146,10 +146,12 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingRight: 8,
   },
+
   chevron: {
     fontSize: 18,
     color: '#7A6060',
   },
+
   answerText: {
     fontSize: 13,
     color: '#7A6060',

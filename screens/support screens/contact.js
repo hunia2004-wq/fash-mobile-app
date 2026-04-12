@@ -1,13 +1,5 @@
 import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  TextInput,
-  Alert,
-} from 'react-native';
+import {View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Alert,} from 'react-native';
 
 const SUBJECTS = ['Order issue', 'Payment problem', 'Account access', 'Delivery issue', 'Other'];
 
@@ -29,7 +21,8 @@ const ContactSupportScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      {/* Header */}
+
+      {/* header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Text style={styles.backBtn}>‹</Text>
@@ -38,14 +31,15 @@ const ContactSupportScreen = ({ navigation }) => {
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
-        {/* Info Box */}
+
+        {/* info box */}
         <View style={styles.infoBox}>
           <Text style={styles.infoText}>
             We aim to reply within 24 hours. For urgent issues, call +1 (800) 000-0000.
           </Text>
         </View>
 
-        {/* Subject Picker */}
+        {/* subject picker */}
         <View style={styles.formGroup}>
           <Text style={styles.formLabel}>Subject</Text>
           <TouchableOpacity
@@ -75,7 +69,7 @@ const ContactSupportScreen = ({ navigation }) => {
           )}
         </View>
 
-        {/* Order Number */}
+        {/* order number */}
         <View style={styles.formGroup}>
           <Text style={styles.formLabel}>Order number (optional)</Text>
           <TextInput
@@ -87,7 +81,7 @@ const ContactSupportScreen = ({ navigation }) => {
           />
         </View>
 
-        {/* Message */}
+        {/* message */}
         <View style={styles.formGroup}>
           <Text style={styles.formLabel}>Describe your issue</Text>
           <TextInput
@@ -101,7 +95,7 @@ const ContactSupportScreen = ({ navigation }) => {
           />
         </View>
 
-        {/* Attach Photo */}
+        {/* attach photo */}
         <View style={styles.formGroup}>
           <Text style={styles.formLabel}>Attach a photo (optional)</Text>
           <TouchableOpacity style={styles.uploadBox}>
@@ -109,7 +103,7 @@ const ContactSupportScreen = ({ navigation }) => {
           </TouchableOpacity>
         </View>
 
-        {/* Send Button */}
+        {/* send button */}
         <TouchableOpacity style={styles.sendBtn} onPress={handleSend}>
           <Text style={styles.sendBtnText}>Send Message</Text>
         </TouchableOpacity>
@@ -121,8 +115,9 @@ const ContactSupportScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5EDE6',
+    backgroundColor: '#F5F5F5',
   },
+
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -131,40 +126,51 @@ const styles = StyleSheet.create({
     paddingBottom: 12,
     gap: 10,
   },
+
   backBtn: {
     fontSize: 28,
-    color: '#8B5A5A',
+    color: '#C17C74',
     lineHeight: 32,
   },
+
   headerTitle: {
     fontSize: 17,
     fontWeight: '700',
-    color: '#2C1F1F',
+    color: '#C17C74',
   },
+
   scrollContent: {
     padding: 16,
     gap: 12,
   },
+
   infoBox: {
-    backgroundColor: 'rgba(74,110,154,0.1)',
+    backgroundColor: ' #F5F5F5',
     borderRadius: 12,
     padding: 14,
+    borderWidth: 1.5,
+    borderColor: "#C17C74",
   },
+
   infoText: {
     fontSize: 13,
-    color: '#4A6E9A',
+    color: "#C17C74",
+    fontWeight: "bold",
     lineHeight: 20,
   },
+
   formGroup: {
     gap: 6,
   },
+
   formLabel: {
     fontSize: 12,
-    color: '#7A6060',
+    color: '#C17C74',
     fontWeight: '500',
   },
+
   input: {
-    backgroundColor: '#EDE0D8',
+    backgroundColor: '#F2E6E3',
     borderRadius: 12,
     padding: 12,
     fontSize: 14,
@@ -173,50 +179,60 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
   },
+
   inputText: {
     fontSize: 14,
     color: '#2C1F1F',
   },
+
   chevron: {
     fontSize: 11,
     color: '#7A6060',
   },
+
   textarea: {
     height: 100,
     alignItems: 'flex-start',
   },
+
   pickerDropdown: {
     backgroundColor: '#EDE0D8',
     borderRadius: 12,
     overflow: 'hidden',
     marginTop: 4,
   },
+
   pickerOption: {
     padding: 12,
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: 'rgba(140,100,100,0.2)',
   },
+
   pickerOptionText: {
     fontSize: 14,
     color: '#2C1F1F',
   },
+
   pickerSelected: {
     color: '#8B5A5A',
     fontWeight: '600',
   },
+
   uploadBox: {
     borderWidth: 1,
-    borderColor: '#B07070',
+    borderColor: '#C17C74',
     borderStyle: 'dashed',
     borderRadius: 12,
     padding: 16,
     alignItems: 'center',
   },
+
   uploadText: {
     fontSize: 13,
-    color: '#8B5A5A',
+    color: '#C17C74',
     fontWeight: '500',
   },
+
   sendBtn: {
     backgroundColor: '#B07070',
     borderRadius: 12,
@@ -224,6 +240,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 4,
   },
+
   sendBtnText: {
     fontSize: 15,
     fontWeight: '600',
