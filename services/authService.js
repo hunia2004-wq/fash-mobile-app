@@ -1,4 +1,4 @@
-const BASE_URL = "https://nestjs-auth-api-production-90fc.up.railway.app/api/v1";
+const BASE_URL = "https://fash-backend-cp3n.vercel.app/api/v1";
 
 async function request(endpoint, options ={}) {
     const {headers: customHeaders, ...restOptions } = options;
