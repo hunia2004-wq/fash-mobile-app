@@ -1,6 +1,7 @@
 import { View, StyleSheet } from 'react-native';
 import { Text, TextInput, Button } from 'react-native-paper';
 import { useState } from 'react';
+import { View, StyleSheet, KeyboardAvoidingView, Platform } from 'react-native';
 
 export default function Profile() {
   const [name, setName] = useState('');
@@ -16,7 +17,14 @@ export default function Profile() {
         onChangeText={setName}
         style={styles.input}
       />
-
+<KeyboardAvoidingView
+  style={{ flex: 1 }}
+  behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+>
+  <View style={styles.container}>
+    ...
+  </View>
+</KeyboardAvoidingView>
       <TextInput
         label="Email"
         value={email}
