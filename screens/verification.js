@@ -2,7 +2,7 @@ import { useContext, useState } from 'react';
 import { Image, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View, ActivityIndicator } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
-import { AuthContext } from '../App';
+import { AuthContext } from '../context/AuthContext';
 import { verifyOtp, verifyResetOtp } from '../services/authService';
 
 

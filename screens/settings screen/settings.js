@@ -9,6 +9,8 @@ const SettingsScreen = ({ navigation }) => {
     { id: 'notifications', title: 'Notifications', subtitle: 'Push and email alerts', screen: 'NotificationsScreen' },
     { id: 'language', title: 'Language', subtitle: 'English, Arabic', screen: 'LanguagesScreen' },
     { id: 'privacy', title: 'Privacy Settings', subtitle: 'Control your data', screen: 'PrivacyScreen' },
+    { id: 'cards', title: 'Saved Cards', subtitle: 'Your Saved Cards', screen: 'CardsScreen' },
+    { id: 'address', title: 'Saved Addresses', subtitle: 'Your addresses', screen: 'AddressScreen' },
   ];
 
   return (

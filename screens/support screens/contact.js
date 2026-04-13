@@ -1,23 +1,39 @@
 import React, { useState } from 'react';
 import {View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Alert,} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useContext } from 'react';
+import { ActivityIndicator } from 'react-native';
+import { AuthContext } from '../../context/AuthContext';
+import { contactSupport } from '../../services/authService';
 
 const SUBJECTS = ['Order issue', 'Payment problem', 'Account issue', 'Delivery issue', 'Help Request', 'Report a problem', 'Other'];
 
 const ContactSupportScreen = ({ navigation }) => {
+  const { getToken } = useContext(AuthContext);  // ← add this
   const [subject, setSubject] = useState(SUBJECTS[0]);
   const [orderNumber, setOrderNumber] = useState('');
   const [message, setMessage] = useState('');
   const [showSubjectPicker, setShowSubjectPicker] = useState(false);
+  const [sending, setSending] = useState(false);  // ← add this
 
-  const handleSend = () => {
+
+  const handleSend = async () => {
     if (!message.trim()) {
       Alert.alert('Missing info', 'Please describe your issue before sending.');
       return;
     }
-    Alert.alert('Message Sent', "We'll get back to you within 24 hours.", [
-      { text: 'OK', onPress: () => navigation.goBack() },
-    ]);
+    setSending(true);
+    try {
+      const token = await getToken();
+      await contactSupport(token, { subject, orderNumber, message });
+      Alert.alert('Message Sent', "We'll get back to you within 24 hours.", [
+        { text: 'OK', onPress: () => navigation.goBack() },
+      ]);
+    } catch (e) {
+      Alert.alert('Error', e.message || 'Failed to send message. Please try again.');
+    } finally {
+      setSending(false);
+    }
   };
 
   return (
@@ -105,9 +121,14 @@ const ContactSupportScreen = ({ navigation }) => {
         </View>
 
         {/* send button */}
-        <TouchableOpacity style={styles.sendBtn} onPress={handleSend}>
-          <Text style={styles.sendBtnText}>Send Message</Text>
+        <TouchableOpacity style={styles.sendBtn} onPress={handleSend} disabled={sending}>
+         {sending
+         ? <ActivityIndicator color="#fff" />
+         : <Text style={styles.sendBtnText}>Send Message</Text>
+         }
         </TouchableOpacity>
+
+
       </ScrollView>
     </SafeAreaView>
   );

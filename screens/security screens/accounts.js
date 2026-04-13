@@ -1,14 +1,35 @@
-import React, { useState } from 'react';
-import {View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert,} from 'react-native';
+import React, { useContext, useEffect, useState } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { AuthContext } from '../../context/AuthContext';
+import { getConnectedAccounts } from '../../services/authService';
 
 const ConnectedAccountsScreen = ({ navigation }) => {
-  const [accounts, setAccounts] = useState([
-    { id: 'google', name: 'Google', icon: 'G', connected: true },
-    { id: 'facebook', name: 'Facebook', icon: 'f', connected: true },
-    { id: 'twitter', name: 'X (Twitter)', icon: '𝕏', connected: false },
-    { id: 'apple', name: 'Apple', icon: '', connected: false },
-  ]);
+  const { getToken } = useContext(AuthContext);
+  const [accounts, setAccounts] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchAccounts = async () => {
+      try {
+        const token = await getToken();
+        const data = await getConnectedAccounts(token);
+        setAccounts(Array.isArray(data) ? data : data.accounts || []);
+      } catch (e) {
+        // if API fails, fall back to default list
+        setAccounts([
+          { id: 'google', name: 'Google', icon: 'G', connected: false },
+          { id: 'facebook', name: 'Facebook', icon: 'f', connected: false },
+          { id: 'twitter', name: 'X (Twitter)', icon: '𝕏', connected: false },
+          { id: 'apple', name: 'Apple', icon: '', connected: false },
+        ]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchAccounts();
+  }, []);
+
 
   const handleToggle = (id) => {
     const account = accounts.find((a) => a.id === id);
@@ -26,6 +47,24 @@ const ConnectedAccountsScreen = ({ navigation }) => {
       },
     ]);
   };
+
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => navigation.goBack()}>
+            <Text style={styles.backBtn}>‹</Text>
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Connected Accounts</Text>
+          <View style={{ width: 40 }} />
+        </View>
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+          <ActivityIndicator size="large" color="#C17C74" />
+        </View>
+      </SafeAreaView>
+    );
+  }
+
 
   return (
 

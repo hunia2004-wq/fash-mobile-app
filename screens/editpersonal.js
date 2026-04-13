@@ -1,12 +1,12 @@
 import React, { useContext, useState } from 'react';
 import {View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Image, ActivityIndicator, Alert, Dimensions,} from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
-import { AuthContext } from '../context/authcontext';
+import { AuthContext } from '../context/AuthContext';
+import { updateProfile, uploadAvatar } from '../services/authService';
+
 
 const { width } = Dimensions.get('window');
 const avatarSize = width * 0.25;
-
-const BASE_URL = "https://fash-backend-cp3n.vercel.app/api/v1";
 
 export default function EditProfileScreen({ navigation, route }) {
   const { getToken } = useContext(AuthContext);
@@ -25,41 +25,26 @@ export default function EditProfileScreen({ navigation, route }) {
       Alert.alert('Permission required', 'Please allow access to your photo library.');
       return;
     }
+
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       quality: 0.8,
     });
+
     if (!result.canceled) {
       const uri = result.assets[0].uri;
       setAvatar(uri);
-      await uploadAvatar(uri);
+      try {
+        const token = await getToken();
+        await uploadAvatar(token, uri);
+      } catch (e) {
+        console.warn('Avatar upload error:', e);
+        Alert.alert('Error', e.message || 'Failed to upload avatar. Please try again.');
+      }
     }
   };
 
-  const uploadAvatar = async (uri) => {
-    try {
-      const token = await getToken();
-      const formData = new FormData();
-      formData.append('avatar', {
-        uri,
-        type: 'image/jpeg',
-        name: 'avatar.jpg',
-      });
-      const response = await fetch(`${BASE_URL}/user/profile/avatar`, {
-        method: 'PATCH',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'multipart/form-data',
-        },
-        body: formData,
-      });
-      if (!response.ok) throw new Error('Avatar upload failed');
-    } catch (e) {
-      Alert.alert('Error', 'Failed to upload avatar. Please try again.');
-      console.warn('Avatar upload error:', e);
-    }
-  };
-
+  
   const handleSave = async () => {
     if (!name.trim()) {
       Alert.alert('Validation', 'Full name cannot be empty.');
@@ -67,23 +52,19 @@ export default function EditProfileScreen({ navigation, route }) {
     }
 
     setSaving(true);
+
     try {
       const token = await getToken();
-      const response = await fetch(`${BASE_URL}/user/profile`, {
-        method: 'PATCH',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          name: name.trim(),
-          username: username.trim(),
-          bio: bio.trim(),
-          phone: phone.trim(),
-        }),
-      });
 
-      if (!response.ok) throw new Error('Failed to save profile');
+await updateProfile(token, {
+  name: name.trim(),
+  username: username.trim(),
+  bio: bio.trim(),
+  phone: phone.trim(),
+});
+
+
+
 
       Alert.alert('Saved', 'Your profile has been updated.', [
         { text: 'OK', onPress: () => navigation.goBack() },
@@ -209,7 +190,7 @@ export default function EditProfileScreen({ navigation, route }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: ' #F5F5F5',
+    backgroundColor: '#F5F5F5',
   },
 
   header: {

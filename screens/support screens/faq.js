@@ -84,7 +84,7 @@ const FAQScreen = ({ navigation }) => {
 
          {/* faq list */}
         <View style={styles.card}>
-          {FAQ_ITEMS.map((item, index) => (
+        {filteredFAQ.map((item, index) => (
             <View
               key={item.id}
               style={[

@@ -1,32 +1,29 @@
-import React, { useState } from 'react';
-import {View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert,} from 'react-native';
+import React, { useContext, useEffect, useState } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { AuthContext } from '../../context/AuthContext';
+import { getLoginDevices, removeDevice } from '../../services/authService';
 
 
 const LoginDevicesScreen = ({ navigation }) => {
-  const [devices, setDevices] = useState([
-    {
-      id: '1',
-      name: 'iPhone 15 Pro',
-      location: 'Cairo, Egypt',
-      date: 'Apr 12, 2026',
-      isCurrent: true,
-    },
-    {
-      id: '2',
-      name: 'MacBook Pro',
-      location: 'Cairo, Egypt',
-      date: 'Apr 10, 2026',
-      isCurrent: false,
-    },
-    {
-      id: '3',
-      name: 'Chrome on Windows',
-      location: 'Alexandria, Egypt',
-      date: 'Apr 5, 2026',
-      isCurrent: false,
-    },
-  ]);
+  const { getToken } = useContext(AuthContext);
+  const [devices, setDevices] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchDevices = async () => {
+      try {
+        const token = await getToken();
+        const data = await getLoginDevices(token);
+        setDevices(Array.isArray(data) ? data : data.devices || []);
+      } catch (e) {
+        Alert.alert('Error', 'Failed to load devices.');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchDevices();
+  }, []);
 
   const handleRemove = (id) => {
     Alert.alert('Remove Device', 'Sign out from this device?', [
@@ -34,10 +31,19 @@ const LoginDevicesScreen = ({ navigation }) => {
       {
         text: 'Remove',
         style: 'destructive',
-        onPress: () => setDevices((prev) => prev.filter((d) => d.id !== id)),
+        onPress: async () => {
+          try {
+            const token = await getToken();
+            await removeDevice(token, id);
+            setDevices((prev) => prev.filter((d) => d.id !== id));
+          } catch (e) {
+            Alert.alert('Error', 'Failed to remove device.');
+          }
+        },
       },
     ]);
   };
+
 
   const handleSignOutAll = () => {
     Alert.alert('Sign Out All', 'This will sign out all other devices. Continue?', [
@@ -50,7 +56,25 @@ const LoginDevicesScreen = ({ navigation }) => {
     ]);
   };
 
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => navigation.goBack()}>
+            <Text style={styles.backBtn}>‹</Text>
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Active Devices</Text>
+        </View>
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+          <ActivityIndicator size="large" color="#C17C74" />
+        </View>
+      </SafeAreaView>
+    );
+  }
+  
+  
   return (
+
     <SafeAreaView style={styles.container}>
 
       {/* header */}

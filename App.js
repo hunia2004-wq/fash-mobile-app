@@ -3,7 +3,7 @@ import { View, Text, ActivityIndicator } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import * as SecureStore from 'expo-secure-store';
-import { AuthContext } from './context/authcontext';
+import { AuthContext } from './context/AuthContext';
 import { Provider as PaperProvider } from 'react-native-paper';
 
 import LoginScreen from './screens/login';
@@ -23,6 +23,7 @@ import LanguagesScreen from './screens/settings screen/languages';
 import NotificationsScreen from './screens/settings screen/notifications';
 import PrivacyScreen from './screens/settings screen/privacy';
 import ChangePasswordScreen from './screens/settings screen/password';
+
 
 
 
@@ -153,7 +154,7 @@ export default function App() {
               <Stack.Screen name="NotificationsScreen" component={NotificationsScreen} options={{ headerShown: false }} />
               <Stack.Screen name="PrivacyScreen" component={PrivacyScreen} options={{ headerShown: false }} />
               <Stack.Screen name="ChangePasswordScreen" component={ChangePasswordScreen} />
-
+             
 
 
 

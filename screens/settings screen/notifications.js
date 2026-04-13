@@ -1,7 +1,7 @@
 import React, { useContext, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Switch, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { AuthContext } from '../../context/authcontext';
+import { AuthContext } from '../../context/AuthContext';
 import { updateNotifications } from '../../services/authService';
 
 const NotificationsScreen = ({ navigation }) => {

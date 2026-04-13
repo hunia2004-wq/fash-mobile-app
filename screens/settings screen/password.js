@@ -1,7 +1,7 @@
 import React, { useContext, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, ActivityIndicator, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { AuthContext } from '../../context/authcontext';
+import { AuthContext } from '../../context/AuthContext';
 import { changePassword } from '../../services/authService';
 
 const ChangePasswordScreen = ({ navigation }) => {
@@ -35,6 +35,7 @@ const ChangePasswordScreen = ({ navigation }) => {
         { text: 'OK', onPress: () => navigation.goBack() },
       ]);
     } catch (e) {
+      console.warn('Change password error:', e);
       Alert.alert('Error', e.message || 'Failed to change password.');
     } finally {
       setSaving(false);

@@ -1,16 +1,34 @@
-import React, { useState } from 'react';
-import {View, Text, StyleSheet, ScrollView, TouchableOpacity, Switch,} from 'react-native';
+import React, { useState, useContext } from 'react';
+import {View, Text, StyleSheet, ScrollView, TouchableOpacity, Switch, Alert, ActivityIndicator} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { AuthContext } from '../../context/AuthContext';
+import { toggle2FA } from '../../services/authService';
 
 const TwoFactorAuthScreen = ({ navigation }) => {
+  const { getToken } = useContext(AuthContext);
   const [authApp, setAuthApp] = useState(true);
   const [sms, setSms] = useState(false);
   const [email, setEmail] = useState(false);
+  const [loading, setLoading] = useState(false); 
+
 
   const backupOptions = [
     { id: 'view', title: 'View Backup Codes', screen: 'ViewBackupCodesScreen' },
     { id: 'regen', title: 'Regenerate Codes', screen: 'RegenerateCodesScreen' },
   ];
+
+  const handleToggle = async (key, value) => {
+    setLoading(true);
+    try {
+      const token = await getToken();
+      await toggle2FA(token, { enabled: value, method: key });
+    } catch (e) {
+      Alert.alert('Error', 'Failed to update 2FA settings.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
 
   return (
 
@@ -48,7 +66,7 @@ const TwoFactorAuthScreen = ({ navigation }) => {
             </View>
             <Switch
               value={authApp}
-              onValueChange={setAuthApp}
+              onValueChange={(v) => { setAuthApp(v); handleToggle('authApp', v); }}
               trackColor={{ false: '#ccc', true: '#B07070' }}
               thumbColor="#fff"
             />
@@ -61,7 +79,7 @@ const TwoFactorAuthScreen = ({ navigation }) => {
             </View>
             <Switch
               value={sms}
-              onValueChange={setSms}
+              onValueChange={(v) => { setSms(v); handleToggle('sms', v); }}
               trackColor={{ false: '#ccc', true: '#B07070' }}
               thumbColor="#fff"
             />
@@ -74,7 +92,7 @@ const TwoFactorAuthScreen = ({ navigation }) => {
             </View>
             <Switch
               value={email}
-              onValueChange={setEmail}
+              onValueChange={(v) => { setEmail(v); handleToggle('email', v); }}
               trackColor={{ false: '#ccc', true: '#B07070' }}
               thumbColor="#fff"
             />
