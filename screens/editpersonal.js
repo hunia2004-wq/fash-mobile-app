@@ -1,7 +1,7 @@
 import React, { useContext, useState } from 'react';
 import {View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Image, ActivityIndicator, Alert, Dimensions,} from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
-import { AuthContext } from '../App';
+import { AuthContext } from '../context/authcontext';
 
 const { width } = Dimensions.get('window');
 const avatarSize = width * 0.25;

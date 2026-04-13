@@ -1,30 +1,25 @@
 import React from 'react';
 import {View, Text, StyleSheet, ScrollView, TouchableOpacity,} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const SupportScreen = ({ navigation }) => {
   const options = [
     {
-      id: 'help',
-      title: 'Help & Guides',
-      subtitle: 'Browse articles & guides',
-      screen: 'HelpCenterScreen',
-    },
-    {
       id: 'contact',
       title: 'Contact Support',
-      subtitle: 'We reply within 24h',
+      subtitle: 'We reply within 24 hours',
       screen: 'ContactSupportScreen',
     },
     {
       id: 'faq',
-      title: 'FAQ',
+      title: 'Frequently Asked Questions',
       subtitle: 'Common questions',
       screen: 'FAQScreen',
     },
   ];
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
 
       {/* header */}
       <View style={styles.header}>
@@ -63,7 +58,7 @@ const SupportScreen = ({ navigation }) => {
           </Text>
         </View>
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 };
 
@@ -76,11 +71,10 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
     paddingHorizontal: 16,
-    paddingTop: 56,
     paddingBottom: 12,
-    gap: 10,
-  },
+    position: 'relative',  },
 
   backBtn: {
     fontSize: 28,
@@ -89,9 +83,14 @@ const styles = StyleSheet.create({
   },
 
   headerTitle: {
-    fontSize: 17,
-    fontWeight: '700',
-    color: '#C17C74',
+    position: 'absolute',
+  left: 0,
+  right: 0,
+  textAlign: 'center',
+  fontSize: 17,
+  fontWeight: '700',
+  color: '#C17C74',
+  pointerEvents: 'none',
   },
 
   scrollContent: {

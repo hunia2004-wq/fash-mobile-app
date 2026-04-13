@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import {View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert,} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const ConnectedAccountsScreen = ({ navigation }) => {
   const [accounts, setAccounts] = useState([
@@ -27,14 +28,19 @@ const ConnectedAccountsScreen = ({ navigation }) => {
   };
 
   return (
-    <View style={styles.container}>
+
+    <SafeAreaView style={styles.container}>
 
       {/* header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Text style={styles.backBtn}>‹</Text>
         </TouchableOpacity>
+
         <Text style={styles.headerTitle}>Connected Accounts</Text>
+
+        {/* placeholder to balance */}
+      <View style={{ width: 40 }} />
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
@@ -92,7 +98,7 @@ const ConnectedAccountsScreen = ({ navigation }) => {
           ))}
         </View>
       </ScrollView>
-    </View>
+  </SafeAreaView>
   );
 };
 
@@ -105,22 +111,26 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
     paddingHorizontal: 16,
-    paddingTop: 56,
     paddingBottom: 12,
-    gap: 10,
+    position: 'relative',
   },
 
   backBtn: {
-    fontSize: 28,
+    fontSize: 26,
     color: '#C17C74',
-    lineHeight: 32,
   },
 
   headerTitle: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    textAlign: 'center',
     fontSize: 17,
     fontWeight: '700',
     color: '#C17C74',
+    pointerEvents: 'none',
   },
 
   scrollContent: {

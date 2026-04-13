@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useState } from "react";
 import {View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, Dimensions,} from "react-native";
-import { getOrders } from "../services/authService";
-
+import { getOrders } from "../../services/authService";
+import { AuthContext } from '../../context/authcontext';
 
 
 const { width } = Dimensions.get("window");

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import {View, Text, StyleSheet, ScrollView, TouchableOpacity, Switch,} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const TwoFactorAuthScreen = ({ navigation }) => {
   const [authApp, setAuthApp] = useState(true);
@@ -12,15 +13,21 @@ const TwoFactorAuthScreen = ({ navigation }) => {
   ];
 
   return (
-    <View style={styles.container}>
+
+    <SafeAreaView style={styles.container}>
 
       {/* header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Text style={styles.backBtn}>‹</Text>
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Two-Factor Auth</Text>
-      </View>
+     <View style={styles.header}>
+  <TouchableOpacity onPress={() => navigation.goBack()}>
+    <Text style={styles.backBtn}>‹</Text>
+  </TouchableOpacity>
+
+  <Text style={styles.headerTitle}>Two-Factor Authentication</Text>
+
+  {/* balance right side */}
+  <View style={{ width: 40 }} />
+</View>
+
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
 
@@ -73,26 +80,9 @@ const TwoFactorAuthScreen = ({ navigation }) => {
             />
           </View>
         </View>
-
-        {/* backup section */}
-        <Text style={styles.sectionLabel}>Backup</Text>
-        <View style={styles.card}>
-          {backupOptions.map((item, index) => (
-            <TouchableOpacity
-              key={item.id}
-              style={[
-                styles.listItem,
-                index < backupOptions.length - 1 && styles.listItemBorder,
-              ]}
-              onPress={() => navigation.navigate(item.screen)}
-            >
-              <Text style={styles.itemTitle}>{item.title}</Text>
-              <Text style={styles.chevron}>›</Text>
-            </TouchableOpacity>
-          ))}
-        </View>
       </ScrollView>
-    </View>
+  </SafeAreaView>
+  
   );
 };
 
@@ -105,10 +95,9 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
     paddingHorizontal: 16,
-    paddingTop: 56,
     paddingBottom: 12,
-    gap: 10,
   },
 
   backBtn: {
@@ -118,9 +107,14 @@ const styles = StyleSheet.create({
   },
 
   headerTitle: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    textAlign: 'center',
     fontSize: 17,
     fontWeight: '700',
     color: '#C17C74',
+    pointerEvents: 'none',
   },
 
   scrollContent: {

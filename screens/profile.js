@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useState } from "react";
 import {View, Text, StyleSheet, Image, TouchableOpacity, ActivityIndicator, ScrollView, Dimensions,} from "react-native";
-import { AuthContext } from "../App";
+import { AuthContext } from "../context/authcontext";
 import { getProfile } from "../services/authService";
 import * as ImagePicker from "expo-image-picker";
 
@@ -26,7 +26,7 @@ const MenuRow = ({ title, subtitle, onPress }) => (
 
 
 export default function ProfileScreen({ navigation }) {
-  const { logOut, getToken } = useContext(AuthContext);
+  const {logOut, getToken } = useContext(AuthContext);
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [avatar, setAvatar] = useState(null);
@@ -145,7 +145,7 @@ export default function ProfileScreen({ navigation }) {
       <View style={styles.card}>
         <MenuRow
           title="Settings"
-          subtitle="Password, Privacy, Notifications, Languages"
+          subtitle="Email, Change Password, Notifications, Languages, Privacy"
           onPress={() => navigation.navigate("SettingsScreen")}
         />
 

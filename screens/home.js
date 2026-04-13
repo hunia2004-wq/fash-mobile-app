@@ -1,6 +1,5 @@
 import { useState } from 'react';
-import {View, Text, TouchableOpacity, ScrollView, StyleSheet, TextInput, Image, Dimensions
-} from 'react-native';
+import {View, Text, TouchableOpacity, ScrollView, StyleSheet, TextInput, Image, Dimensions,} from 'react-native';
 import { FontAwesome, Ionicons, Feather } from '@expo/vector-icons';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import ProfileScreen from './profile'; 

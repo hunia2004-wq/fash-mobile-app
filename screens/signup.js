@@ -18,7 +18,7 @@ export default function SignupScreen({ navigation }) {
 
   const handleSignUp = async () => {
     setError("");
-    if (!name || !email || !password || !confirmPassword) {
+    if (!firstname || !lastname || !email || !password || !confirmPassword) {
       setError('Please fill in all fields');
       return;
     }
@@ -29,7 +29,7 @@ export default function SignupScreen({ navigation }) {
     
     setLoading(true);
     try {
-    await signup({name, email, password});
+    await signup({firstname: firstname, lastname: lastname, email, password, fullname:`${firstname} ${lastname}`,});
     navigation.navigate('Verification', {email});
     }
     catch (err) {
@@ -61,23 +61,29 @@ export default function SignupScreen({ navigation }) {
         
         <View style={styles.card}>
 
-          <Text style={styles.label}>First Name</Text>
-          <TextInput
-          style={styles.input}
-          placeholder="Enter your First name"
-          value={firstname}
-          onChangeText={setFirstName}
-          autoCapitalize="words"
-          />
+        <View style={styles.row}>
+  <View style={styles.halfInput}>
+    <Text style={styles.label}>First Name</Text>
+    <TextInput
+      style={styles.input}
+      placeholder="First name"
+      value={firstname}
+      onChangeText={setFirstName}
+      autoCapitalize="words"
+    />
+  </View>
 
-          <Text style={styles.label}>Last Name</Text>
-          <TextInput
-          style={styles.input}
-          placeholder="Enter your Last name"
-          value={lastname}
-          onChangeText={setLastName}
-          autoCapitalize="words"
-          />
+  <View style={styles.halfInput}>
+    <Text style={styles.label}>Last Name</Text>
+    <TextInput
+      style={styles.input}
+      placeholder="Last name"
+      value={lastname}
+      onChangeText={setLastName}
+      autoCapitalize="words"
+    />
+  </View>
+</View>
 
 
           <Text style={styles.label}>Email</Text>
@@ -161,22 +167,36 @@ const styles = StyleSheet.create({
     paddingTop: 60,
     paddingBottom: 40,
   },
+
   backButton: {
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 10,
     gap: 6,
   },
+
   backText: {
     color: '#C17C74',
     fontSize: 16,
   },
+
   logo: {
     width: 150,
     height: 100,
     alignSelf: 'center',
     marginBottom: 20,
   },
+
+  row: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 10,
+  },
+  
+  halfInput: {
+    flex: 1,
+  },
+
   title: {
     fontSize: 26,
     fontWeight: 'bold',
@@ -184,28 +204,33 @@ const styles = StyleSheet.create({
     marginBottom: 6,
     color: '#333',
   },
+
   subtitle: {
     fontSize: 14,
     textAlign: 'center',
     color: 'gray',
     marginBottom: 25,
   },
+
   card: {
     backgroundColor: '#F2E6E3',
     borderRadius: 12,
     padding: 20,
   },
+
   label: {
     fontSize: 14,
     marginBottom: 5,
-    color: '#333',
+    color: 'black',
   },
+
   input: {
     backgroundColor: 'white',
     borderRadius: 8,
     padding: 10,
     marginBottom: 15,
   },
+
   passwordContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -214,16 +239,19 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     marginBottom: 15,
   },
+
   passwordInput: {
     flex: 1,
     paddingVertical: 10,
   },
+
   errorText: { 
     color: '#c0392b', 
     fontSize: 13, 
     marginBottom: 10, 
     textAlign: 'center' 
   },
+
   button: {
     backgroundColor: '#C17C74',
     padding: 12,
@@ -231,11 +259,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 5,
   },
+
   buttonText: {
     color: '#fff',
     fontWeight: '600',
     fontSize: 16,
   },
+
   or: {
     textAlign: "center",
     textAlign: 'center',
@@ -244,6 +274,7 @@ const styles = StyleSheet.create({
     color: "gray",
     color: 'gray',
   },
+
   socialContainer: {
     flexDirection: "row",
     justifyContent: "center",
@@ -251,6 +282,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 15,
   },
+
   social: {
     width: 45,
     height: 45,
@@ -260,16 +292,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+
   loginText: {
     textAlign: "center",
     textAlign: 'center',
     marginTop: 20,
     color: "#333",
   },
+
   loginLink: {
     color: "#C17C74",
     fontWeight: "600",
     color: '#C17C74',
     fontWeight: '600',
   },
+
 });

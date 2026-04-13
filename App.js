@@ -3,7 +3,8 @@ import { View, Text, ActivityIndicator } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import * as SecureStore from 'expo-secure-store';
-import { AuthContext } from './context/AuthContext';
+import { AuthContext } from './context/authcontext';
+import { Provider as PaperProvider } from 'react-native-paper';
 
 import LoginScreen from './screens/login';
 import SignupScreen from './screens/signup';
@@ -14,6 +15,17 @@ import HomeScreen from './screens/home';
 
 import EditProfileScreen from './screens/editpersonal';
 
+import SettingsScreen from './screens/settings screen/settings';
+import AddressScreen from './screens/settings screen/address';
+import CardsScreen from './screens/settings screen/cards';
+import EmailScreen from './screens/settings screen/email';
+import LanguagesScreen from './screens/settings screen/languages';
+import NotificationsScreen from './screens/settings screen/notifications';
+import PrivacyScreen from './screens/settings screen/privacy';
+import ChangePasswordScreen from './screens/settings screen/password';
+
+
+
 import OrdersScreen from './screens/orders screen/orders';
 import OrderDetailScreen from './screens/orders screen/orderdteails';
 
@@ -23,14 +35,12 @@ import LoginDevicesScreen from './screens/security screens/devices';
 import ConnectedAccountsScreen from './screens/security screens/accounts';
 
 import SupportScreen from './screens/support screens/supportmain';
-import HelpCenterScreen from './screens/support screens/helpcenter';
 import ContactSupportScreen from './screens/support screens/contact';
 import FAQScreen from './screens/support screens/faq';
 
 import { logout } from './services/authService';
 
 const Stack = createNativeStackNavigator();
-
 
 
 function SplashScreen() {
@@ -41,6 +51,8 @@ function SplashScreen() {
     </View>
   );
 }
+
+
 
 export default function App() {
   const [state, dispatch] = React.useReducer(
@@ -108,17 +120,17 @@ export default function App() {
   if (state.isLoading) 
     return <SplashScreen />;
   
-
   return (
-    <AuthContext.Provider value={authContext}>
-      <NavigationContainer>
+    <PaperProvider>
+      <AuthContext.Provider value={authContext}>
+        <NavigationContainer>
         <Stack.Navigator screenOptions={{ headerShown: false }}>
           {state.userToken == null ? (
             <>
               <Stack.Screen name="Welcome" component={WelcomeScreen} />
               <Stack.Screen name="Login" component={LoginScreen}
                 options={{
-                  animationTypeForReplace: state.isSignout ? 'pop' : 'push',
+                  animationTypeForReplace: state.isLogOut ? 'pop' : 'push',
                 }}
               />
 
@@ -133,6 +145,18 @@ export default function App() {
 
               <Stack.Screen name="EditProfileScreen" component={EditProfileScreen} />
 
+              <Stack.Screen name="SettingsScreen" component={SettingsScreen} options={{ headerShown: false }} />
+              <Stack.Screen name="AddressScreen" component={AddressScreen} options={{ headerShown: false }} />
+              <Stack.Screen name="CardsScreen" component={CardsScreen} options={{ headerShown: false }} />
+              <Stack.Screen name="EmailScreen" component={EmailScreen} options={{ headerShown: false }} />
+              <Stack.Screen name="LanguagesScreen" component={LanguagesScreen} options={{ headerShown: false }} />
+              <Stack.Screen name="NotificationsScreen" component={NotificationsScreen} options={{ headerShown: false }} />
+              <Stack.Screen name="PrivacyScreen" component={PrivacyScreen} options={{ headerShown: false }} />
+              <Stack.Screen name="ChangePasswordScreen" component={ChangePasswordScreen} />
+
+
+
+
               <Stack.Screen name="OrdersScreen" component={OrdersScreen} />
               <Stack.Screen name="OrderDetailScreen" component={OrderDetailScreen} />
 
@@ -142,7 +166,6 @@ export default function App() {
               <Stack.Screen name="ConnectedAccountsScreen" component={ConnectedAccountsScreen} options={{ headerShown: false }} />
 
               <Stack.Screen name="SupportScreen" component={SupportScreen} options={{ headerShown: false }} />
-              <Stack.Screen name="HelpCenterScreen" component={HelpCenterScreen} options={{ headerShown: false }} />
               <Stack.Screen name="ContactSupportScreen" component={ContactSupportScreen} options={{ headerShown: false }} />
               <Stack.Screen name="FAQScreen" component={FAQScreen} options={{ headerShown: false }} />
 
@@ -151,5 +174,7 @@ export default function App() {
         </Stack.Navigator>
       </NavigationContainer>
     </AuthContext.Provider>
+  </PaperProvider>
+  
   );
 }

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import {View, Text, StyleSheet, ScrollView, TouchableOpacity, LayoutAnimation, Platform, UIManager,} from 'react-native';
+import {View, Text, StyleSheet, TextInput, ScrollView, TouchableOpacity, LayoutAnimation, Platform, UIManager,} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 if (Platform.OS === 'android') {
   UIManager.setLayoutAnimationEnabledExperimental?.(true);
@@ -45,15 +46,23 @@ const FAQ_ITEMS = [
 
 const FAQScreen = ({ navigation }) => {
   const [openId, setOpenId] = useState(null);
+  const [query, setQuery] = useState('');
 
   const toggle = (id) => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     setOpenId((prev) => (prev === id ? null : id));
   };
 
+  const filteredFAQ = FAQ_ITEMS.filter(
+    (item) =>
+      item.question.toLowerCase().includes(query.toLowerCase()) ||
+      item.answer.toLowerCase().includes(query.toLowerCase())
+  );
+  
   return (
-    <View style={styles.container}>
-      {/* Header */}
+    <SafeAreaView style={styles.container}>
+
+      {/* header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Text style={styles.backBtn}>‹</Text>
@@ -62,6 +71,18 @@ const FAQScreen = ({ navigation }) => {
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
+
+          {/* search */}
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Search Inquiry..."
+            placeholderTextColor="#7A6060"
+            value={query}
+            onChangeText={setQuery}
+          />
+      
+
+         {/* faq list */}
         <View style={styles.card}>
           {FAQ_ITEMS.map((item, index) => (
             <View
@@ -81,10 +102,16 @@ const FAQScreen = ({ navigation }) => {
               )}
             </View>
           ))}
-        </View>
-      </ScrollView>
-    </View>
-  );
+
+         {filteredFAQ.length === 0 && (
+          <Text style={{ padding: 16, color: '#7A6060' }}>
+            No results found
+          </Text>
+        )}
+      </View>
+    </ScrollView>
+  </SafeAreaView>
+);
 };
 
 const styles = StyleSheet.create({
@@ -96,11 +123,10 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
     paddingHorizontal: 16,
-    paddingTop: 56,
     paddingBottom: 12,
-    gap: 10,
-  },
+    position: 'relative',  },
 
   backBtn: {
     fontSize: 28,
@@ -109,9 +135,23 @@ const styles = StyleSheet.create({
   },
 
   headerTitle: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    textAlign: 'center',
     fontSize: 17,
     fontWeight: '700',
     color: '#C17C74',
+    pointerEvents: 'none', 
+  },
+
+  searchInput: {
+    backgroundColor: '#EDE0D8',
+    borderRadius: 12,
+    padding: 12,
+    fontSize: 14,
+    color: '#2C1F1F',
+    marginBottom: 12,
   },
 
   scrollContent: {

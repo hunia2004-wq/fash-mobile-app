@@ -1,6 +1,6 @@
 import React, { useContext } from "react";
 import {View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Alert, Dimensions,} from "react-native";
-import { AuthContext } from "../services/authService";
+import { AuthContext } from "../../context/authcontext";
 
 const { width } = Dimensions.get("window");
 

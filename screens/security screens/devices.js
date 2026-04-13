@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import {View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert,} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+
 
 const LoginDevicesScreen = ({ navigation }) => {
   const [devices, setDevices] = useState([
@@ -49,7 +51,7 @@ const LoginDevicesScreen = ({ navigation }) => {
   };
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
 
       {/* header */}
       <View style={styles.header}>
@@ -91,7 +93,7 @@ const LoginDevicesScreen = ({ navigation }) => {
           <Text style={styles.dangerBtnText}>Sign Out All Other Devices</Text>
         </TouchableOpacity>
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 };
 
@@ -104,10 +106,10 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
     paddingHorizontal: 16,
-    paddingTop: 56,
     paddingBottom: 12,
-    gap: 10,
+    position: 'relative',
   },
 
   backBtn: {
@@ -117,9 +119,14 @@ const styles = StyleSheet.create({
   },
 
   headerTitle: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    textAlign: 'center',
     fontSize: 17,
     fontWeight: '700',
     color: '#C17C74',
+    pointerEvents: 'none',
   },
 
   scrollContent: {

@@ -5,20 +5,20 @@ import {View, Text, TouchableOpacity, StyleSheet, Image, StatusBar,} from "react
       <View style={styles.container}>
         <StatusBar barStyle="dark-content" />
   
-        {/* Logo */}
+        {/* logo */}
         <Image
           source={require("../source/assets/images/Blacklogo.png")}
           style={styles.logo}
           resizeMode="contain"
         />
   
-        {/* Title */}
+        {/* title */}
         <Text style={styles.title}>Welcome to FASH</Text>
         <Text style={styles.subtitle}>
           Your Personal Fashion Companion
         </Text>
   
-        {/* Buttons */}
+        {/* buttons */}
         <View style={styles.buttonContainer}>
           <TouchableOpacity
             style={styles.loginButton}
