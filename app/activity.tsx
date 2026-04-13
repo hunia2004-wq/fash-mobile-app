@@ -1,50 +1,184 @@
-import React, { useState } from 'react';
-import { View, StyleSheet, FlatList } from 'react-native';
-import { Text, Card } from 'react-native-paper';
-import { Block, Button } from 'galio-framework';
+import React, { useState } from "react";
+import { View, FlatList, TouchableOpacity, TextInput } from "react-native";
+import { Text, Card } from "react-native-paper";
 
 export default function ActivityScreen() {
-  const [tab, setTab] = useState<'upcoming' | 'previous'>('upcoming');
+  const [tab, setTab] = useState("upcoming");
+  const [search, setSearch] = useState("");
+
+  const colors = {
+    primary: "#C17C74",
+    background: "#FFFFFF",
+    text: "#1F2937",
+    light: "#FDF2F0",
+    border: "#E5E7EB",
+  };
 
   const upcoming = [
-    { id: '1', date: 'Tue 24 Mar', status: 'Processing', price: 'EGP 235' },
+    { id: "1", date: "Tue 24 Mar", status: "Processing", price: "EGP 235" },
+    { id: "2", date: "Fri 28 Mar", status: "Processing", price: "EGP 120" },
   ];
 
   const previous = [
-    { id: '2', date: 'Sat 11 Apr', status: 'Delivered', price: 'EGP 463.76' },
+    { id: "3", date: "Sat 11 Apr", status: "Delivered", price: "EGP 463.76" },
+    { id: "4", date: "Mon 2 Apr", status: "Delivered", price: "EGP 310" },
   ];
 
-  const data = tab === 'upcoming' ? upcoming : previous;
+  const data = tab === "upcoming" ? upcoming : previous;
+
+  const filteredData = data.filter((item) => {
+    const q = search.toLowerCase();
+    return (
+      item.date.toLowerCase().includes(q) ||
+      item.status.toLowerCase().includes(q) ||
+      item.price.toLowerCase().includes(q)
+    );
+  });
+
+  const getBadgeColor = (status) => {
+    return status === "Delivered" ? colors.light : "#FFF4E5";
+  };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Activity History</Text>
+    <View
+      style={{
+        flex: 1,
+        padding: 16,
+        backgroundColor: colors.background,
+      }}
+    >
+      {/* Title */}
+      <Text
+        style={{
+          fontSize: 22,
+          fontWeight: "bold",
+          textAlign: "center",
+          marginBottom: 15,
+          color: colors.text,
+        }}
+      >
+        Activity History
+      </Text>
 
-      <Block row style={styles.tabs}>
-        <Button
-          style={tab === 'upcoming' ? styles.activeTab : styles.inactiveTab}
-          onPress={() => setTab('upcoming')}
+      {/* Search */}
+      <TextInput
+        placeholder="Search orders..."
+        value={search}
+        onChangeText={setSearch}
+        placeholderTextColor="#9CA3AF"
+        style={{
+          backgroundColor: "#F3F4F6",
+          padding: 10,
+          borderRadius: 10,
+          marginBottom: 15,
+          paddingHorizontal: 12,
+        }}
+      />
+
+      {/* Tabs */}
+      <View
+        style={{
+          flexDirection: "row",
+          backgroundColor: "#F3F4F6",
+          borderRadius: 25,
+          padding: 4,
+          marginBottom: 15,
+        }}
+      >
+        <TouchableOpacity
+          onPress={() => setTab("upcoming")}
+          style={{
+            flex: 1,
+            paddingVertical: 10,
+            borderRadius: 25,
+            alignItems: "center",
+            backgroundColor:
+              tab === "upcoming" ? colors.primary : "transparent",
+          }}
         >
-          Upcoming
-        </Button>
+          <Text
+            style={{
+              color: tab === "upcoming" ? "#fff" : "#6B7280",
+              fontWeight: "600",
+            }}
+          >
+            Upcoming
+          </Text>
+        </TouchableOpacity>
 
-        <Button
-          style={tab === 'previous' ? styles.activeTab : styles.inactiveTab}
-          onPress={() => setTab('previous')}
+        <TouchableOpacity
+          onPress={() => setTab("previous")}
+          style={{
+            flex: 1,
+            paddingVertical: 10,
+            borderRadius: 25,
+            alignItems: "center",
+            backgroundColor:
+              tab === "previous" ? colors.primary : "transparent",
+          }}
         >
-          Previous
-        </Button>
-      </Block>
+          <Text
+            style={{
+              color: tab === "previous" ? "#fff" : "#6B7280",
+              fontWeight: "600",
+            }}
+          >
+            Previous
+          </Text>
+        </TouchableOpacity>
+      </View>
 
+      {/* List */}
       <FlatList
-        data={data}
+        data={filteredData}
         keyExtractor={(item) => item.id}
+        showsVerticalScrollIndicator={false}
         renderItem={({ item }) => (
-          <Card style={styles.card}>
+          <Card
+            style={{
+              marginBottom: 12,
+              borderRadius: 12,
+              backgroundColor: "#fff",
+            }}
+          >
             <Card.Content>
-              <Text>{item.date}</Text>
-              <Text>{item.price}</Text>
-              <Text style={styles.status}>{item.status}</Text>
+              <View
+                style={{
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                }}
+              >
+                <Text style={{ color: colors.text }}>{item.date}</Text>
+
+                <View
+                  style={{
+                    backgroundColor: getBadgeColor(item.status),
+                    paddingVertical: 4,
+                    paddingHorizontal: 10,
+                    borderRadius: 20,
+                  }}
+                >
+                  <Text
+                    style={{
+                      fontSize: 12,
+                      fontWeight: "bold",
+                      color: colors.primary,
+                    }}
+                  >
+                    {item.status}
+                  </Text>
+                </View>
+              </View>
+
+              <Text
+                style={{
+                  marginTop: 8,
+                  fontWeight: "bold",
+                  color: colors.text,
+                }}
+              >
+                {item.price}
+              </Text>
             </Card.Content>
           </Card>
         )}
@@ -52,22 +186,3 @@ export default function ActivityScreen() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, padding: 16, backgroundColor: '#fff' },
-  title: { fontSize: 20, fontWeight: 'bold', alignSelf: 'center', marginBottom: 20 },
-
-  tabs: {
-    marginBottom: 20,
-    backgroundColor: '#eee',
-    borderRadius: 20,
-    padding: 5,
-  },
-
-  activeTab: { flex: 1, backgroundColor: '#C2185B' },
-  inactiveTab: { flex: 1, backgroundColor: 'transparent' },
-
-  card: { marginBottom: 15, borderRadius: 10 },
-
-  status: { marginTop: 10, color: '#C2185B', fontWeight: 'bold' },
-});
