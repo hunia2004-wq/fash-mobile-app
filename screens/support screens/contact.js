@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import {View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Alert,} from 'react-native';
 
-const SUBJECTS = ['Order issue', 'Payment problem', 'Account access', 'Delivery issue', 'Other'];
+const SUBJECTS = ['Order issue', 'Payment problem', 'Account issue', 'Delivery issue', 'Help Request', 'Report a problem', 'Other'];
 
 const ContactSupportScreen = ({ navigation }) => {
   const [subject, setSubject] = useState(SUBJECTS[0]);
@@ -35,7 +35,7 @@ const ContactSupportScreen = ({ navigation }) => {
         {/* info box */}
         <View style={styles.infoBox}>
           <Text style={styles.infoText}>
-            We aim to reply within 24 hours. For urgent issues, call +1 (800) 000-0000.
+            We aim to reply within 24 hours. For urgent issues, please call (+20) 000 00 00 000.
           </Text>
         </View>
 
@@ -196,7 +196,7 @@ const styles = StyleSheet.create({
   },
 
   pickerDropdown: {
-    backgroundColor: '#EDE0D8',
+    backgroundColor: '#F2E6E3',
     borderRadius: 12,
     overflow: 'hidden',
     marginTop: 4,
@@ -214,7 +214,7 @@ const styles = StyleSheet.create({
   },
 
   pickerSelected: {
-    color: '#8B5A5A',
+    color: '#C17C74',
     fontWeight: '600',
   },
 
@@ -234,7 +234,7 @@ const styles = StyleSheet.create({
   },
 
   sendBtn: {
-    backgroundColor: '#B07070',
+    backgroundColor: '#C17C74',
     borderRadius: 12,
     padding: 15,
     alignItems: 'center',

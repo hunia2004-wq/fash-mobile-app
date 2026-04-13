@@ -110,7 +110,8 @@ export default function ProfileScreen({ navigation }) {
           </View>
         </TouchableOpacity>
 
-        <Text style={styles.name}>{user.name}</Text>
+        <Text style={styles.firstname}>{user.firstname}</Text>
+        <Text style={styles.lastname}>{user.lastname}</Text>
         <Text style={styles.email}>{user.email}</Text>
 
         <TouchableOpacity
@@ -148,19 +149,19 @@ export default function ProfileScreen({ navigation }) {
           onPress={() => navigation.navigate("SettingsScreen")}
         />
 
-        {/* activity */}
+        {/* orders */}
         <View style={styles.rowDivider} />
         <MenuRow
-          title="Activity"
-          subtitle="Orders, Favorites, Saved items"
-          onPress={() => navigation.navigate("ActivityScreen")}
+          title="Orders"
+          subtitle="Orders, Order Details"
+          onPress={() => navigation.navigate("OrdersScreen")}
         />
 
         {/* security */}
         <View style={styles.rowDivider} />
         <MenuRow
           title="Security"
-          subtitle="2FA, Login devices, Connected accounts"
+          subtitle="2FA, Active devices, Connected accounts"
           onPress={() => navigation.navigate("SecurityScreen")}
         />
 
@@ -168,7 +169,7 @@ export default function ProfileScreen({ navigation }) {
         <View style={styles.rowDivider} />
         <MenuRow
           title="Support"
-          subtitle="Help Center, Contact support, FAQ"
+          subtitle="Help & Guides, Contact support, FAQ"
           onPress={() => navigation.navigate("SupportScreen")}
         />
       </View>

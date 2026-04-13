@@ -50,12 +50,13 @@ const LoginDevicesScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      {/* Header */}
+
+      {/* header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Text style={styles.backBtn}>‹</Text>
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Login Devices</Text>
+        <Text style={styles.headerTitle}>Active Devices</Text>
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
@@ -129,7 +130,7 @@ const styles = StyleSheet.create({
   sectionLabel: {
     fontSize: 11,
     fontWeight: '700',
-    color: '#7A6060',
+    color: '#C17C74',
     letterSpacing: 1,
     textTransform: 'uppercase',
     marginLeft: 4,
@@ -184,7 +185,7 @@ const styles = StyleSheet.create({
     padding: 14,
     alignItems: 'center',
   },
-  
+
   dangerBtnText: {
     fontSize: 14,
     fontWeight: '600',

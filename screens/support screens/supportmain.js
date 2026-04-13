@@ -5,7 +5,7 @@ const SupportScreen = ({ navigation }) => {
   const options = [
     {
       id: 'help',
-      title: 'Help Center',
+      title: 'Help & Guides',
       subtitle: 'Browse articles & guides',
       screen: 'HelpCenterScreen',
     },

@@ -3,6 +3,7 @@ import { View, Text, ActivityIndicator } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import * as SecureStore from 'expo-secure-store';
+import { AuthContext } from './context/AuthContext';
 
 import LoginScreen from './screens/login';
 import SignupScreen from './screens/signup';
@@ -12,6 +13,9 @@ import WelcomeScreen from './screens/welcome';
 import HomeScreen from './screens/home';
 
 import EditProfileScreen from './screens/editpersonal';
+
+import OrdersScreen from './screens/orders screen/orders';
+import OrderDetailScreen from './screens/orders screen/orderdteails';
 
 import SecurityScreen from './screens/security screens/securitymain';
 import TwoFactorAuthScreen from './screens/security screens/twofa';
@@ -26,7 +30,8 @@ import FAQScreen from './screens/support screens/faq';
 import { logout } from './services/authService';
 
 const Stack = createNativeStackNavigator();
-export const AuthContext = React.createContext();
+
+
 
 function SplashScreen() {
   return (
@@ -123,10 +128,13 @@ export default function App() {
 
               </>
           ) : (
+            <>
             <Stack.Screen name="Home" component={HomeScreen} />
-          )}
 
               <Stack.Screen name="EditProfileScreen" component={EditProfileScreen} />
+
+              <Stack.Screen name="OrdersScreen" component={OrdersScreen} />
+              <Stack.Screen name="OrderDetailScreen" component={OrderDetailScreen} />
 
               <Stack.Screen name="SecurityScreen" component={SecurityScreen} options={{ headerShown: false }} />
               <Stack.Screen name="TwoFactorAuthScreen" component={TwoFactorAuthScreen} options={{ headerShown: false }} />
@@ -138,8 +146,8 @@ export default function App() {
               <Stack.Screen name="ContactSupportScreen" component={ContactSupportScreen} options={{ headerShown: false }} />
               <Stack.Screen name="FAQScreen" component={FAQScreen} options={{ headerShown: false }} />
 
-              
-           
+              </>
+)}
         </Stack.Navigator>
       </NavigationContainer>
     </AuthContext.Provider>

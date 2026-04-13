@@ -6,7 +6,8 @@ import { StatusBar } from 'expo-status-bar';
 import { signup } from '../services/authService';
 
 export default function SignupScreen({ navigation }) {
-  const [name, setName] = useState('');
+  const [firstname, setFirstName] = useState('');
+  const [lastname, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -60,12 +61,21 @@ export default function SignupScreen({ navigation }) {
         
         <View style={styles.card}>
 
-          <Text style={styles.label}>Name</Text>
+          <Text style={styles.label}>First Name</Text>
           <TextInput
           style={styles.input}
-          placeholder="Enter your name"
-          value={name}
-          onChangeText={setName}
+          placeholder="Enter your First name"
+          value={firstname}
+          onChangeText={setFirstName}
+          autoCapitalize="words"
+          />
+
+          <Text style={styles.label}>Last Name</Text>
+          <TextInput
+          style={styles.input}
+          placeholder="Enter your Last name"
+          value={lastname}
+          onChangeText={setLastName}
           autoCapitalize="words"
           />
 

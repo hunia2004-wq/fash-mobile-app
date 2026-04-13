@@ -11,7 +11,7 @@ const SecurityScreen = ({ navigation }) => {
     },
     {
       id: 'devices',
-      title: 'Login Devices',
+      title: 'Active Devices',
       subtitle: '3 active sessions',
       screen: 'LoginDevicesScreen',
     },
