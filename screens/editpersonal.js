@@ -1,5 +1,8 @@
 import React, { useContext, useState } from 'react';
-import {View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Image, ActivityIndicator, Alert, Dimensions,} from 'react-native';
+import {
+  View, Text, StyleSheet, ScrollView, TouchableOpacity,
+  TextInput, Image, ActivityIndicator, Alert, Dimensions,
+} from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { AuthContext } from '../context/AuthContext';
 import { updateProfile, uploadAvatar } from '../services/authService';
@@ -31,7 +34,6 @@ export default function EditProfileScreen({ navigation, route }) {
       quality: 0.8,
     });
 
-    
     if (!result.canceled) {
       const uri = result.assets[0].uri;
       setAvatar(uri);
@@ -45,8 +47,10 @@ export default function EditProfileScreen({ navigation, route }) {
     }
   };
 
+
   const handleSave = async () => {
     setSaving(true);
+  
     try {
       const token = await getToken();
   
@@ -55,66 +59,67 @@ export default function EditProfileScreen({ navigation, route }) {
         lastName: lastName.trim(),
         username: username.trim(),
         bio: bio.trim(),
-        phoneNumber: phone.trim(),
+        phoneNumber: phone.trim(), // 
       };
   
-      const response = await updateProfile(token, payload);
-  
-      // 🔥 IMPORTANT: return updated user from backend if available
-      console.log('Save response:', response);
-  
-      Alert.alert('Saved', 'Your profile has been updated.', [
-        {
-          text: 'OK',
-          onPress: () => navigation.navigate('profile'), 
+      console.log(payload);
+      await updateProfile(token, payload);
+
+    Alert.alert("Saved", "Profile updated successfully", [
+      {
+        text: "OK",
+        onPress: () => {
+          if (route.params?.refresh) {
+            route.params.refresh();
+          }
+          navigation.goBack();
         },
-      ]);
-  
-    } catch (e) {
-      console.warn('Profile save error:', e.message);
-      Alert.alert('Error', e.message || 'Failed to save. Please try again.');
-    } finally {
-      setSaving(false);
-    }
-  };
+      },
+    ]);
+  } catch (e) {
+    console.warn(e);
+    Alert.alert("Error", e.message || "Failed to save");
+  } finally {
+    setSaving(false);
+  }
+};
 
   const joinedDate = user.createdAt
     ? new Date(user.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
     : '—';
 
-  return (
-    <View style={styles.container}>
-
-      {/* header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Text style={styles.cancelBtn}>Cancel</Text>
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Edit Profile</Text>
-        <TouchableOpacity onPress={handleSave} disabled={saving}>
-          {saving
-            ? <ActivityIndicator size="small" color="#C17C74" />
-            : <Text style={styles.saveBtn}>Save</Text>
-          }
-        </TouchableOpacity>
-      </View>
-
-      <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
-
-        {/* avatar */}
-        <TouchableOpacity style={styles.avatarContainer} onPress={pickImage}>
-          <Image
-            source={
-              avatar ? { uri: avatar } :
-              require('../source/assets/images/avatar.jpg')
+    return (
+      <View style={styles.container}>
+        {/* header */}
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => navigation.goBack()}>
+            <Text style={styles.cancelBtn}>Cancel</Text>
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Edit Profile</Text>
+          <TouchableOpacity onPress={handleSave} disabled={saving}>
+            {saving
+              ? <ActivityIndicator size="small" color="#C17C74" />
+              : <Text style={styles.saveBtn}>Save</Text>
             }
-            style={styles.avatar}
-          />
-          <View style={styles.avatarBadge}>
-            <Text style={styles.avatarBadgeText}>+</Text>
-          </View>
-          <Text style={styles.changePhotoText}>Change Photo</Text>
-        </TouchableOpacity>
+          </TouchableOpacity>
+        </View>
+  
+        <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
+  
+          {/* avatar */}
+          <TouchableOpacity style={styles.avatarContainer} onPress={pickImage}>
+            <Image
+              source={
+                avatar ? { uri: avatar } :
+                require('../source/assets/images/avatar.jpg')
+              }
+              style={styles.avatar}
+            />
+            <View style={styles.avatarBadge}>
+              <Text style={styles.avatarBadgeText}>+</Text>
+            </View>
+            <Text style={styles.changePhotoText}>Change Photo</Text>
+          </TouchableOpacity>
 
         {/* editable fields */}
         <View style={styles.card}>

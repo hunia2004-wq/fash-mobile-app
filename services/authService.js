@@ -91,11 +91,11 @@ export async function getProfile(token) {
 // PROFILE
 // ─────────────────────────────
 
-export async function updateProfile(token, { firstName, lastName, username, bio, phoneNumber }) {
+export async function updateProfile(token, payload) {
   return request("/user/profile", {
-    method: "PATCH",
+    method: "PUT",
     headers: { Authorization: `Bearer ${token}` },
-    body: JSON.stringify({ firstName, lastName, username, bio, phoneNumber }),
+    body: JSON.stringify(payload),
   });
 }
 
@@ -112,7 +112,7 @@ export async function uploadAvatar(token, imageUri) {
   const response = await fetch(
     `${BASE_URL}/user/profile/avatar`,
     {
-      method: "PATCH",
+      method: "PUT",
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -137,7 +137,7 @@ export async function uploadAvatar(token, imageUri) {
 
 export async function changePassword(token, { currentPassword, newPassword }) {
   return request("/user/change-password", {
-    method: "PATCH",
+    method: "PUT",
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -147,7 +147,7 @@ export async function changePassword(token, { currentPassword, newPassword }) {
 
 export async function updatePrivacy(token, privacySettings) {
   return request("/user/settings/privacy", {
-    method: "PATCH",
+    method: "PUT",
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -157,7 +157,7 @@ export async function updatePrivacy(token, privacySettings) {
 
 export async function updateNotifications(token, notificationSettings) {
   return request("/user/settings/notifications", {
-    method: "PATCH",
+    method: "PUT",
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -175,7 +175,7 @@ export async function getNotifications(token) {
 
 export async function updateLanguage(token, { language }) {
   return request("/user/settings/language", {
-    method: "PATCH",
+    method: "PUT",
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -193,7 +193,7 @@ export async function getUser(token) {
 
 export async function updateEmail(token, { email }) {
   return request("/user/profile/email", {
-    method: "PATCH",
+    method: "PUT",
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -279,7 +279,7 @@ export async function removeSavedItem(token, itemId) {
 
 export async function toggle2FA(token, { enabled }) {
   return request("/user/security/2fa", {
-    method: "PATCH",
+    method: "PUT",
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -360,7 +360,7 @@ export async function updateAddress(token, id, addressData) {
 
 export async function setDefaultAddress(token, id) {
   return request(`/addresses/${id}/default`, {
-    method: "PATCH",
+    method: "PUT",
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -410,7 +410,7 @@ export async function updateCard(token, id, cardData) {
 
 export async function setDefaultCard(token, id) {
   return request(`/cards/${id}/default`, {
-    method: "PATCH",
+    method: "PUT",
     headers: {
       Authorization: `Bearer ${token}`,
     },

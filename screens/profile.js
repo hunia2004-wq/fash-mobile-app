@@ -6,7 +6,8 @@ import {
 import { AuthContext } from "../context/AuthContext";
 import { getProfile } from "../services/authService";
 import * as ImagePicker from "expo-image-picker";
-
+import { useFocusEffect } from '@react-navigation/native';
+import { useCallback } from 'react';
 const { width, height } = Dimensions.get("window");
 const avatarSize = width * 0.22;
 
@@ -38,6 +39,7 @@ export default function ProfileScreen({ navigation }) {
       const token = await getToken();
       if (!token) return;
       const profile = await getProfile(token);
+      console.log(profile);
       setUser(profile);
     } catch (e) {
       console.warn("Failed to fetch profile:", e);
@@ -46,10 +48,12 @@ export default function ProfileScreen({ navigation }) {
     }
   };
 
-  useEffect(() => {
-    const unsubscribe = navigation.addListener("focus", fetchUser);
-    return unsubscribe;
-  }, [navigation]);
+  useFocusEffect(
+    useCallback(() => {
+      setLoading(true);
+      fetchUser();
+    }, [])
+  );
 
   useEffect(() => {
     const unsubscribe = navigation.addListener("focus", fetchUser);
@@ -66,7 +70,7 @@ export default function ProfileScreen({ navigation }) {
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       quality: 1,
     });
-    
+
     if (!result.canceled) {
       setAvatar(result.assets[0].uri);
     }
@@ -115,7 +119,7 @@ export default function ProfileScreen({ navigation }) {
 
         <TouchableOpacity
           style={styles.editButton}
-          onPress={() => navigation.navigate("EditProfileScreen", { user })}
+          onPress={() => navigation.navigate("EditProfileScreen", { user, refresh: fetchUser, })}
         >
           <Text style={styles.editButtonText}>Edit Profile</Text>
         </TouchableOpacity>
