@@ -135,13 +135,13 @@ export async function uploadAvatar(token, imageUri) {
 // SETTINGS
 // ─────────────────────────────
 
-export async function changePassword(token, { currentPassword, newPassword }) {
+export async function changePassword(token, { oldPassword, newPassword }) {
   return request("/user/change-password", {
     method: "PUT",
     headers: {
       Authorization: `Bearer ${token}`,
     },
-    body: JSON.stringify({ currentPassword, newPassword }),
+    body: JSON.stringify({ oldPassword, newPassword }),
   });
 }
 
@@ -165,8 +165,8 @@ export async function updateNotifications(token, notificationSettings) {
   });
 }
 
-export async function getNotifications(token) {
-  return request("/user/settings/notifications", {
+export async function getSettings(token) {
+  return request("/user/settings", {
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -311,6 +311,15 @@ export async function getConnectedAccounts(token) {
     },
   });
 }
+
+export async function getSecurity(token) {
+  return request("/user/security", {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+}
+
 
 // ─────────────────────────────
 // SUPPORT

@@ -3,19 +3,24 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, ActivityIn
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AuthContext } from '../../context/AuthContext';
 import { getLoginDevices, removeDevice } from '../../services/authService';
+import { logoutAllDevices } from '../../services/authService';
 
 
 const LoginDevicesScreen = ({ navigation }) => {
   const { getToken } = useContext(AuthContext);
   const [devices, setDevices] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [actionLoading, setActionLoading] = useState(false);
+  const [removingId, setRemovingId] = useState(null);
+
+  
 
   useEffect(() => {
     const fetchDevices = async () => {
       try {
         const token = await getToken();
         const data = await getLoginDevices(token);
-        setDevices(Array.isArray(data) ? data : data.devices || []);
+        setDevices(data.devices || []);
       } catch (e) {
         Alert.alert('Error', 'Failed to load devices.');
       } finally {
@@ -34,10 +39,16 @@ const LoginDevicesScreen = ({ navigation }) => {
         onPress: async () => {
           try {
             const token = await getToken();
+  
+            setRemovingId(id);
+  
             await removeDevice(token, id);
+  
             setDevices((prev) => prev.filter((d) => d._id !== id));
           } catch (e) {
             Alert.alert('Error', 'Failed to remove device.');
+          } finally {
+            setRemovingId(null);
           }
         },
       },
@@ -45,15 +56,21 @@ const LoginDevicesScreen = ({ navigation }) => {
   };
 
 
-  const handleSignOutAll = () => {
-    Alert.alert('Sign Out All', 'This will sign out all other devices. Continue?', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Sign Out All',
-        style: 'destructive',
-        onPress: () => setDevices((prev) => prev.filter((d) => d.isCurrent)),
-      },
-    ]);
+  const handleSignOutAll = async () => {
+    try {
+      setActionLoading(true);
+  
+      const token = await getToken();
+      await logoutAllDevices(token);
+  
+      const data = await getLoginDevices(token);
+      setDevices(data.devices || []);
+  
+    } catch (e) {
+      Alert.alert('Error', 'Failed to sign out devices.');
+    } finally {
+      setActionLoading(false);
+    }
   };
 
   if (loading) {
@@ -91,7 +108,7 @@ const LoginDevicesScreen = ({ navigation }) => {
         <View style={styles.card}>
           {devices.map((device, index) => (
             <View
-              key={device.id}
+              key={device._id}
               style={[
                 styles.deviceItem,
                 index < devices.length - 1 && styles.deviceBorder,
@@ -105,7 +122,7 @@ const LoginDevicesScreen = ({ navigation }) => {
               {device.isCurrent ? (
                 <Text style={styles.currentLabel}>✓ This device</Text>
               ) : (
-                <TouchableOpacity onPress={() => handleRemove(device.id)}>
+                <TouchableOpacity onPress={() => handleRemove(device._id)}>
                   <Text style={styles.removeBtn}>Remove</Text>
                 </TouchableOpacity>
               )}

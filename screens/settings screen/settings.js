@@ -30,8 +30,7 @@ const SettingsScreen = ({ navigation }) => {
             <TouchableOpacity
               key={item.id}
               style={[styles.listItem, index < options.length - 1 && styles.listItemBorder]}
-              onPress={() => navigation.navigate('SettingsScreen', {screen: item.screen,
-  })
+              onPress={() => navigation.navigate(item.screen)
 }
             >
               <View style={styles.itemLeft}>

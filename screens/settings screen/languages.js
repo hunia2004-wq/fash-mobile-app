@@ -2,7 +2,7 @@ import React, { useContext, useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AuthContext } from '../../context/AuthContext';
-import { updateLanguage, getUser } from '../../services/authService';
+import { updateLanguage, getSettings } from '../../services/authService';
 
 const LANGUAGES = [
   { code: 'en', label: 'English', native: 'English' },
@@ -13,45 +13,42 @@ const LanguagesScreen = ({ navigation }) => {
   const { getToken } = useContext(AuthContext);
   const [selected, setSelected] = useState('en');
 
-  // ✅ FETCH language on load
+
   const loadLanguage = async () => {
     try {
       const token = await getToken();
-      const user = await getUser(token);
-
-      const lang = user.language || 'en';
+      const settings = await getSettings(token);
+  
+      const lang = settings.language || 'en';
       setSelected(lang);
-
+  
     } catch (e) {
       console.log("ERROR LOADING LANGUAGE:", e);
       setSelected('en');
     }
   };
 
-  useEffect(() => {
-    loadLanguage();
-  }, []);
+useEffect(() => {
+  const unsubscribe = navigation.addListener('focus', loadLanguage);
+  return unsubscribe;
+}, [navigation]);
 
 
-  const handleLanguageChange = async (language) => {
-    const token = await getToken();
+const handleLanguageChange = async (language) => {
+  if (language === selected) return;
 
-    setSelected(language);
+  const token = await getToken();
+  const previous = selected;
 
-    try {
-      await updateLanguage(token, { language });
+  setSelected(language);
 
-      const updatedUser = await getUser(token);
-
-      setSelected(updatedUser.language || 'en');
-
-    } catch (e) {
-      Alert.alert("Error", "Failed to update language");
-
-      // rollback
-      loadLanguage();
-    }
-  };
+  try {
+    await updateLanguage(token, { language });
+  } catch (e) {
+    Alert.alert("Error", "Failed to update language");
+    setSelected(previous);
+  }
+};
 
   return (
     <SafeAreaView style={styles.container}>

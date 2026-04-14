@@ -7,24 +7,32 @@ import { updatePrivacy } from '../../services/authService';
 const PrivacyScreen = ({ navigation }) => {
   const { getToken } = useContext(AuthContext);
   const [privacy, setPrivacy] = useState({
-    profilePublic: true,
-    showActivity: false,
-    dataCollection: true,
+    profileVisible: true,
+    showEmail: false,
   });
 
   const handleToggle = async (key, value) => {
     const token = await getToken();
   
-    setPrivacy(prev => {
-      const updated = {
-        ...prev,
-        [key]: value,
-      };
+    const previous = privacy;
   
-      updatePrivacy(token, updated);
+    const updated = {
+      ...privacy,
+      [key]: value,
+    };
   
-      return updated;
-    });
+    setPrivacy(updated);
+  
+    try {
+      await updatePrivacy(token, {
+        profileVisible: updated.profileVisible,
+        showEmail: updated.showEmail,
+      });
+    } catch (err) {
+      console.log(err.message);
+      setPrivacy(previous); // rollback
+      Alert.alert("Update failed");
+    }
   };
 
 

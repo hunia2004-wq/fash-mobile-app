@@ -4,55 +4,78 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { AuthContext } from '../../context/AuthContext';
 import { updateNotifications } from '../../services/authService';
 import { useEffect } from 'react';
-import { getNotifications } from '../../services/authService'; 
+import { getSettings } from '../../services/authService';
 
 const NotificationsScreen = ({ navigation }) => {
   const { getToken } = useContext(AuthContext);
   const [notifications, setNotifications] = useState({
-    push: true,
+    push: false,
     email: false,
-    orders: true,
+    orders: false,
     promotions: false,
   });
 
   useEffect(() => {
     fetchSettings();
   }, []);
-  
+
+
   const fetchSettings = async () => {
     try {
       const token = await getToken();
-      const data = await getNotifications(token);
+      const data = await getSettings(token);
   
-      console.log("RAW DATA:", data);
+      const n = data.notifications || {};
   
       setNotifications({
-        push: data.push ?? false,
-        email: data.email ?? false,
-        orders: data.orders ?? false,
-        promotions: data.promotions ?? false,
+        push: n.pushNotifications ?? false,
+        email: n.emailNotifications ?? false,
+        orders: n.orders ?? false,
+        promotions: n.promotions ?? false,
       });
   
     } catch (e) {
-      console.log("ERROR FETCHING:", e);
+      console.log("FETCH ERROR:", e);
     }
   };
 
   const handleToggle = async (key, value) => {
     const token = await getToken();
   
+    // 1. compute next state safely
     setNotifications(prev => {
-      const updated = {
-        ...prev,
-        [key]: value,
-      };
-  
-      // send THIS exact updated object
-      updateNotifications(token, updated);
-  
-      return updated;
+      return { ...prev, [key]: value };
     });
+  
+    // 2. get latest state manually (IMPORTANT FIX)
+    const updated = {
+      ...notifications,
+      [key]: value,
+    };
+  
+    // 3. send API separately
+    try {
+      await updateNotifications(token, {
+        emailNotifications: updated.email,
+        pushNotifications: updated.push,
+        orders: updated.orders,
+        promotions: updated.promotions,
+      });
+    } catch (err) {
+      console.log("Update failed:", err.message);
+    }
   };
+
+const sendUpdate = async (token, updated) => {
+  try {
+    await updateNotifications(token, {
+      emailNotifications: updated.email,
+      pushNotifications: updated.push,
+    });
+  } catch (err) {
+    console.log("Update failed:", err.message);
+  }
+};
 
   const ToggleRow = ({ label, subtitle, value, onValueChange, isLast }) => (
     <View style={[styles.toggleRow, !isLast && styles.toggleRowBorder]}>

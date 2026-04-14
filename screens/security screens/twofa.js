@@ -7,7 +7,7 @@ import { toggle2FA } from '../../services/authService';
 const TwoFactorAuthScreen = ({ navigation }) => {
   const { getToken } = useContext(AuthContext);
   const [twoFA, setTwoFA] = useState({
-    authApp: true,
+    authApp: false,
     sms: false,
     email: false,
   });
