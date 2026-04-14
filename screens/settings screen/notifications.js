@@ -8,10 +8,12 @@ import { getNotifications } from '../../services/authService';
 
 const NotificationsScreen = ({ navigation }) => {
   const { getToken } = useContext(AuthContext);
-  const [push, setPush] = useState(true);
-  const [email, setEmail] = useState(false);
-  const [orders, setOrders] = useState(true);
-  const [promotions, setPromotions] = useState(false);
+  const [notifications, setNotifications] = useState({
+    push: true,
+    email: false,
+    orders: true,
+    promotions: false,
+  });
 
   useEffect(() => {
     fetchSettings();
@@ -22,58 +24,46 @@ const NotificationsScreen = ({ navigation }) => {
       const token = await getToken();
       const data = await getNotifications(token);
   
-      console.log("NOTIFICATIONS DATA:", data); // 👈 DEBUG
+      console.log("RAW DATA:", data);
   
-      setPush(data.push);
-      setEmail(data.email);
-      setOrders(data.orders);
-      setPromotions(data.promotions);
+      setNotifications({
+        push: data.push ?? false,
+        email: data.email ?? false,
+        orders: data.orders ?? false,
+        promotions: data.promotions ?? false,
+      });
+  
     } catch (e) {
-      console.log("ERROR FETCHING NOTIFICATIONS:", e);
+      console.log("ERROR FETCHING:", e);
     }
   };
 
   const handleToggle = async (key, value) => {
-    try {
-      const token = await getToken();
+    const token = await getToken();
   
-      const updatedSettings = {
-        push,
-        email,
-        orders,
-        promotions,
+    setNotifications(prev => {
+      const updated = {
+        ...prev,
         [key]: value,
       };
   
-      setPush(updatedSettings.push);
-      setEmail(updatedSettings.email);
-      setOrders(updatedSettings.orders);
-      setPromotions(updatedSettings.promotions);
+      // send THIS exact updated object
+      updateNotifications(token, updated);
   
-      await updateNotifications(token, updatedSettings);
-  
-      const fresh = await getNotifications(token);
-  
-      setPush(fresh.push);
-      setEmail(fresh.email);
-      setOrders(fresh.orders);
-      setPromotions(fresh.promotions);
-  
-    } catch (e) {
-      console.log("ERROR:", e);
-    }
+      return updated;
+    });
   };
-  
 
-  const ToggleRow = ({ label, subtitle, value, onChange, isLast }) => (
+  const ToggleRow = ({ label, subtitle, value, onValueChange, isLast }) => (
     <View style={[styles.toggleRow, !isLast && styles.toggleRowBorder]}>
       <View style={styles.toggleLeft}>
         <Text style={styles.itemTitle}>{label}</Text>
         {subtitle ? <Text style={styles.itemSubtitle}>{subtitle}</Text> : null}
       </View>
+  
       <Switch
         value={value}
-        onValueChange={onChange}
+        onValueChange={onValueChange}
         trackColor={{ false: '#ccc', true: '#C17C74' }}
         thumbColor="#fff"
       />
@@ -92,19 +82,17 @@ const NotificationsScreen = ({ navigation }) => {
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <Text style={styles.sectionLabel}>Channels</Text>
         <View style={styles.card}>
-          <ToggleRow
-            label="Push Notifications"
-            subtitle="Alerts on your device"
-            value={push}
-            onChange={(v) => { setPush(v); handleToggle('push', v); }}
-          />
-          <ToggleRow
-            label="Email Notifications"
-            subtitle="Updates sent to your email"
-            value={email}
-            onChange={(v) => { setEmail(v); handleToggle('email', v); }}
-            isLast
-          />
+        <ToggleRow
+  label="Push Notifications"
+  value={notifications.push}
+  onValueChange={(v) => handleToggle('push', v)}
+/>
+
+<ToggleRow
+  label="Email Notifications"
+  value={notifications.email}
+  onValueChange={(v) => handleToggle('email', v)}
+/>
         </View>
 
         <Text style={styles.sectionLabel}>Preferences</Text>
@@ -112,14 +100,14 @@ const NotificationsScreen = ({ navigation }) => {
           <ToggleRow
             label="Order Updates"
             subtitle="Status changes and delivery"
-            value={orders}
-            onChange={(v) => { setOrders(v); handleToggle('orders', v); }}
+            value={notifications.orders}
+onValueChange={(v) => handleToggle('orders', v)}
           />
           <ToggleRow
             label="Promotions & Offers"
             subtitle="Deals, sales, and new arrivals"
-            value={promotions}
-            onChange={(v) => { setPromotions(v); handleToggle('promotions', v); }}
+            value={notifications.promotions}
+onValueChange={(v) => handleToggle('promotions', v)}
             isLast
           />
         </View>

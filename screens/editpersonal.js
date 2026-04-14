@@ -1,8 +1,5 @@
 import React, { useContext, useState } from 'react';
-import {
-  View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  TextInput, Image, ActivityIndicator, Alert, Dimensions,
-} from 'react-native';
+import {View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Image, ActivityIndicator, Alert, Dimensions,} from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { AuthContext } from '../context/AuthContext';
 import { updateProfile, uploadAvatar } from '../services/authService';
@@ -15,6 +12,8 @@ export default function EditProfileScreen({ navigation, route }) {
   const { user } = route.params;
 
   // editable fields — backend supports these via PATCH /user/profile
+  const [firstName, setFirstName] = useState(user.firstName || '');
+  const [lastName, setLastName] = useState(user.lastName || '');
   const [username, setUsername] = useState(user.username || '');
   const [bio, setBio] = useState(user.bio || '');
   const [phone, setPhone] = useState(user.phone || '');
@@ -31,6 +30,8 @@ export default function EditProfileScreen({ navigation, route }) {
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       quality: 0.8,
     });
+
+    
     if (!result.canceled) {
       const uri = result.assets[0].uri;
       setAvatar(uri);
@@ -48,17 +49,27 @@ export default function EditProfileScreen({ navigation, route }) {
     setSaving(true);
     try {
       const token = await getToken();
+  
       const payload = {
+        firstName: firstName.trim(),
+        lastName: lastName.trim(),
         username: username.trim(),
         bio: bio.trim(),
-        phone: phone.trim(),
+        phoneNumber: phone.trim(),
       };
-      console.log('Saving profile:', payload);
+  
       const response = await updateProfile(token, payload);
-      console.log('Save response:', JSON.stringify(response));
+  
+      // 🔥 IMPORTANT: return updated user from backend if available
+      console.log('Save response:', response);
+  
       Alert.alert('Saved', 'Your profile has been updated.', [
-        { text: 'OK', onPress: () => navigation.goBack() },
+        {
+          text: 'OK',
+          onPress: () => navigation.navigate('profile'), 
+        },
       ]);
+  
     } catch (e) {
       console.warn('Profile save error:', e.message);
       Alert.alert('Error', e.message || 'Failed to save. Please try again.');
@@ -67,13 +78,13 @@ export default function EditProfileScreen({ navigation, route }) {
     }
   };
 
-  const fullName = `${user.firstName || ''} ${user.lastName || ''}`.trim();
   const joinedDate = user.createdAt
     ? new Date(user.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
     : '—';
 
   return (
     <View style={styles.container}>
+
       {/* header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
@@ -110,6 +121,29 @@ export default function EditProfileScreen({ navigation, route }) {
           <Text style={styles.sectionLabel}>Edit Profile</Text>
 
           <View style={styles.fieldGroup}>
+          <Text style={styles.fieldLabel}>First Name</Text>
+          <TextInput
+             style={styles.input}
+             value={firstName}
+             onChangeText={setFirstName}
+             placeholder="First name"
+             placeholderTextColor="#B09090"
+          />
+          </View>
+
+          <View style={styles.fieldGroup}>
+          <Text style={styles.fieldLabel}>Last Name</Text>
+          <TextInput
+             style={styles.input}
+             value={lastName}
+             onChangeText={setLastName}
+             placeholder="Last name"
+             placeholderTextColor="#B09090"
+          />
+          </View>
+
+
+          <View style={[styles.fieldGroup]}>
             <Text style={styles.fieldLabel}>Username</Text>
             <TextInput
               style={styles.input}
@@ -117,24 +151,11 @@ export default function EditProfileScreen({ navigation, route }) {
               onChangeText={setUsername}
               placeholder="@username"
               placeholderTextColor="#B09090"
-              autoCapitalize="none"
             />
           </View>
 
-          <View style={styles.fieldGroup}>
-            <Text style={styles.fieldLabel}>Bio</Text>
-            <TextInput
-              style={[styles.input, styles.bioInput]}
-              value={bio}
-              onChangeText={setBio}
-              placeholder="Write something about yourself..."
-              placeholderTextColor="#B09090"
-              multiline
-              textAlignVertical="top"
-            />
-          </View>
 
-          <View style={[styles.fieldGroup, styles.lastField]}>
+          <View style={[styles.fieldGroup]}>
             <Text style={styles.fieldLabel}>Phone Number</Text>
             <TextInput
               style={styles.input}
@@ -145,21 +166,27 @@ export default function EditProfileScreen({ navigation, route }) {
               keyboardType="phone-pad"
             />
           </View>
+
+          
+
+          <View style={[styles.fieldGroup]}>
+            <Text style={styles.fieldLabel}>Bio</Text>
+            <TextInput
+              style={styles.input}
+              value={bio}
+              onChangeText={setBio}
+              placeholder="Bio"
+              placeholderTextColor="#B09090"
+            />
+          </View>
+
         </View>
+
+
 
         {/* read-only account info */}
         <View style={styles.card}>
           <Text style={styles.sectionLabel}>Account Information</Text>
-
-          <View style={styles.readOnlyRow}>
-            <Text style={styles.readOnlyLabel}>First Name</Text>
-            <Text style={styles.readOnlyValue}>{user.firstName || '—'}</Text>
-          </View>
-
-          <View style={styles.readOnlyRow}>
-            <Text style={styles.readOnlyLabel}>Last Name</Text>
-            <Text style={styles.readOnlyValue}>{user.lastName || '—'}</Text>
-          </View>
 
           <View style={styles.readOnlyRow}>
             <Text style={styles.readOnlyLabel}>Email</Text>
@@ -274,14 +301,17 @@ const styles = StyleSheet.create({
     marginBottom: 6,
     fontWeight: '500',
   },
+
   input: {
     fontSize: 15,
     color: '#2C1F1F',
     paddingVertical: 0,
   },
+
   bioInput: {
     height: 70,
   },
+
   readOnlyRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',

@@ -2,7 +2,7 @@ import React, { useContext, useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AuthContext } from '../../context/AuthContext';
-import { updateLanguage, getUser, getProfile } from '../../services/authService';
+import { updateLanguage, getUser } from '../../services/authService';
 
 const LANGUAGES = [
   { code: 'en', label: 'English', native: 'English' },
@@ -13,43 +13,43 @@ const LanguagesScreen = ({ navigation }) => {
   const { getToken } = useContext(AuthContext);
   const [selected, setSelected] = useState('en');
 
-
-  useEffect(() => {
-    loadLanguage();
-  }, []);
-  
+  // ✅ FETCH language on load
   const loadLanguage = async () => {
     try {
       const token = await getToken();
       const user = await getUser(token);
-  
-      console.log("FULL USER:", user);
-  
-      // IMPORTANT: adjust based on backend structure
-      const lang =
-        user.language ||
-        user.settings?.language ||
-        'en'; // fallback
-  
+
+      const lang = user.language || 'en';
       setSelected(lang);
+
     } catch (e) {
       console.log("ERROR LOADING LANGUAGE:", e);
       setSelected('en');
     }
   };
 
-  const handleSelect = async (code) => {
+  useEffect(() => {
+    loadLanguage();
+  }, []);
+
+
+  const handleLanguageChange = async (language) => {
+    const token = await getToken();
+
+    setSelected(language);
+
     try {
-      setSelected(code);
-  
-      const token = await getToken();
-  
-      await updateLanguage(token, { language: code });
-  
-      console.log("SAVED LANGUAGE:", code);
+      await updateLanguage(token, { language });
+
+      const updatedUser = await getUser(token);
+
+      setSelected(updatedUser.language || 'en');
+
     } catch (e) {
-      console.log("ERROR:", e);
-      Alert.alert('Error', 'Failed to update language.');
+      Alert.alert("Error", "Failed to update language");
+
+      // rollback
+      loadLanguage();
     }
   };
 
@@ -67,13 +67,17 @@ const LanguagesScreen = ({ navigation }) => {
           {LANGUAGES.map((lang, index) => (
             <TouchableOpacity
               key={lang.code}
-              style={[styles.listItem, index < LANGUAGES.length - 1 && styles.listItemBorder]}
-              onPress={() => handleSelect(lang.code)}
+              style={[
+                styles.listItem,
+                index < LANGUAGES.length - 1 && styles.listItemBorder
+              ]}
+              onPress={() => handleLanguageChange(lang.code)}
             >
               <View style={styles.itemLeft}>
                 <Text style={styles.itemTitle}>{lang.label}</Text>
                 <Text style={styles.itemSubtitle}>{lang.native}</Text>
               </View>
+
               {selected === lang.code && (
                 <Text style={styles.checkmark}>✓</Text>
               )}
@@ -84,6 +88,7 @@ const LanguagesScreen = ({ navigation }) => {
     </SafeAreaView>
   );
 };
+
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F5F5F5' },

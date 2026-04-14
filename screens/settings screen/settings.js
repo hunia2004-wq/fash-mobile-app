@@ -13,6 +13,8 @@ const SettingsScreen = ({ navigation }) => {
     { id: 'address', title: 'Saved Addresses', subtitle: 'Your addresses', screen: 'AddressScreen' },
   ];
 
+  console.log(navigation.getState());
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
@@ -28,7 +30,9 @@ const SettingsScreen = ({ navigation }) => {
             <TouchableOpacity
               key={item.id}
               style={[styles.listItem, index < options.length - 1 && styles.listItemBorder]}
-              onPress={() => navigation.navigate(item.screen)}
+              onPress={() => navigation.navigate('SettingsScreen', {screen: item.screen,
+  })
+}
             >
               <View style={styles.itemLeft}>
                 <Text style={styles.itemTitle}>{item.title}</Text>

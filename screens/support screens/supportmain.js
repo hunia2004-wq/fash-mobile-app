@@ -54,7 +54,7 @@ const SupportScreen = ({ navigation }) => {
         {/* info box */}
         <View style={styles.infoBox}>
           <Text style={styles.infoText}>
-            Need urgent help? Email us at support@yourapp.com or call +1 (800) 000-0000.
+            Need urgent help? Email us at support@yourapp.com or call (+20) 000 00 00 000.
           </Text>
         </View>
       </ScrollView>

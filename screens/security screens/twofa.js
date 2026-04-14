@@ -6,9 +6,11 @@ import { toggle2FA } from '../../services/authService';
 
 const TwoFactorAuthScreen = ({ navigation }) => {
   const { getToken } = useContext(AuthContext);
-  const [authApp, setAuthApp] = useState(true);
-  const [sms, setSms] = useState(false);
-  const [email, setEmail] = useState(false);
+  const [twoFA, setTwoFA] = useState({
+    authApp: true,
+    sms: false,
+    email: false,
+  });
   const [loading, setLoading] = useState(false); 
 
 
@@ -18,28 +20,23 @@ const TwoFactorAuthScreen = ({ navigation }) => {
   ];
 
   const handleToggle = async (key, value) => {
-    setLoading(true);
-  
     try {
       const token = await getToken();
   
-      const res = await toggle2FA(token, {
-        enabled: value,
+      // 1. update local state ONLY for that key
+      setTwoFA(prev => ({
+        ...prev,
+        [key]: value,
+      }));
+  
+      // 2. send to backend
+      await toggle2FA(token, {
         method: key,
+        enabled: value,
       });
   
-      console.log("2FA UPDATED:", res);
-  
-      if (res.twoFactor) {
-        setAuthApp(res.twoFactor.authApp);
-        setSms(res.twoFactor.sms);
-        setEmail(res.twoFactor.email);
-      }
-  
     } catch (e) {
-      Alert.alert("Error", "Failed to update 2FA settings.");
-    } finally {
-      setLoading(false);
+      Alert.alert('Error', 'Failed to update 2FA settings.');
     }
   };
 
@@ -78,24 +75,24 @@ const TwoFactorAuthScreen = ({ navigation }) => {
               <Text style={styles.itemSubtitle}>Google Authenticator, Authy</Text>
             </View>
             <Switch
-              value={authApp}
-              onValueChange={(v) => { setAuthApp(v); handleToggle('authApp', v); }}
-              trackColor={{ false: '#ccc', true: '#B07070' }}
-              thumbColor="#fff"
-            />
+  value={twoFA.authApp}
+  onValueChange={(v) => handleToggle('authApp', v)}
+  trackColor={{ false: '#ccc', true: '#B07070' }}
+  thumbColor="#fff"
+/>
           </View>
 
           <View style={[styles.toggleRow, styles.rowBorder]}>
             <View style={styles.toggleLeft}>
               <Text style={styles.itemTitle}>SMS Verification</Text>
-              <Text style={styles.itemSubtitle}>Text message to +20 *** ***4821</Text>
+              <Text style={styles.itemSubtitle}>Text message to +20 *** ***9856</Text>
             </View>
             <Switch
-              value={sms}
-              onValueChange={(v) => { setSms(v); handleToggle('sms', v); }}
-              trackColor={{ false: '#ccc', true: '#B07070' }}
-              thumbColor="#fff"
-            />
+  value={twoFA.sms}
+  onValueChange={(v) => handleToggle('sms', v)}
+  trackColor={{ false: '#ccc', true: '#B07070' }}
+  thumbColor="#fff"
+/>
           </View>
 
           <View style={[styles.toggleRow, styles.rowBorder]}>
@@ -104,11 +101,11 @@ const TwoFactorAuthScreen = ({ navigation }) => {
               <Text style={styles.itemSubtitle}>aynourhamadaa@gmail.com</Text>
             </View>
             <Switch
-              value={email}
-              onValueChange={(v) => { setEmail(v); handleToggle('email', v); }}
-              trackColor={{ false: '#ccc', true: '#B07070' }}
-              thumbColor="#fff"
-            />
+  value={twoFA.email}
+  onValueChange={(v) => handleToggle('email', v)}
+  trackColor={{ false: '#ccc', true: '#B07070' }}
+  thumbColor="#fff"
+/>
           </View>
         </View>
       </ScrollView>

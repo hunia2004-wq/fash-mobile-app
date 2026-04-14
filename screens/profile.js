@@ -47,8 +47,9 @@ export default function ProfileScreen({ navigation }) {
   };
 
   useEffect(() => {
-    fetchUser();
-  }, []);
+    const unsubscribe = navigation.addListener("focus", fetchUser);
+    return unsubscribe;
+  }, [navigation]);
 
   useEffect(() => {
     const unsubscribe = navigation.addListener("focus", fetchUser);
@@ -65,6 +66,7 @@ export default function ProfileScreen({ navigation }) {
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       quality: 1,
     });
+    
     if (!result.canceled) {
       setAvatar(result.assets[0].uri);
     }

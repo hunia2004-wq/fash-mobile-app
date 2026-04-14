@@ -91,13 +91,11 @@ export async function getProfile(token) {
 // PROFILE
 // ─────────────────────────────
 
-export async function updateProfile(token, { username, bio, phone }) {
+export async function updateProfile(token, { firstName, lastName, username, bio, phoneNumber }) {
   return request("/user/profile", {
     method: "PATCH",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify({ username, bio, phone }),
+    headers: { Authorization: `Bearer ${token}` },
+    body: JSON.stringify({ firstName, lastName, username, bio, phoneNumber }),
   });
 }
 

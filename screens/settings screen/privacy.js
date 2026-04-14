@@ -6,41 +6,38 @@ import { updatePrivacy } from '../../services/authService';
 
 const PrivacyScreen = ({ navigation }) => {
   const { getToken } = useContext(AuthContext);
-  const [profilePublic, setProfilePublic] = useState(true);
-  const [showActivity, setShowActivity] = useState(false);
-  const [dataCollection, setDataCollection] = useState(true);
+  const [privacy, setPrivacy] = useState({
+    profilePublic: true,
+    showActivity: false,
+    dataCollection: true,
+  });
 
   const handleToggle = async (key, value) => {
-    try {
-      const token = await getToken();
+    const token = await getToken();
   
+    setPrivacy(prev => {
       const updated = {
-        profilePublic,
-        showActivity,
-        dataCollection,
+        ...prev,
         [key]: value,
       };
   
-      setProfilePublic(updated.profilePublic);
-      setShowActivity(updated.showActivity);
-      setDataCollection(updated.dataCollection);
+      updatePrivacy(token, updated);
   
-      await updatePrivacy(token, updated);
-  
-    } catch (e) {
-      Alert.alert('Error', 'Failed to update privacy settings.');
-    }
+      return updated;
+    });
   };
 
-  const ToggleRow = ({ label, subtitle, value, onChange, isLast }) => (
+
+  const ToggleRow = ({ label, subtitle, value, onValueChange, isLast }) => (
     <View style={[styles.toggleRow, !isLast && styles.toggleRowBorder]}>
       <View style={styles.toggleLeft}>
         <Text style={styles.itemTitle}>{label}</Text>
         {subtitle ? <Text style={styles.itemSubtitle}>{subtitle}</Text> : null}
       </View>
+  
       <Switch
         value={value}
-        onValueChange={onChange}
+        onValueChange={onValueChange}
         trackColor={{ false: '#ccc', true: '#C17C74' }}
         thumbColor="#fff"
       />
@@ -58,23 +55,22 @@ const PrivacyScreen = ({ navigation }) => {
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.card}>
-          <ToggleRow
-            label="Public Profile"
-            subtitle="Allow others to view your profile"
-            value={profilePublic}
-            onChange={(v) => { setProfilePublic(v); handleToggle('profilePublic', v); }}
-          />
+        <ToggleRow
+  label="Public Profile"
+  value={privacy.profilePublic}
+  onValueChange={(v) => handleToggle('profilePublic', v)}
+/>
           <ToggleRow
             label="Show Activity"
             subtitle="Let others see your activity"
-            value={showActivity}
-            onChange={(v) => { setShowActivity(v); handleToggle('showActivity', v); }}
+            value={privacy.showActivity}
+onValueChange={(v) => handleToggle('showActivity', v)}
           />
           <ToggleRow
             label="Data Collection"
             subtitle="Help us improve with usage data"
-            value={dataCollection}
-            onChange={(v) => { setDataCollection(v); handleToggle('dataCollection', v); }}
+            value={privacy.dataCollection}
+onValueChange={(v) => handleToggle('dataCollection', v)}
             isLast
           />
         </View>
