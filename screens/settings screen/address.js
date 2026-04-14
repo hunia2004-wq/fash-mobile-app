@@ -31,6 +31,7 @@ export default function SavedAddresses({ navigation }) {
     try {
       const token = await getToken();
       const data = await getAddresses(token);
+      console.log("ADDRESSES RESPONSE:", data);
       setAddresses(Array.isArray(data) ? data : data.addresses || []);
     } catch (e) {
       Alert.alert('Error', 'Failed to load addresses.');
@@ -59,6 +60,7 @@ export default function SavedAddresses({ navigation }) {
 
   const handleSave = async () => {
     if (!street.trim() || !city.trim()) {
+      console.log("SAVING ADDRESS:", payload);
       Alert.alert('Validation', 'Street and city are required.');
       return;
     }

@@ -19,16 +19,29 @@ const TwoFactorAuthScreen = ({ navigation }) => {
 
   const handleToggle = async (key, value) => {
     setLoading(true);
+  
     try {
       const token = await getToken();
-      await toggle2FA(token, { enabled: value, method: key });
+  
+      const res = await toggle2FA(token, {
+        enabled: value,
+        method: key,
+      });
+  
+      console.log("2FA UPDATED:", res);
+  
+      if (res.twoFactor) {
+        setAuthApp(res.twoFactor.authApp);
+        setSms(res.twoFactor.sms);
+        setEmail(res.twoFactor.email);
+      }
+  
     } catch (e) {
-      Alert.alert('Error', 'Failed to update 2FA settings.');
+      Alert.alert("Error", "Failed to update 2FA settings.");
     } finally {
       setLoading(false);
     }
   };
-
 
   return (
 

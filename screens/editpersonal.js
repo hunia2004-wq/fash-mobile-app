@@ -1,9 +1,11 @@
 import React, { useContext, useState } from 'react';
-import {View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Image, ActivityIndicator, Alert, Dimensions,} from 'react-native';
+import {
+  View, Text, StyleSheet, ScrollView, TouchableOpacity,
+  TextInput, Image, ActivityIndicator, Alert, Dimensions,
+} from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { AuthContext } from '../context/AuthContext';
 import { updateProfile, uploadAvatar } from '../services/authService';
-
 
 const { width } = Dimensions.get('window');
 const avatarSize = width * 0.25;
@@ -12,7 +14,7 @@ export default function EditProfileScreen({ navigation, route }) {
   const { getToken } = useContext(AuthContext);
   const { user } = route.params;
 
-  const [name, setName] = useState(user.name || '');
+  // editable fields — backend supports these via PATCH /user/profile
   const [username, setUsername] = useState(user.username || '');
   const [bio, setBio] = useState(user.bio || '');
   const [phone, setPhone] = useState(user.phone || '');
@@ -25,12 +27,10 @@ export default function EditProfileScreen({ navigation, route }) {
       Alert.alert('Permission required', 'Please allow access to your photo library.');
       return;
     }
-
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       quality: 0.8,
     });
-
     if (!result.canceled) {
       const uri = result.assets[0].uri;
       setAvatar(uri);
@@ -38,48 +38,42 @@ export default function EditProfileScreen({ navigation, route }) {
         const token = await getToken();
         await uploadAvatar(token, uri);
       } catch (e) {
+        Alert.alert('Error', 'Failed to upload photo. Please try again.');
         console.warn('Avatar upload error:', e);
-        Alert.alert('Error', e.message || 'Failed to upload avatar. Please try again.');
       }
     }
   };
 
-  
   const handleSave = async () => {
-    if (!name.trim()) {
-      Alert.alert('Validation', 'Full name cannot be empty.');
-      return;
-    }
-
     setSaving(true);
-
     try {
       const token = await getToken();
-
-await updateProfile(token, {
-  name: name.trim(),
-  username: username.trim(),
-  bio: bio.trim(),
-  phone: phone.trim(),
-});
-
-
-
-
+      const payload = {
+        username: username.trim(),
+        bio: bio.trim(),
+        phone: phone.trim(),
+      };
+      console.log('Saving profile:', payload);
+      const response = await updateProfile(token, payload);
+      console.log('Save response:', JSON.stringify(response));
       Alert.alert('Saved', 'Your profile has been updated.', [
         { text: 'OK', onPress: () => navigation.goBack() },
       ]);
     } catch (e) {
-      Alert.alert('Error', 'Failed to save. Please try again.');
-      console.warn('Profile save error:', e);
+      console.warn('Profile save error:', e.message);
+      Alert.alert('Error', e.message || 'Failed to save. Please try again.');
     } finally {
       setSaving(false);
     }
   };
 
+  const fullName = `${user.firstName || ''} ${user.lastName || ''}`.trim();
+  const joinedDate = user.createdAt
+    ? new Date(user.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
+    : '—';
+
   return (
     <View style={styles.container}>
-
       {/* header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
@@ -87,23 +81,21 @@ await updateProfile(token, {
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Edit Profile</Text>
         <TouchableOpacity onPress={handleSave} disabled={saving}>
-          {saving ? (
-            <ActivityIndicator size="small" color="#B07070" />
-          ) : (
-            <Text style={styles.saveBtn}>Save</Text>
-          )}
+          {saving
+            ? <ActivityIndicator size="small" color="#C17C74" />
+            : <Text style={styles.saveBtn}>Save</Text>
+          }
         </TouchableOpacity>
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
 
-        {/* avatar picker */}
+        {/* avatar */}
         <TouchableOpacity style={styles.avatarContainer} onPress={pickImage}>
           <Image
             source={
-              avatar
-                ? { uri: avatar }
-                : require('../source/assets/images/avatar.jpg')
+              avatar ? { uri: avatar } :
+              require('../source/assets/images/avatar.jpg')
             }
             style={styles.avatar}
           />
@@ -115,18 +107,7 @@ await updateProfile(token, {
 
         {/* editable fields */}
         <View style={styles.card}>
-          <Text style={styles.sectionLabel}>Profile Information</Text>
-
-          <View style={styles.fieldGroup}>
-            <Text style={styles.fieldLabel}>Full Name</Text>
-            <TextInput
-              style={styles.input}
-              value={name}
-              onChangeText={setName}
-              placeholder="Your full name"
-              placeholderTextColor="#B09090"
-            />
-          </View>
+          <Text style={styles.sectionLabel}>Edit Profile</Text>
 
           <View style={styles.fieldGroup}>
             <Text style={styles.fieldLabel}>Username</Text>
@@ -166,19 +147,33 @@ await updateProfile(token, {
           </View>
         </View>
 
+        {/* read-only account info */}
         <View style={styles.card}>
           <Text style={styles.sectionLabel}>Account Information</Text>
+
+          <View style={styles.readOnlyRow}>
+            <Text style={styles.readOnlyLabel}>First Name</Text>
+            <Text style={styles.readOnlyValue}>{user.firstName || '—'}</Text>
+          </View>
+
+          <View style={styles.readOnlyRow}>
+            <Text style={styles.readOnlyLabel}>Last Name</Text>
+            <Text style={styles.readOnlyValue}>{user.lastName || '—'}</Text>
+          </View>
+
           <View style={styles.readOnlyRow}>
             <Text style={styles.readOnlyLabel}>Email</Text>
             <Text style={styles.readOnlyValue}>{user.email}</Text>
           </View>
+
           <View style={styles.readOnlyRow}>
             <Text style={styles.readOnlyLabel}>Date Joined</Text>
-            <Text style={styles.readOnlyValue}>{user.date_joined || '—'}</Text>
+            <Text style={styles.readOnlyValue}>{joinedDate}</Text>
           </View>
+
           <View style={[styles.readOnlyRow, styles.lastField]}>
             <Text style={styles.readOnlyLabel}>Account Type</Text>
-            <Text style={styles.readOnlyValue}>{user.account_type || 'Standard'}</Text>
+            <Text style={styles.readOnlyValue}>{user.role || 'Standard'}</Text>
           </View>
         </View>
 
@@ -192,7 +187,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#F5F5F5',
   },
-
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -201,40 +195,33 @@ const styles = StyleSheet.create({
     paddingTop: 56,
     paddingBottom: 12,
   },
-
   headerTitle: {
     fontSize: 17,
     fontWeight: '700',
     color: '#2C1F1F',
   },
-
   cancelBtn: {
     fontSize: 15,
     color: '#C17C74',
   },
-
   saveBtn: {
     fontSize: 15,
     color: '#C17C74',
     fontWeight: '700',
   },
-
   scrollContent: {
     padding: 16,
     gap: 16,
   },
-
   avatarContainer: {
     alignItems: 'center',
     paddingVertical: 8,
   },
-
   avatar: {
     width: avatarSize,
     height: avatarSize,
     borderRadius: avatarSize / 2,
   },
-
   avatarBadge: {
     position: 'absolute',
     bottom: 28,
@@ -246,26 +233,22 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-
   avatarBadgeText: {
     color: 'white',
     fontWeight: 'bold',
     fontSize: avatarSize * 0.18,
   },
-
   changePhotoText: {
     marginTop: 8,
     fontSize: 13,
     color: '#B07070',
     fontWeight: '600',
   },
-
   card: {
     backgroundColor: '#F2E6E3',
     borderRadius: 16,
     padding: 16,
   },
-
   sectionLabel: {
     fontSize: 11,
     fontWeight: '700',
@@ -274,37 +257,31 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     marginBottom: 14,
   },
-
   fieldGroup: {
     marginBottom: 14,
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: 'rgba(140,100,100,0.2)',
     paddingBottom: 14,
   },
-
   lastField: {
     borderBottomWidth: 0,
     marginBottom: 0,
     paddingBottom: 0,
   },
-
   fieldLabel: {
     fontSize: 11,
     color: 'black',
     marginBottom: 6,
     fontWeight: '500',
   },
-
   input: {
     fontSize: 15,
     color: '#2C1F1F',
     paddingVertical: 0,
   },
-
   bioInput: {
     height: 70,
   },
-
   readOnlyRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -313,12 +290,10 @@ const styles = StyleSheet.create({
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: 'rgba(140,100,100,0.2)',
   },
-
   readOnlyLabel: {
     fontSize: 14,
     color: '#7A6060',
   },
-
   readOnlyValue: {
     fontSize: 14,
     color: '#2C1F1F',

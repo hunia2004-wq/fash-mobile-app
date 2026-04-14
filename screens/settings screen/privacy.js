@@ -13,7 +13,20 @@ const PrivacyScreen = ({ navigation }) => {
   const handleToggle = async (key, value) => {
     try {
       const token = await getToken();
-      await updatePrivacy(token, { [key]: value });
+  
+      const updated = {
+        profilePublic,
+        showActivity,
+        dataCollection,
+        [key]: value,
+      };
+  
+      setProfilePublic(updated.profilePublic);
+      setShowActivity(updated.showActivity);
+      setDataCollection(updated.dataCollection);
+  
+      await updatePrivacy(token, updated);
+  
     } catch (e) {
       Alert.alert('Error', 'Failed to update privacy settings.');
     }

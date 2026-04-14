@@ -6,8 +6,8 @@ import { StatusBar } from 'expo-status-bar';
 import { signup } from '../services/authService';
 
 export default function SignupScreen({ navigation }) {
-  const [firstname, setFirstName] = useState('');
-  const [lastname, setLastName] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -18,7 +18,7 @@ export default function SignupScreen({ navigation }) {
 
   const handleSignUp = async () => {
     setError("");
-    if (!firstname || !lastname || !email || !password || !confirmPassword) {
+    if (!firstName || !lastName || !email || !password || !confirmPassword) {
       setError('Please fill in all fields');
       return;
     }
@@ -29,7 +29,7 @@ export default function SignupScreen({ navigation }) {
     
     setLoading(true);
     try {
-    await signup({firstname: firstname, lastname: lastname, email, password, fullname:`${firstname} ${lastname}`,});
+    await signup({firstName: firstName, lastName: lastName, email, password, fullname:`${firstName} ${lastName}`,});
     navigation.navigate('Verification', {email});
     }
     catch (err) {
@@ -67,7 +67,7 @@ export default function SignupScreen({ navigation }) {
     <TextInput
       style={styles.input}
       placeholder="First name"
-      value={firstname}
+      value={firstName}
       onChangeText={setFirstName}
       autoCapitalize="words"
     />
@@ -78,7 +78,7 @@ export default function SignupScreen({ navigation }) {
     <TextInput
       style={styles.input}
       placeholder="Last name"
-      value={lastname}
+      value={lastName}
       onChangeText={setLastName}
       autoCapitalize="words"
     />

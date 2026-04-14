@@ -1,5 +1,8 @@
 import React, { useContext, useEffect, useState } from "react";
-import {View, Text, StyleSheet, Image, TouchableOpacity, ActivityIndicator, ScrollView, Dimensions,} from "react-native";
+import {
+  View, Text, StyleSheet, Image, TouchableOpacity,
+  ActivityIndicator, ScrollView, Dimensions,
+} from "react-native";
 import { AuthContext } from "../context/AuthContext";
 import { getProfile } from "../services/authService";
 import * as ImagePicker from "expo-image-picker";
@@ -24,38 +27,31 @@ const MenuRow = ({ title, subtitle, onPress }) => (
   </TouchableOpacity>
 );
 
-
 export default function ProfileScreen({ navigation }) {
-  const {logOut, getToken } = useContext(AuthContext);
+  const { logOut, getToken } = useContext(AuthContext);
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [avatar, setAvatar] = useState(null);
 
+  const fetchUser = async () => {
+    try {
+      const token = await getToken();
+      if (!token) return;
+      const profile = await getProfile(token);
+      setUser(profile);
+    } catch (e) {
+      console.warn("Failed to fetch profile:", e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        const token = await getToken();
-        if (!token) return;
-        const profile = await getProfile(token);
-        setUser(profile);
-      } catch (e) {
-        console.warn("Failed to fetch profile:", e);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchProfile();
+    fetchUser();
   }, []);
 
   useEffect(() => {
-    const unsubscribe = navigation.addListener("focus", async () => {
-      try {
-        const token = await getToken();
-        if (!token) return;
-        const profile = await getProfile(token);
-        setUser(profile);
-      } catch (e) {}
-    });
+    const unsubscribe = navigation.addListener("focus", fetchUser);
     return unsubscribe;
   }, [navigation]);
 
@@ -90,18 +86,20 @@ export default function ProfileScreen({ navigation }) {
     );
   }
 
+  const fullName = `${user.firstName || ''} ${user.lastName || ''}`.trim();
+  const joinedDate = user.createdAt ? new Date(user.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : '—';
+
   return (
-    <ScrollView
-      contentContainerStyle={styles.container}
-      showsVerticalScrollIndicator={false}
-    >
+    <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
+
+      {/* Hero */}
       <View style={styles.heroSection}>
         <TouchableOpacity onPress={pickImage} style={styles.avatarWrapper}>
           <Image
             source={
-              avatar
-                ? { uri: avatar }
-                : require("../source/assets/images/avatar.jpg")
+              avatar ? { uri: avatar } :
+              user.avatar ? { uri: user.avatar } :
+              require("../source/assets/images/avatar.jpg")
             }
             style={styles.avatar}
           />
@@ -110,8 +108,7 @@ export default function ProfileScreen({ navigation }) {
           </View>
         </TouchableOpacity>
 
-        <Text style={styles.firstname}>{user.firstname}</Text>
-        <Text style={styles.lastname}>{user.lastname}</Text>
+        <Text style={styles.name}>{fullName || 'No Name'}</Text>
         <Text style={styles.email}>{user.email}</Text>
 
         <TouchableOpacity
@@ -122,50 +119,42 @@ export default function ProfileScreen({ navigation }) {
         </TouchableOpacity>
       </View>
 
-      {/* profile information */}
+      {/* Profile + Account Info */}
       <View style={styles.card}>
         <Text style={styles.cardSectionLabel}>Profile Information</Text>
-
-        <InfoRow label="Full Name" value={user.name} />
+        <InfoRow label="First Name" value={user.firstName} />
+        <InfoRow label="Last Name" value={user.lastName} />
         <InfoRow label="Username" value={user.username} />
         <InfoRow label="Bio" value={user.bio} />
         <InfoRow label="Phone" value={user.phone} />
 
         <View style={styles.cardDivider} />
 
-        {/* account information */}
         <Text style={styles.cardSectionLabel}>Account Information</Text>
-
         <InfoRow label="Email" value={user.email} />
-        <InfoRow label="Date Joined" value={user.date_joined} />
-        <InfoRow label="Account Type" value={user.account_type || "Standard"} />
+        <InfoRow label="Date Joined" value={joinedDate} />
+        <InfoRow label="Account Type" value={user.role || "Standard"} />
       </View>
 
-      {/* settings */}
+      {/* Menu */}
       <View style={styles.card}>
         <MenuRow
           title="Settings"
-          subtitle="Email, Change Password, Notifications, Languages, Privacy"
+          subtitle="Email, Password, Notifications, Language, Privacy"
           onPress={() => navigation.navigate("SettingsScreen")}
         />
-
-        {/* orders */}
         <View style={styles.rowDivider} />
         <MenuRow
           title="Orders"
           subtitle="Orders, Order Details"
           onPress={() => navigation.navigate("OrdersScreen")}
         />
-
-        {/* security */}
         <View style={styles.rowDivider} />
         <MenuRow
           title="Security"
           subtitle="2FA, Active devices, Connected accounts"
           onPress={() => navigation.navigate("SecurityScreen")}
         />
-
-        {/* support */}
         <View style={styles.rowDivider} />
         <MenuRow
           title="Support"
@@ -174,7 +163,6 @@ export default function ProfileScreen({ navigation }) {
         />
       </View>
 
-      {/* logout button */}
       <TouchableOpacity style={styles.logoutButton} onPress={logOut}>
         <Text style={styles.logoutButtonText}>Logout</Text>
       </TouchableOpacity>
@@ -185,179 +173,29 @@ export default function ProfileScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flexGrow: 1,
-    padding: 20,
-    backgroundColor: "#F5F5F5",        
-  },
-
-  content: {
-    alignItems: "center",
-    flex: 1,
-    justifyContent: "flex-start",
-    marginTop: height * 0.15, // push avatar & name lower
-  },
-
-  centered: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "#F5EDE6",
-  },
-
-  heroSection: {
-    alignItems: "center",
-    paddingTop: height * 0.08,
-    paddingBottom: 24,
-  },
-
-  avatarWrapper: {
-    marginBottom: 14,
-  },
-
-  avatar: {
-    width: avatarSize,
-    height: avatarSize,
-    borderRadius: avatarSize / 2,
-  },
-
-  avatarBadge: {
-    position: "absolute",
-    bottom: 0,
-    right: 0,
-    backgroundColor: "#C17C74",
-    width: avatarSize * 0.28,
-    height: avatarSize * 0.28,
-    borderRadius: (avatarSize * 0.28) / 2,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-
-  avatarBadgeText: {
-    color: "white",
-    fontWeight: "bold",
-    fontSize: avatarSize * 0.18,
-  },
-
-  name: {
-    fontSize: 22,
-    fontWeight: "700",
-    color: "#2C1F1F",
-    marginBottom: 4,
-  },
-
-  email: {
-    fontSize: 13,
-    color: "black",
-    marginBottom: 16,
-  },
-
-  editButton: {
-    alignSelf: "center",
-    backgroundColor: "#C17C74",
-    paddingHorizontal: 40,
-    paddingVertical: 10,
-    borderRadius: 10,
-    marginBottom: 15,
-  },
-
-  editButtonText: {
-    color: "white",
-    fontWeight: "bold",
-  },
-
-  card: {
-    backgroundColor: "#F2E6E3",
-    borderRadius: 16,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    marginBottom: 14,
-  },
-
-  cardSectionLabel: {
-    fontSize: 11,
-    fontWeight: "700",
-    color: "black",
-    letterSpacing: 0.8,
-    textTransform: "uppercase",
-    marginBottom: 10,
-    marginTop: 4,
-  },
-
-  cardDivider: {
-    height: StyleSheet.hairlineWidth,
-    backgroundColor: "rgba(140,100,100,0.3)",
-    marginVertical: 14,
-  },
-
-  infoRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingVertical: 10,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: "rgba(140,100,100,0.15)",
-  },
-
-  infoLabel: {
-    fontSize: 13,
-    color: "black",
-    flex: 1,
-  },
-
-  infoValue: {
-    fontSize: 13,
-    color: "#2C1F1F",
-    fontWeight: "500",
-    flex: 2,
-    textAlign: "right",
-  },
-
-  menuRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingVertical: 13,
-  },
-
-  menuRowLeft: {
-    flex: 1,
-  },
-
-  menuRowTitle: {
-    fontSize: 15,
-    fontWeight: "600",
-    color: "#2C1F1F",
-  },
-
-  menuRowSubtitle: {
-    fontSize: 12,
-    color: "#7A6060",
-    marginTop: 2,
-  },
-
-  menuRowChevron: {
-    fontSize: 20,
-    color: "#B09090",
-  },
-
-  rowDivider: {
-    height: StyleSheet.hairlineWidth,
-    backgroundColor: "rgba(140,100,100,0.15)",
-  },
-
-  logoutButton: {
-    padding: 15,
-    borderRadius: 10,
-    alignItems: "center",
-    backgroundColor: "white",
-    borderWidth: 1.5,
-    borderColor: "#C17C74",
-  },
-
-  logoutButtonText: {
-    color: "#C17C74",
-    fontWeight: "bold",
-    fontSize: 16,
-  },
+  container: { flexGrow: 1, padding: 20, backgroundColor: "#F5F5F5" },
+  centered: { flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "#F5F5F5" },
+  heroSection: { alignItems: "center", paddingTop: height * 0.08, paddingBottom: 24 },
+  avatarWrapper: { marginBottom: 14 },
+  avatar: { width: avatarSize, height: avatarSize, borderRadius: avatarSize / 2 },
+  avatarBadge: { position: "absolute", bottom: 0, right: 0, backgroundColor: "#C17C74", width: avatarSize * 0.28, height: avatarSize * 0.28, borderRadius: (avatarSize * 0.28) / 2, justifyContent: "center", alignItems: "center" },
+  avatarBadgeText: { color: "white", fontWeight: "bold", fontSize: avatarSize * 0.18 },
+  name: { fontSize: 22, fontWeight: "700", color: "#2C1F1F", marginBottom: 4 },
+  email: { fontSize: 13, color: "black", marginBottom: 16 },
+  editButton: { alignSelf: "center", backgroundColor: "#C17C74", paddingHorizontal: 40, paddingVertical: 10, borderRadius: 10, marginBottom: 15 },
+  editButtonText: { color: "white", fontWeight: "bold" },
+  card: { backgroundColor: "#F2E6E3", borderRadius: 16, paddingHorizontal: 16, paddingVertical: 14, marginBottom: 14 },
+  cardSectionLabel: { fontSize: 11, fontWeight: "700", color: "black", letterSpacing: 0.8, textTransform: "uppercase", marginBottom: 10, marginTop: 4 },
+  cardDivider: { height: StyleSheet.hairlineWidth, backgroundColor: "rgba(140,100,100,0.3)", marginVertical: 14 },
+  infoRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingVertical: 10, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: "rgba(140,100,100,0.15)" },
+  infoLabel: { fontSize: 13, color: "black", flex: 1 },
+  infoValue: { fontSize: 13, color: "#2C1F1F", fontWeight: "500", flex: 2, textAlign: "right" },
+  menuRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingVertical: 13 },
+  menuRowLeft: { flex: 1 },
+  menuRowTitle: { fontSize: 15, fontWeight: "600", color: "#2C1F1F" },
+  menuRowSubtitle: { fontSize: 12, color: "#7A6060", marginTop: 2 },
+  menuRowChevron: { fontSize: 20, color: "#B09090" },
+  rowDivider: { height: StyleSheet.hairlineWidth, backgroundColor: "rgba(140,100,100,0.15)" },
+  logoutButton: { padding: 15, borderRadius: 10, alignItems: "center", backgroundColor: "white", borderWidth: 1.5, borderColor: "#C17C74" },
+  logoutButtonText: { color: "#C17C74", fontWeight: "bold", fontSize: 16 },
 });

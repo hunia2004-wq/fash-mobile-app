@@ -3,6 +3,8 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Switch, Alert } f
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AuthContext } from '../../context/AuthContext';
 import { updateNotifications } from '../../services/authService';
+import { useEffect } from 'react';
+import { getNotifications } from '../../services/authService'; 
 
 const NotificationsScreen = ({ navigation }) => {
   const { getToken } = useContext(AuthContext);
@@ -11,14 +13,57 @@ const NotificationsScreen = ({ navigation }) => {
   const [orders, setOrders] = useState(true);
   const [promotions, setPromotions] = useState(false);
 
+  useEffect(() => {
+    fetchSettings();
+  }, []);
+  
+  const fetchSettings = async () => {
+    try {
+      const token = await getToken();
+      const data = await getNotifications(token);
+  
+      console.log("NOTIFICATIONS DATA:", data); // 👈 DEBUG
+  
+      setPush(data.push);
+      setEmail(data.email);
+      setOrders(data.orders);
+      setPromotions(data.promotions);
+    } catch (e) {
+      console.log("ERROR FETCHING NOTIFICATIONS:", e);
+    }
+  };
+
   const handleToggle = async (key, value) => {
     try {
       const token = await getToken();
-      await updateNotifications(token, { [key]: value });
+  
+      const updatedSettings = {
+        push,
+        email,
+        orders,
+        promotions,
+        [key]: value,
+      };
+  
+      setPush(updatedSettings.push);
+      setEmail(updatedSettings.email);
+      setOrders(updatedSettings.orders);
+      setPromotions(updatedSettings.promotions);
+  
+      await updateNotifications(token, updatedSettings);
+  
+      const fresh = await getNotifications(token);
+  
+      setPush(fresh.push);
+      setEmail(fresh.email);
+      setOrders(fresh.orders);
+      setPromotions(fresh.promotions);
+  
     } catch (e) {
-      Alert.alert('Error', 'Failed to update notification settings.');
+      console.log("ERROR:", e);
     }
   };
+  
 
   const ToggleRow = ({ label, subtitle, value, onChange, isLast }) => (
     <View style={[styles.toggleRow, !isLast && styles.toggleRowBorder]}>

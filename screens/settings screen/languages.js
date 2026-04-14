@@ -1,8 +1,8 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext, useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AuthContext } from '../../context/AuthContext';
-import { updateLanguage } from '../../services/authService';
+import { updateLanguage, getUser, getProfile } from '../../services/authService';
 
 const LANGUAGES = [
   { code: 'en', label: 'English', native: 'English' },
@@ -13,12 +13,42 @@ const LanguagesScreen = ({ navigation }) => {
   const { getToken } = useContext(AuthContext);
   const [selected, setSelected] = useState('en');
 
-  const handleSelect = async (code) => {
-    setSelected(code);
+
+  useEffect(() => {
+    loadLanguage();
+  }, []);
+  
+  const loadLanguage = async () => {
     try {
       const token = await getToken();
-      await updateLanguage(token, { language: code });
+      const user = await getUser(token);
+  
+      console.log("FULL USER:", user);
+  
+      // IMPORTANT: adjust based on backend structure
+      const lang =
+        user.language ||
+        user.settings?.language ||
+        'en'; // fallback
+  
+      setSelected(lang);
     } catch (e) {
+      console.log("ERROR LOADING LANGUAGE:", e);
+      setSelected('en');
+    }
+  };
+
+  const handleSelect = async (code) => {
+    try {
+      setSelected(code);
+  
+      const token = await getToken();
+  
+      await updateLanguage(token, { language: code });
+  
+      console.log("SAVED LANGUAGE:", code);
+    } catch (e) {
+      console.log("ERROR:", e);
       Alert.alert('Error', 'Failed to update language.');
     }
   };

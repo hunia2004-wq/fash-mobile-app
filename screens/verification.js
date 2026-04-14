@@ -5,7 +5,6 @@ import { StatusBar } from 'expo-status-bar';
 import { AuthContext } from '../context/AuthContext';
 import { verifyOtp, verifyResetOtp } from '../services/authService';
 
-
 export default function VerificationScreen({ navigation, route }) {
   const { logIn } = useContext(AuthContext);
   const { email = '', mode } = route.params || {};
@@ -30,11 +29,9 @@ export default function VerificationScreen({ navigation, route }) {
     setLoading(true);
     try {
       if (isReset) {
-        // Verify reset OTP and set new password
         await verifyResetOtp({ email, otp, newPassword });
         navigation.navigate('Login');
       } else {
-        // Verify signup OTP
         await verifyOtp({ email, otp });
         navigation.navigate('Login');
       }
@@ -45,95 +42,76 @@ export default function VerificationScreen({ navigation, route }) {
     }
   };
 
+  return (
+    <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : "height"}>
+      <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
+        <StatusBar style="dark" />
 
-return (
-  <KeyboardAvoidingView style={{ flex:1}} behavior={Platform.OS === "ios" ? "padding" : "height"}>
-    <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
-      <StatusBar style="dark" />
-
-      <Image
-        source={require('../source/assets/images/Blacklogo.png')}
-        style={styles.logo}
-        resizeMode="contain"
-      />
-
-    <View style={styles.card}>
-      <View style={styles.iconCircle}>
-        <FontAwesome name="envelope-o" size={36} color="#C17C74" />
-      </View>
-
-      <Text style={styles.title}>
-        {isReset ? 'Reset Password' : 'Verify Your Email'}
-      </Text>
-
-      <Text style={styles.body}>
-        We sent a 6-digit code to:
-      </Text>
-
-      <Text style={styles.email}>{email}</Text>
-
-      <Text style={styles.label}>Enter Code</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="******"
-          value={otp}
-          onChangeText={setOtp}
-          keyboardType="number-pad"
-          maxLength={6}
+        <Image
+          source={require('../source/assets/images/Blacklogo.png')}
+          style={styles.logo}
+          resizeMode="contain"
         />
 
-        {isReset && (
-          <>
-            <Text style={styles.label}>New Password</Text>
-            <View style={styles.passwordContainer}>
-              <TextInput
-                style={styles.passwordInput}
-                placeholder="Min 6 chars"
-                value={newPassword}
-                onChangeText={setNewPassword}
-                secureTextEntry={!showPassword}
-              />
+        <View style={styles.card}>
+          <View style={styles.iconCircle}>
+            <FontAwesome name="envelope-o" size={36} color="#C17C74" />
+          </View>
 
-      <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-                <FontAwesome
-                  name={showPassword ? 'eye' : 'eye-slash'}
-                  size={20}
-                  color="gray"
+          <Text style={styles.title}>
+            {isReset ? 'Reset Password' : 'Verify Your Email'}
+          </Text>
+
+          <Text style={styles.body}>We sent a 6-digit code to:</Text>
+          <Text style={styles.email}>{email}</Text>
+
+          <Text style={styles.label}>Enter Code</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="******"
+            value={otp}
+            onChangeText={setOtp}
+            keyboardType="number-pad"
+            maxLength={6}
+          />
+
+          {isReset && (
+            <>
+              <Text style={styles.label}>New Password</Text>
+              <View style={styles.passwordContainer}>
+                <TextInput
+                  style={styles.passwordInput}
+                  placeholder="Min 6 chars"
+                  value={newPassword}
+                  onChangeText={setNewPassword}
+                  secureTextEntry={!showPassword}
                 />
-              </TouchableOpacity>
-            </View>
-          </>
-        )}
+                <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+                  <FontAwesome name={showPassword ? 'eye' : 'eye-slash'} size={20} color="gray" />
+                </TouchableOpacity>
+              </View>
+            </>
+          )}
 
-      {error ? <Text style={styles.errorText}>{error}</Text> : null}
+          {error ? <Text style={styles.errorText}>{error}</Text> : null}
 
+          <TouchableOpacity style={styles.button} onPress={handleVerify} disabled={loading}>
+            {loading
+              ? <ActivityIndicator color="#fff" />
+              : <Text style={styles.buttonText}>{isReset ? "Reset Password" : "Verify"}</Text>
+            }
+          </TouchableOpacity>
 
-      <TouchableOpacity
-        style={styles.button}
-        onPress={handleVerify} disabled={loading}
-      >
-
-        {loading
-          ? <ActivityIndicator color="#fff" />
-          : <Text style={styles.buttonText}>
-              {isReset ? "Reset Password" : "Verify"}
-            </Text>  
-        }
-
-      </TouchableOpacity>
-
-      <Text style={styles.resendText}>
-        Didn't receive a code?{''}
-        <Text style={styles.resendLink} onPress={() => navigation.goBack()}>
-          Try again
-        </Text>
-        
-      </Text>
-    </View> 
-    </ScrollView>
-    </KeyboardAvoidingView> 
+          <Text style={styles.resendText}>
+            Didn't receive a code?{' '}
+            <Text style={styles.resendLink} onPress={() => navigation.goBack()}>Try again</Text>
+          </Text>
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
+
 const styles = StyleSheet.create({
   scrollContent: {
     flexGrow: 1,
@@ -142,16 +120,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 25,
     paddingTop: 60,
     paddingBottom: 40,
-  },
-  backButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 10,
-    gap: 6,
-  },
-  backText: {
-    color: '#C17C74',
-    fontSize: 16,
   },
   logo: {
     width: 150,
@@ -177,18 +145,11 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     color: '#333',
   },
-  subtitle: {
-    fontSize: 14,
-    textAlign: 'center',
-    color: 'gray',
-    marginBottom: 25,
-    paddingHorizontal: 10,
-  },
   card: {
     backgroundColor: '#F2E6E3',
     borderRadius: 12,
     padding: 20,
-    width: "100%"
+    width: "100%",
   },
   label: {
     fontSize: 14,
@@ -218,22 +179,22 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   passwordContainer: {
-    flexDirection: 'row', 
+    flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'white', 
+    backgroundColor: 'white',
     borderRadius: 8,
-    paddingHorizontal: 10, 
+    paddingHorizontal: 10,
     marginBottom: 15,
   },
-  passwordInput: { 
-    flex: 1, 
-    paddingVertical: 10 
+  passwordInput: {
+    flex: 1,
+    paddingVertical: 10,
   },
-  errorText: { 
-    color: '#c0392b', 
-    fontSize: 13, 
-    marginBottom: 10, 
-    textAlign: 'center' 
+  errorText: {
+    color: '#c0392b',
+    fontSize: 13,
+    marginBottom: 10,
+    textAlign: 'center',
   },
   button: {
     backgroundColor: '#C17C74',

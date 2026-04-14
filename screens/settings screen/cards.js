@@ -1,14 +1,8 @@
 import React, { useContext, useEffect, useState } from 'react';
-import {
-  View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  ActivityIndicator, Alert, TextInput,
-} from 'react-native';
+import {View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Alert, TextInput,} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AuthContext } from '../../context/AuthContext';
-import {
-  getCards, addCard, updateCard,
-  setDefaultCard, deleteCard,
-} from '../../services/authService';
+import {getCards, addCard, updateCard, setDefaultCard, deleteCard,} from '../../services/authService';
 
 export default function SavedCards({ navigation }) {
   const { getToken } = useContext(AuthContext);
@@ -30,6 +24,7 @@ export default function SavedCards({ navigation }) {
     try {
       const token = await getToken();
       const data = await getCards(token);
+      console.log("CARDS RESPONSE:", data);
       setCards(Array.isArray(data) ? data : data.cards || []);
     } catch (e) {
       Alert.alert('Error', 'Failed to load cards.');
@@ -68,6 +63,7 @@ export default function SavedCards({ navigation }) {
 
   const handleSave = async () => {
     if (!cardHolder.trim() || !cardNumber.trim() || !expiry.trim()) {
+      console.log("SAVING CARD:", payload);
       Alert.alert('Validation', 'Please fill in all card details.');
       return;
     }
@@ -87,6 +83,7 @@ export default function SavedCards({ navigation }) {
       await fetchCards();
       resetForm();
     } catch (e) {
+      console.log("CARD ERROR:", e);
       Alert.alert('Error', e.message || 'Failed to save card.');
     } finally {
       setSaving(false);

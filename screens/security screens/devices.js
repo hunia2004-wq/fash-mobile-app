@@ -35,7 +35,7 @@ const LoginDevicesScreen = ({ navigation }) => {
           try {
             const token = await getToken();
             await removeDevice(token, id);
-            setDevices((prev) => prev.filter((d) => d.id !== id));
+            setDevices((prev) => prev.filter((d) => d._id !== id));
           } catch (e) {
             Alert.alert('Error', 'Failed to remove device.');
           }
