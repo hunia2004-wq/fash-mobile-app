@@ -23,6 +23,7 @@ import LanguagesScreen from './screens/settings screen/languages';
 import NotificationsScreen from './screens/settings screen/notifications';
 import PrivacyScreen from './screens/settings screen/privacy';
 import ChangePasswordScreen from './screens/settings screen/password';
+import VerifyEmailScreen from './screens/settings screen/verifyemail';
 
 
 
@@ -154,6 +155,8 @@ export default function App() {
               <Stack.Screen name="NotificationsScreen" component={NotificationsScreen} options={{ headerShown: false }} />
               <Stack.Screen name="PrivacyScreen" component={PrivacyScreen} options={{ headerShown: false }} />
               <Stack.Screen name="ChangePasswordScreen" component={ChangePasswordScreen} />
+              <Stack.Screen name="VerifyEmailScreen" component={VerifyEmailScreen} options={{ headerShown: false }} />
+
              
 
 

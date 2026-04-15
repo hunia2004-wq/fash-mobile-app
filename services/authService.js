@@ -7,13 +7,25 @@ const BASE_URL = "https://fash-backend-cp3n.vercel.app/api/v1";
 async function request(endpoint, options = {}) {
   const { headers: customHeaders, ...restOptions } = options;
 
-  const response = await fetch(`${BASE_URL}${endpoint}`, {
-    ...restOptions,
-    headers: {
-      "Content-Type": "application/json",
-      ...customHeaders,
-    },
-  });
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 10000);
+
+  let response;
+  try {
+    response = await fetch(`${BASE_URL}${endpoint}`, {
+      ...restOptions,
+      signal: controller.signal,
+      headers: {
+        "Content-Type": "application/json",
+        ...customHeaders,
+      },
+    });
+  } catch (err) {
+    clearTimeout(timeout);
+    throw new Error("Network error or request timeout");
+  }
+
+  clearTimeout(timeout);
 
   let data;
   try {
@@ -24,7 +36,9 @@ async function request(endpoint, options = {}) {
 
   if (!response.ok) {
     throw new Error(
-      data?.error?.message || data?.message || "Something went wrong"
+      data?.error?.message ||
+      data?.message ||
+      `Request failed: ${response.status}`
     );
   }
 
@@ -99,7 +113,7 @@ export async function updateProfile(token, payload) {
   });
 }
 
-// ⚠️ FIXED (no manual Content-Type for FormData)
+// Avatar upload (FormData)
 export async function uploadAvatar(token, imageUri) {
   const formData = new FormData();
 
@@ -109,16 +123,13 @@ export async function uploadAvatar(token, imageUri) {
     name: "avatar.jpg",
   });
 
-  const response = await fetch(
-    `${BASE_URL}/user/profile/avatar`,
-    {
-      method: "PUT",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-      body: formData,
-    }
-  );
+  const response = await fetch(`${BASE_URL}/user/profile/avatar`, {
+    method: "PUT",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    body: formData,
+  });
 
   const data = await response.json();
 
@@ -129,6 +140,31 @@ export async function uploadAvatar(token, imageUri) {
   }
 
   return data;
+}
+
+// ─────────────────────────────
+// EMAIL (OTP FLOW)
+// ─────────────────────────────
+
+export async function requestEmailChange(token, newEmail) {
+  console.log(token);
+  return request("/user/change-email/request", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ newEmail }),
+  });
+}
+
+export async function verifyEmailChange(token, otp) {
+  return request("/user/change-email/verify", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ otp }),
+  });
 }
 
 // ─────────────────────────────
@@ -170,34 +206,6 @@ export async function getSettings(token) {
     headers: {
       Authorization: `Bearer ${token}`,
     },
-  });
-}
-
-export async function updateLanguage(token, { language }) {
-  return request("/user/settings/language", {
-    method: "PUT",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify({ language }),
-  });
-}
-
-export async function getUser(token) {
-  return request("/auth/profile", {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
-}
-
-export async function updateEmail(token, { email }) {
-  return request("/user/profile/email", {
-    method: "PUT",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify({ email }),
   });
 }
 
@@ -274,68 +282,6 @@ export async function removeSavedItem(token, itemId) {
 }
 
 // ─────────────────────────────
-// SECURITY
-// ─────────────────────────────
-
-export async function toggle2FA(token, { enabled }) {
-  return request("/user/security/2fa", {
-    method: "PUT",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify({ enabled }),
-  });
-}
-
-export async function getLoginDevices(token) {
-  return request("/user/security/devices", {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
-}
-
-export async function removeDevice(token, deviceId) {
-  return request(`/user/security/devices/${deviceId}`, {
-    method: "DELETE",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
-}
-
-export async function getConnectedAccounts(token) {
-  return request("/user/connected-accounts", {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
-}
-
-export async function getSecurity(token) {
-  return request("/user/security", {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
-}
-
-
-// ─────────────────────────────
-// SUPPORT
-// ─────────────────────────────
-
-export async function contactSupport(token, { subject, orderNumber, message }) {
-  return request("/support/contact", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify({ subject, orderNumber, message }),
-  });
-}
-
-// ─────────────────────────────
 // ADDRESSES
 // ─────────────────────────────
 
@@ -367,67 +313,8 @@ export async function updateAddress(token, id, addressData) {
   });
 }
 
-export async function setDefaultAddress(token, id) {
-  return request(`/addresses/${id}/default`, {
-    method: "PUT",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
-}
-
 export async function deleteAddress(token, id) {
   return request(`/addresses/${id}`, {
-    method: "DELETE",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
-}
-
-// ─────────────────────────────
-// CARDS
-// ─────────────────────────────
-
-export async function getCards(token) {
-  return request("/cards", {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
-}
-
-export async function addCard(token, cardData) {
-  return request("/cards", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify(cardData),
-  });
-}
-
-export async function updateCard(token, id, cardData) {
-  return request(`/cards/${id}`, {
-    method: "PUT",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify(cardData),
-  });
-}
-
-export async function setDefaultCard(token, id) {
-  return request(`/cards/${id}/default`, {
-    method: "PUT",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
-}
-
-export async function deleteCard(token, id) {
-  return request(`/cards/${id}`, {
     method: "DELETE",
     headers: {
       Authorization: `Bearer ${token}`,

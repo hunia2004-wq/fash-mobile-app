@@ -30,7 +30,7 @@ const ChangePasswordScreen = ({ navigation }) => {
     setSaving(true);
     try {
       const token = await getToken();
-      await changePassword(token, { currentPassword, newPassword });
+      await changePassword(token, { oldPassword: currentPassword, newPassword });
       Alert.alert('Success', 'Your password has been changed.', [
         { text: 'OK', onPress: () => navigation.goBack() },
       ]);
