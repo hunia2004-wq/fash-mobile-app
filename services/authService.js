@@ -209,6 +209,54 @@ export async function getSettings(token) {
   });
 }
 
+export const getCards = async (token) => {
+  return request('/cards', {
+    method: 'GET',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+};
+
+export const addCard = async (token, payload) => {
+  return request('/cards', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(payload),
+  });
+};
+
+export const updateCard = async (token, id, payload) => {
+  return request(`/cards/${id}`, {
+    method: 'PUT',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(payload),
+  });
+};
+
+export const setDefaultCard = async (token, id) => {
+  return request(`/cards/${id}/default`, {
+    method: 'PUT', 
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+  });
+};
+
+export const deleteCard = async (token, id) => {
+  return request(`/cards/${id}`, {
+    method: 'DELETE',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+};
+
 // ─────────────────────────────
 // ORDERS
 // ─────────────────────────────
@@ -291,6 +339,7 @@ export async function getAddresses(token) {
       Authorization: `Bearer ${token}`,
     },
   });
+  return res.data.data; 
 }
 
 export async function addAddress(token, addressData) {
@@ -313,6 +362,15 @@ export async function updateAddress(token, id, addressData) {
   });
 }
 
+export const setDefaultAddress = async (token, id) => {
+  return request(`/addresses/${id}/default`, {
+    method: "PUT",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+};
+
 export async function deleteAddress(token, id) {
   return request(`/addresses/${id}`, {
     method: "DELETE",
@@ -321,3 +379,96 @@ export async function deleteAddress(token, id) {
     },
   });
 }
+
+
+export const getSecurity = (token) => {
+  return request('/user/security', {
+    method: 'GET',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+};
+
+export const toggle2FA = (token, data) => {
+  return request('/user/security/2fa', {
+    method: 'PUT',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(data),
+  });
+};
+
+export const getLoginDevices = (token) => {
+  return request('/user/security/devices', {
+    method: 'GET',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+};
+
+export const removeDevice = (token, id) => {
+  return request(`/user/security/devices/${id}`, {
+    method: 'DELETE',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+};
+
+export const logoutAllDevices = (token) => {
+  return request('/user/security/devices', {
+    method: 'DELETE',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+};
+
+export const toggleConnectedAccount = (token, data) => {
+  return request('/user/connected-accounts', {
+    method: 'GET',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(data),
+  });
+};
+
+
+export const contactSupport = async (token, { subject, orderNumber, message, image }) => {
+  const formData = new FormData();
+
+  formData.append("subject", subject);
+  formData.append("orderNumber", orderNumber);
+  formData.append("message", message);
+
+  if (image) {
+    formData.append("attachment", {
+      uri: image,
+      type: "image/jpeg",
+      name: "support.jpg",
+    });
+  }
+
+  return fetch(`${BASE_URL}/support/contact`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    body: formData,
+  }).then(res => res.json());
+};
+
+export const getFaqs = (token) => {
+  return request("/support/faqs", {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+};

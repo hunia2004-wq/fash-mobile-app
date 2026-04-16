@@ -1,40 +1,47 @@
-import React, { useState } from 'react';
-import {View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Alert,} from 'react-native';
+import React, { useState, useContext } from 'react';
+import {View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Alert, ActivityIndicator,} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useContext } from 'react';
-import { ActivityIndicator } from 'react-native';
 import { AuthContext } from '../../context/AuthContext';
 import { contactSupport } from '../../services/authService';
 
 const SUBJECTS = ['Order issue', 'Payment problem', 'Account issue', 'Delivery issue', 'Help Request', 'Report a problem', 'Other'];
 
 const ContactSupportScreen = ({ navigation }) => {
-  const { getToken } = useContext(AuthContext);  // ← add this
   const [subject, setSubject] = useState(SUBJECTS[0]);
   const [orderNumber, setOrderNumber] = useState('');
   const [message, setMessage] = useState('');
   const [showSubjectPicker, setShowSubjectPicker] = useState(false);
-  const [sending, setSending] = useState(false);  // ← add this
+  const [sending, setSending] = useState(false);  
 
 
-  const handleSend = async () => {
-    if (!message.trim()) {
-      Alert.alert('Missing info', 'Please describe your issue before sending.');
-      return;
-    }
-    setSending(true);
-    try {
-      const token = await getToken();
-      await contactSupport(token, { subject, orderNumber, message });
-      Alert.alert('Message Sent', "We'll get back to you within 24 hours.", [
-        { text: 'OK', onPress: () => navigation.goBack() },
-      ]);
-    } catch (e) {
-      Alert.alert('Error', e.message || 'Failed to send message. Please try again.');
-    } finally {
-      setSending(false);
-    }
-  };
+  const { getToken } = useContext(AuthContext);
+
+const handleSend = async () => {
+  if (!message.trim()) {
+    Alert.alert('Missing info', 'Please describe your issue before sending.');
+    return;
+  }
+
+  setSending(true);
+  try {
+    const token = await getToken();
+
+    await contactSupport(token, {
+      subject,
+      orderNumber,
+      message,
+    });
+
+    Alert.alert('Message Sent', "We'll get back to you within 24 hours.", [
+      { text: 'OK', onPress: () => navigation.goBack() },
+    ]);
+  } catch (e) {
+    Alert.alert('Error', e.message || 'Failed to send message. Please try again.');
+  } finally {
+    setSending(false);
+  }
+};
+
 
   return (
     <SafeAreaView style={styles.container}>

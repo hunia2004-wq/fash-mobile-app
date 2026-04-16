@@ -2,7 +2,7 @@ import React, { useContext, useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AuthContext } from '../../context/AuthContext';
-import { getSecurity } from '../../services/authService';
+import { getSecurity, toggleConnectedAccount } from '../../services/authService';
 
 const ConnectedAccountsScreen = ({ navigation }) => {
   const { getToken } = useContext(AuthContext);
@@ -17,19 +17,20 @@ const ConnectedAccountsScreen = ({ navigation }) => {
         const token = await getToken();
         const data = await getSecurity(token);
   
-        const backendAccounts = data.connectedAccounts || [];
+        const backendAccounts = data.connectedAccounts || {};
+
   
         const defaultAccounts = [
-          { id: 'google', name: 'Google', icon: 'G', connected: false },
-          { id: 'facebook', name: 'Facebook', icon: 'f', connected: false },
-          { id: 'twitter', name: 'X (Twitter)', icon: '𝕏', connected: false },
-          { id: 'apple', name: 'Apple', icon: '', connected: false },
+          { id: 'google', name: 'Google', icon: 'G' },
+          { id: 'facebook', name: 'Facebook', icon: 'f' },
+          { id: 'twitter', name: 'X (Twitter)', icon: '𝕏' },
+          { id: 'apple', name: 'Apple', icon: '' },
         ];
   
-        const merged = defaultAccounts.map((acc) => {
-          const found = backendAccounts.find((b) => b.id === acc.id);
-          return found ? { ...acc, connected: found.connected } : acc;
-        });
+        const merged = defaultAccounts.map((acc) => ({
+          ...acc,
+          connected: backendAccounts?.[acc.id] ?? false,
+        }));
   
         setAccounts(merged);
   
@@ -48,22 +49,30 @@ const ConnectedAccountsScreen = ({ navigation }) => {
     fetchAccounts();
   }, []);
 
-  const handleToggle = (id) => {
+  const handleToggle = async (id) => {
+    const token = await getToken();
+  
     const account = accounts.find((a) => a.id === id);
-    const action = account.connected ? 'Disconnect' : 'Connect';
-
-    Alert.alert(`${action} ${account.name}`, `Are you sure you want to ${action.toLowerCase()} your ${account.name} account?`, [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: action,
-        style: account.connected ? 'destructive' : 'default',
-        onPress: () =>
-          setAccounts((prev) =>
-            prev.map((a) => (a.id === id ? { ...a, connected: !a.connected } : a))
-          ),
-      },
-    ]);
+    if (!account) return;
+  
+    const newValue = !account.connected;
+  
+    try {
+      await toggleConnectedAccount(token, {
+        provider: id,
+        connected: newValue,
+      });
+  
+      setAccounts((prev) =>
+        prev.map((a) =>
+          a.id === id ? { ...a, connected: newValue } : a
+        )
+      );
+    } catch (e) {
+      Alert.alert('Error', 'Failed to update account');
+    }
   };
+
 
   if (loading) {
     return (

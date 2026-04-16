@@ -1,34 +1,43 @@
-import React, { useState } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import { View, Text, StyleSheet, TextInput, ScrollView, TouchableOpacity, LayoutAnimation, Platform, UIManager } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { AuthContext } from '../../context/AuthContext';
+import { getFaqs } from '../../services/authService';
+
 
 if (Platform.OS === 'android') {
   UIManager.setLayoutAnimationEnabledExperimental?.(true);
 }
 
-const FAQ_ITEMS = [
-  { id: '1', question: 'How do I track my order?', answer: 'Go to Activity → Orders, tap your order, then tap "Track Shipment" to see live updates.' },
-  { id: '2', question: 'Can I return an item?', answer: 'Yes, within 14 days of delivery. Items must be unworn with original tags. Start a return from Orders.' },
-  { id: '3', question: 'How do I change my address?', answer: "If your order hasn't shipped yet, contact support immediately. Otherwise update it in Profile → Edit." },
-  { id: '4', question: 'What payment methods are accepted?', answer: 'We accept Visa, Mastercard, Apple Pay, Google Pay, and cash on delivery in select areas.' },
-  { id: '5', question: 'Why was my order cancelled?', answer: "This usually happens due to stock issues or payment failure. You won't be charged. Try reordering." },
-  { id: '6', question: 'How do I delete my account?', answer: "Contact support and we'll process your request within 7 business days. All data is permanently removed." },
-];
-
 const FAQScreen = ({ navigation }) => {
-  const [openId, setOpenId] = useState(null);
+  const { getToken } = useContext(AuthContext);
+
+  const [faqs, setFaqs] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState('');
+  const [openId, setOpenId] = useState(null);
 
-  const toggle = (id) => {
-    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-    setOpenId((prev) => (prev === id ? null : id));
-  };
-
-  const filteredFAQ = FAQ_ITEMS.filter(
-    (item) =>
-      item.question.toLowerCase().includes(query.toLowerCase()) ||
-      item.answer.toLowerCase().includes(query.toLowerCase())
+  const filteredFAQ = faqs.filter((item) =>
+    item.question.toLowerCase().includes(query.toLowerCase()) ||
+    item.answer.toLowerCase().includes(query.toLowerCase())
   );
+
+  useEffect(() => {
+    const fetchFaqs = async () => {
+      try {
+        const token = await getToken();
+        const data = await getFaqs(token);
+        setFaqs(data || []);
+      } catch (e) {
+        Alert.alert("Error", "Failed to load FAQs");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchFaqs();
+  }, []);
+
 
   return (
     <SafeAreaView style={styles.container}>

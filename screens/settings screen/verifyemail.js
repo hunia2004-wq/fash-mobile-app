@@ -1,19 +1,12 @@
 import React, { useState, useContext } from 'react';
-import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  Alert,
-  StyleSheet,
-} from 'react-native';
+import {View, Text, TextInput, TouchableOpacity, Alert, StyleSheet,} from 'react-native';
 import { AuthContext } from '../../context/AuthContext';
 import { verifyEmailChange } from '../../services/authService';
 
 const VerifyEmailScreen = ({ navigation, route }) => {
   const [otp, setOtp] = useState('');
   const [loading, setLoading] = useState(false);
-  const { token } = useContext(AuthContext);
+  const { getToken } = useContext(AuthContext);
 
   const email = route?.params?.email;
 
@@ -22,29 +15,36 @@ const VerifyEmailScreen = ({ navigation, route }) => {
       Alert.alert('Error', 'Enter OTP');
       return;
     }
-
+  
     try {
       setLoading(true);
-
+  
+      const token = await getToken();
+  
+      console.log("VERIFY TOKEN:", token);
+  
       const res = await verifyEmailChange(token, otp);
-
+  
       Alert.alert('Success', res.message, [
         {
           text: 'OK',
           onPress: () =>
-            navigation.reset({
-              index: 0,
-              routes: [{ name: 'Profile', params: { refresh: true } }],
-            }),
+            navigation.getParent()?.navigate('Profile')
         },
       ]);
+      
     } catch (err) {
-      Alert.alert('Error', err.message || 'Invalid OTP');
+
+      console.log("VERIFY ERROR:", err);
+
+      Alert.alert('Error', err.message || 'Network error');
+
     } finally {
       setLoading(false);
     }
   };
 
+  
   return (
     <View style={styles.container}>
       <View style={styles.iconCircle}>
@@ -105,6 +105,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 20,
+    marginTop: 50,
   },
 
   title: {

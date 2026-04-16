@@ -14,13 +14,13 @@ const SecurityScreen = ({ navigation }) => {
     {
       id: 'devices',
       title: 'Active Devices',
-      subtitle: '3 active sessions',
+      subtitle: 'Active sessions',
       screen: 'LoginDevicesScreen',
     },
     {
       id: 'connected',
       title: 'Connected Accounts',
-      subtitle: 'Google, Facebook',
+      subtitle: 'Google, Facebook, X, Apple',
       screen: 'ConnectedAccountsScreen',
     },
   ];
@@ -61,7 +61,7 @@ const SecurityScreen = ({ navigation }) => {
         {/* info box */}
         <View style={styles.infoBox}>
           <Text style={styles.infoText}>
-            Your account was last accessed on Apr 12, 2026 from iPhone 15 Pro in Cairo, Egypt.
+          Your account security settings help protect your personal information and control how your account is accessed across devices and sessions.
           </Text>
         </View>
       </ScrollView>

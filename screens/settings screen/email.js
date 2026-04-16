@@ -1,13 +1,5 @@
 import React, { useState, useContext } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  TextInput,
-  Alert,
-} from 'react-native';
+import {View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Alert,} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { requestEmailChange } from '../../services/authService';
 import { AuthContext } from '../../context/AuthContext';
@@ -21,6 +13,7 @@ const EmailScreen = ({ navigation, route }) => {
       
 
   const isValidEmail = (email) => /\S+@\S+\.\S+/.test(email);
+
 
   const handleSave = async () => {
     if (!email.trim()) {
@@ -38,25 +31,25 @@ const EmailScreen = ({ navigation, route }) => {
       return;
     }
 
+    console.log("About to send OTP");
+    console.log("Navigating to VerifyEmail");
+
     try {
       setLoading(true);
       const token = await getToken();
 
       if (!token) {
         console.warn("No token found");
-        setUser(null);
         return;
       }
+      
       console.log(token);
       const res = await requestEmailChange(token, email);
 
-      Alert.alert('OTP Sent', res.message, [
-        {
-          text: 'Verify',
-          onPress: () =>
-            navigation.navigate('VerifyEmail', { email }),
-        },
-      ]);
+      Alert.alert('OTP Sent', res.message || 'Check your email for OTP');
+
+      navigation.navigate('VerifyEmailScreen', { email });
+
     } catch (err) {
       Alert.alert('Error', err.message || 'Something went wrong');
     } finally {

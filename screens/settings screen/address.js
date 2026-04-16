@@ -1,14 +1,8 @@
 import React, { useContext, useEffect, useState } from 'react';
-import {
-  View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  ActivityIndicator, Alert, TextInput,
-} from 'react-native';
+import {View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Alert, TextInput,} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AuthContext } from '../../context/AuthContext';
-import {
-  getAddresses, addAddress, updateAddress,
-  setDefaultAddress, deleteAddress,
-} from '../../services/authService';
+import {getAddresses, addAddress, updateAddress, setDefaultAddress, deleteAddress,} from '../../services/authService';
 
 export default function SavedAddresses({ navigation }) {
   const { getToken } = useContext(AuthContext);
@@ -18,6 +12,10 @@ export default function SavedAddresses({ navigation }) {
   const [editingId, setEditingId] = useState(null);
   const [saving, setSaving] = useState(false);
 
+
+
+  const [fullName, setFullName] = useState('');
+  const [phone, setPhone] = useState('');
   const [label, setLabel] = useState('');
   const [street, setStreet] = useState('');
   const [city, setCity] = useState('');
@@ -30,17 +28,27 @@ export default function SavedAddresses({ navigation }) {
   const fetchAddresses = async () => {
     try {
       const token = await getToken();
-      const data = await getAddresses(token);
-      console.log("ADDRESSES RESPONSE:", data);
-      setAddresses(Array.isArray(data) ? data : data.addresses || []);
+      const res = await getAddresses(token);
+  
+      console.log("RAW RESPONSE:", res);
+  
+      const data =
+        res?.data?.data ||
+        res?.data ||
+        res ||
+        [];
+  
+      setAddresses(Array.isArray(data) ? data : []);
     } catch (e) {
-      Alert.alert('Error', 'Failed to load addresses.');
+      console.log("ADDRESS ERROR:", e.response?.data || e.message);
     } finally {
       setLoading(false);
     }
   };
 
   const resetForm = () => {
+    setFullName('');
+    setPhone('');
     setLabel('');
     setStreet('');
     setCity('');
@@ -50,29 +58,60 @@ export default function SavedAddresses({ navigation }) {
   };
 
   const openEdit = (address) => {
+    setFullName(address.fullName || '');
+    setPhone(address.phone || '');
     setLabel(address.label || '');
     setStreet(address.street || address.address || '');
     setCity(address.city || '');
     setCountry(address.country || '');
-    setEditingId(address.id || address._id);
+    setEditingId(address._id);
     setShowForm(true);
   };
 
   const handleSave = async () => {
-    if (!street.trim() || !city.trim()) {
-      console.log("SAVING ADDRESS:", payload);
-      Alert.alert('Validation', 'Street and city are required.');
+    if (
+      !fullName.trim() ||
+      !phone.trim() ||
+      !label.trim() ||
+      !street.trim() ||
+      !city.trim() ||
+      !country.trim()
+    ) {
+      Alert.alert('Validation', 'Please fill all required fields.');
       return;
     }
+  
     setSaving(true);
+  
     try {
       const token = await getToken();
-      const payload = { label: label.trim(), street: street.trim(), city: city.trim(), country: country.trim() };
+  
+      const payload = {
+        fullName: fullName.trim(),
+        phone: phone.trim(),
+        label: label.trim(),
+        street: street.trim(),
+        city: city.trim(),
+        country: country.trim(),
+      };
+  
+      console.log("SAVING ADDRESS:", payload);
+  
       if (editingId) {
         await updateAddress(token, editingId, payload);
       } else {
         await addAddress(token, payload);
       }
+
+      const savedAddress = {
+        _id: Date.now().toString(),
+        ...payload,
+      };
+
+      if (!editingId) {
+        setAddresses((prev) => [savedAddress, ...prev]);
+      }
+  
       await fetchAddresses();
       resetForm();
     } catch (e) {
@@ -100,7 +139,7 @@ export default function SavedAddresses({ navigation }) {
           try {
             const token = await getToken();
             await deleteAddress(token, id);
-            setAddresses((prev) => prev.filter((a) => (a.id || a._id) !== id));
+            setAddresses((prev) => prev.filter((a) => (a._id || a.id) !== id));
           } catch (e) {
             Alert.alert('Error', 'Failed to delete address.');
           }
@@ -146,6 +185,16 @@ export default function SavedAddresses({ navigation }) {
             <Text style={styles.cardSectionLabel}>
               {editingId ? 'Edit Address' : 'New Address'}
             </Text>
+
+            <View style={styles.fieldGroup}>
+              <Text style={styles.fieldLabel}>Full Name</Text>
+              <TextInput style={styles.input} value={fullName} onChangeText={setFullName} placeholder="First name, Last name" placeholderTextColor="#B09090" />
+            </View>
+
+            <View style={styles.fieldGroup}>
+              <Text style={styles.fieldLabel}>Phone Number</Text>
+              <TextInput style={styles.input} value={phone} onChangeText={setPhone} placeholder="+20 000 00 00 000" placeholderTextColor="#B09090" />
+            </View>
 
             <View style={styles.fieldGroup}>
               <Text style={styles.fieldLabel}>Label (e.g. Home, Work)</Text>
@@ -195,13 +244,13 @@ export default function SavedAddresses({ navigation }) {
           <View style={styles.card}>
             {addresses.map((address, index) => (
               <View
-                key={address.id || address._id}
+                key={address._id}
                 style={[styles.addressItem, index < addresses.length - 1 && styles.addressBorder]}
               >
                 <View style={styles.addressLeft}>
                   <View style={styles.addressTopRow}>
                     <Text style={styles.addressLabel}>{address.label || 'Address'}</Text>
-                    {(address.is_default || address.isDefault) && (
+                    {(address.isDefault) && (
                       <View style={styles.defaultBadge}>
                         <Text style={styles.defaultBadgeText}>Default</Text>
                       </View>
@@ -219,12 +268,12 @@ export default function SavedAddresses({ navigation }) {
                   <TouchableOpacity onPress={() => openEdit(address)}>
                     <Text style={styles.editBtn}>Edit</Text>
                   </TouchableOpacity>
-                  {!(address.is_default || address.isDefault) && (
-                    <TouchableOpacity onPress={() => handleSetDefault(address.id || address._id)}>
+                  {!(address.isDefault) && (
+                    <TouchableOpacity onPress={() => handleSetDefault(address._id || address._id)}>
                       <Text style={styles.defaultBtn}>Set Default</Text>
                     </TouchableOpacity>
                   )}
-                  <TouchableOpacity onPress={() => handleDelete(address.id || address._id)}>
+                  <TouchableOpacity onPress={() => handleDelete(address._id || address._id)}>
                     <Text style={styles.deleteBtn}>Delete</Text>
                   </TouchableOpacity>
                 </View>

@@ -26,8 +26,6 @@ import ChangePasswordScreen from './screens/settings screen/password';
 import VerifyEmailScreen from './screens/settings screen/verifyemail';
 
 
-
-
 import OrdersScreen from './screens/orders screen/orders';
 import OrderDetailScreen from './screens/orders screen/orderdteails';
 
@@ -53,8 +51,6 @@ function SplashScreen() {
     </View>
   );
 }
-
-
 
 export default function App() {
   const [state, dispatch] = React.useReducer(
@@ -158,9 +154,6 @@ export default function App() {
               <Stack.Screen name="VerifyEmailScreen" component={VerifyEmailScreen} options={{ headerShown: false }} />
 
              
-
-
-
               <Stack.Screen name="OrdersScreen" component={OrdersScreen} />
               <Stack.Screen name="OrderDetailScreen" component={OrderDetailScreen} />
 

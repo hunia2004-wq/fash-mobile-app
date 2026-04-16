@@ -1,16 +1,17 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import {View, Text, StyleSheet, ScrollView, TouchableOpacity, Switch, Alert, ActivityIndicator} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AuthContext } from '../../context/AuthContext';
-import { toggle2FA } from '../../services/authService';
+import { toggle2FA, getSecurity } from '../../services/authService';
 
 const TwoFactorAuthScreen = ({ navigation }) => {
   const { getToken } = useContext(AuthContext);
   const [twoFA, setTwoFA] = useState({
-    authApp: false,
-    sms: false,
-    email: false,
+    authenticatorApp: true,
+    smsVerification: false,
+    emailVerification: true,
   });
+
   const [loading, setLoading] = useState(false); 
 
 
@@ -19,26 +20,42 @@ const TwoFactorAuthScreen = ({ navigation }) => {
     { id: 'regen', title: 'Regenerate Codes', screen: 'RegenerateCodesScreen' },
   ];
 
+
   const handleToggle = async (key, value) => {
+    const token = await getToken();
+    const prevState = twoFA;
+  
+    setLoading(true);
+  
+    setTwoFA(prev => ({ ...prev, [key]: value }));
+  
     try {
-      const token = await getToken();
-  
-      // 1. update local state ONLY for that key
-      setTwoFA(prev => ({
-        ...prev,
-        [key]: value,
-      }));
-  
-      // 2. send to backend
       await toggle2FA(token, {
         method: key,
         enabled: value,
       });
-  
     } catch (e) {
+      setTwoFA(prevState);
       Alert.alert('Error', 'Failed to update 2FA settings.');
+    } finally {
+      setLoading(false);
     }
   };
+
+useEffect(() => {
+  const loadSecurity = async () => {
+    const token = await getToken();
+    const res = await getSecurity(token); // you need this API
+
+    setTwoFA({
+      authenticatorApp: res.twoFactor?.authenticatorApp ?? false,
+      smsVerification: res.twoFactor?.smsVerification ?? false,
+      emailVerification: res.twoFactor?.emailVerification ?? false,
+    });
+  };
+
+  loadSecurity();
+}, []);
 
   return (
 
@@ -75,8 +92,8 @@ const TwoFactorAuthScreen = ({ navigation }) => {
               <Text style={styles.itemSubtitle}>Google Authenticator, Authy</Text>
             </View>
             <Switch
-  value={twoFA.authApp}
-  onValueChange={(v) => handleToggle('authApp', v)}
+  value={twoFA.authenticatorApp}
+  onValueChange={(v) => handleToggle('authenticatorApp', v)}
   trackColor={{ false: '#ccc', true: '#B07070' }}
   thumbColor="#fff"
 />
@@ -88,8 +105,8 @@ const TwoFactorAuthScreen = ({ navigation }) => {
               <Text style={styles.itemSubtitle}>Text message to +20 *** ***9856</Text>
             </View>
             <Switch
-  value={twoFA.sms}
-  onValueChange={(v) => handleToggle('sms', v)}
+  value={twoFA.smsVerification}
+  onValueChange={(v) => handleToggle('smsVerification', v)}
   trackColor={{ false: '#ccc', true: '#B07070' }}
   thumbColor="#fff"
 />
@@ -101,8 +118,8 @@ const TwoFactorAuthScreen = ({ navigation }) => {
               <Text style={styles.itemSubtitle}>aynourhamadaa@gmail.com</Text>
             </View>
             <Switch
-  value={twoFA.email}
-  onValueChange={(v) => handleToggle('email', v)}
+  value={twoFA.emailVerification}
+  onValueChange={(v) => handleToggle('emailVerification', v)}
   trackColor={{ false: '#ccc', true: '#B07070' }}
   thumbColor="#fff"
 />

@@ -12,6 +12,7 @@ const LoginDevicesScreen = ({ navigation }) => {
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
   const [removingId, setRemovingId] = useState(null);
+  const [currentDeviceId, setCurrentDeviceId] = useState(null);
 
   
 
@@ -20,7 +21,9 @@ const LoginDevicesScreen = ({ navigation }) => {
       try {
         const token = await getToken();
         const data = await getLoginDevices(token);
-        setDevices(data.devices || []);
+
+        setDevices(data.devices || []); 
+        setCurrentDeviceId(data.currentDeviceId); 
       } catch (e) {
         Alert.alert('Error', 'Failed to load devices.');
       } finally {
@@ -29,6 +32,7 @@ const LoginDevicesScreen = ({ navigation }) => {
     };
     fetchDevices();
   }, []);
+
 
   const handleRemove = (id) => {
     Alert.alert('Remove Device', 'Sign out from this device?', [
@@ -62,9 +66,7 @@ const LoginDevicesScreen = ({ navigation }) => {
   
       const token = await getToken();
       await logoutAllDevices(token);
-  
-      const data = await getLoginDevices(token);
-      setDevices(data.devices || []);
+      setDevices([]);
   
     } catch (e) {
       Alert.alert('Error', 'Failed to sign out devices.');
@@ -114,13 +116,14 @@ const LoginDevicesScreen = ({ navigation }) => {
                 index < devices.length - 1 && styles.deviceBorder,
               ]}
             >
-              <Text style={styles.deviceName}>{device.name}</Text>
-              <Text style={styles.deviceMeta}>
-                {device.location} · {device.date}
-              </Text>
+              <Text style={styles.deviceName}>{device.deviceName}</Text>
 
-              {device.isCurrent ? (
-                <Text style={styles.currentLabel}>✓ This device</Text>
+              <Text style={styles.deviceMeta}>{device.deviceType} · {device.ip}</Text>
+
+              <Text>Last active: {device.lastActive ? new Date(device.lastActive).toLocaleString(): 'Unknown'}</Text>
+
+              {device._id === currentDeviceId ? (
+                <Text>This device</Text>
               ) : (
                 <TouchableOpacity onPress={() => handleRemove(device._id)}>
                   <Text style={styles.removeBtn}>Remove</Text>
@@ -131,7 +134,7 @@ const LoginDevicesScreen = ({ navigation }) => {
         </View>
 
         <TouchableOpacity style={styles.dangerBtn} onPress={handleSignOutAll}>
-          <Text style={styles.dangerBtnText}>Sign Out All Other Devices</Text>
+          <Text style={styles.dangerBtnText}>Sign Out From Other Devices</Text>
         </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
