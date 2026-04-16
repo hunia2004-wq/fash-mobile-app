@@ -11,9 +11,15 @@ import SignupScreen from './screens/signup';
 import ForgotPasswordScreen from './screens/forgotpassword';
 import VerificationScreen from './screens/verification';
 import WelcomeScreen from './screens/welcome';
+
 import HomeScreen from './screens/home';
+import ProfileScreen from './screens/profile';
 
 import EditProfileScreen from './screens/editpersonal';
+
+import WardrobeScreen from './screens/digital wardorbe/wardrobe';
+import UploadScreen from './screens/uploading/upload';
+import SavedScreen from './screens/favorites/saved';
 
 import SettingsScreen from './screens/settings screen/settings';
 import AddressScreen from './screens/settings screen/address';
@@ -140,6 +146,12 @@ export default function App() {
           ) : (
             <>
             <Stack.Screen name="Home" component={HomeScreen} />
+            <Stack.Screen name="Profile" component={ProfileScreen} />
+
+            <Stack.Screen name="Wardrobe" component={WardrobeScreen} />
+            <Stack.Screen name="Upload" component={UploadScreen} />
+            <Stack.Screen name="Saved" component={SavedScreen} />
+
 
               <Stack.Screen name="EditProfileScreen" component={EditProfileScreen} />
 

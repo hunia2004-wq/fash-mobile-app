@@ -5,28 +5,31 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import ProfileScreen from './profile'; 
 
 
+import WardrobeScreen from './digital wardorbe/wardrobe';
+import UploadScreen from './uploading/upload';
+import SavedScreen from './favorites/saved';
+ 
 const { width } = Dimensions.get('window');
 const Tab = createBottomTabNavigator();
-
+ 
 function HomeContent() {
-
+ 
   const boutiqueItems = [
     { id: '1', label: 'Limited Editions', bid: true, image: require('../source/assets/images/bidnow.png') },
     { id: '2', label: 'Newborn\nAccessories', bid: false, image: require('../source/assets/images/newborn.png') },
     { id: '3', label: 'Exclusive\nFragrances', bid: false, image: require('../source/assets/images/perfume.png') },
-
   ];
-
+ 
   const sustainabilityItems = [
-    { id: '1',  image: require('../source/assets/images/packing.png') },
+    { id: '1', image: require('../source/assets/images/packing.png') },
     { id: '2', image: require('../source/assets/images/donations.png') },
     { id: '3', image: require('../source/assets/images/borrowcropped.png') },
   ];
-
+ 
   return (
     <ScrollView style={styles.screen} showsVerticalScrollIndicator={false}>
-
-      {/*header*/}
+ 
+      {/* Header */}
       <View style={styles.header}>
         <Image
           source={require('../source/assets/images/Blacklogo.png')}
@@ -34,172 +37,108 @@ function HomeContent() {
           resizeMode="contain"
         />
       </View>
-
-         {/*search*/}
+ 
+      {/* Search */}
       <View style={styles.searchRow}>
         <View style={styles.searchBar}>
           <FontAwesome name="search" size={16} color="#C17C74" style={{ marginRight: 8 }} />
           <TextInput placeholder="Search" style={styles.searchInput} placeholderTextColor="gray" />
           <FontAwesome name="microphone" size={16} color="#C17C74" />
         </View>
-
         <TouchableOpacity style={styles.filterBtn}>
           <Feather name="sliders" size={20} color="gray" />
         </TouchableOpacity>
       </View>
-
-          {/*banner*/}
+ 
+      {/* Banner */}
       <View style={styles.banner}>
         <Image
-          source={require("../source/assets/images/headercropped.png")}
+          source={require('../source/assets/images/headercropped.png')}
           style={styles.bannerImage}
           resizeMode="cover"
         />
       </View>
-           
-           {/*first card*/}
+ 
+      {/* Digital Closet */}
       <Text style={styles.sectionTitle}>Your Digital Closet</Text>
-
       <View style={styles.closetRow}>
-
         <TouchableOpacity style={styles.closetCard}>
           <View>
             <Text style={styles.closetCardTitle}>My Wardrobe</Text>
-            <Text style={styles.closetCardSub}>Organize &{"\n"}Visualize</Text>
+            <Text style={styles.closetCardSub}>Organize &{'\n'}Visualize</Text>
           </View>
-
           <Image
-      source={require('../source/assets/images/wardrobecropped.png')}
-      style={styles.closetCardImage} 
-      resizeMode="contain"
-    />
+            source={require('../source/assets/images/wardrobecropped.png')}
+            style={styles.closetCardImage}
+            resizeMode="contain"
+          />
         </TouchableOpacity>
-
-
-           {/*second card*/}
         <TouchableOpacity style={styles.closetCard}>
           <View>
             <Text style={styles.closetCardTitle}>AI Styling</Text>
             <Text style={styles.closetCardSub}>Smart Outfit Picks</Text>
           </View>
-
           <Image
-      source={require('../source/assets/images/aistyling.png')}
-      style={styles.closetCardImage} 
-      resizeMode="contain"
-    />
+            source={require('../source/assets/images/aistyling.png')}
+            style={styles.closetCardImage}
+            resizeMode="contain"
+          />
         </TouchableOpacity>
-
       </View>
-
-      {/*boutique*/}
+ 
+      {/* Marketplace */}
       <Text style={styles.sectionTitle}>FASH Marketplace</Text>
-
-      <ScrollView
-  horizontal
-  showsHorizontalScrollIndicator={false}
-  style={{ paddingLeft: 20 }}
->
-  {boutiqueItems.map((item) => (
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ paddingLeft: 20 }}>
+        {boutiqueItems.map((item) => (
           <TouchableOpacity key={item.id} style={styles.boutiqueCard}>
-
-            <Image
-              source={item.image}
-              style={styles.boutiqueImage}
-              resizeMode="cover"
-            />
-
+            <Image source={item.image} style={styles.boutiqueImage} resizeMode="cover" />
             <Text style={styles.boutiqueLabel}>{item.label}</Text>
-
           </TouchableOpacity>
         ))}
       </ScrollView>
-        
+ 
+      {/* Live Bidding */}
       <View style={styles.biddingSection}>
-  
-  <View style={styles.biddingHeader}>
-    <Text style={styles.liveDot}></Text>
-    <Text style={styles.biddingTitle}>LIVE BIDDING</Text>
-  </View>
-
-  <Text style={styles.biddingSubtitle}>
-    Bid on exclusive pieces before they're gone
-  </Text>
-
-  <View style={styles.auctionRow}>
-
-    <TouchableOpacity style={styles.auctionCard}>
-      <Image
-        source={require("../source/assets/images/shoes.png")}
-        style={styles.auctionImage}
-        resizeMode="contain"
-      />
-      <Text style={styles.itemName}>YSL Heels</Text>
-      <Text style={styles.bidPrice}>Current bid: $400</Text>
-      <Text style={styles.bidTime}>1h left</Text>
-    </TouchableOpacity>
-
-    <TouchableOpacity style={styles.auctionCard}>
-      <Image
-        source={require("../source/assets/images/bag.png")}
-        style={styles.auctionImage}
-        resizeMode="contain"
-      />
-      <Text style={styles.itemName}>Miu Miu Bag</Text>
-      <Text style={styles.bidPrice}>Current bid: $345</Text>
-      <Text style={styles.bidTime}>2h left</Text>
-    </TouchableOpacity>
-
-  </View>
-
-
-  <TouchableOpacity style={styles.bidButton}>
-    <Text style={styles.bidButtonText}>Join the Auction</Text>
-  </TouchableOpacity>
-
-</View>
-
-      {/*sustainability*/}
+        <View style={styles.biddingHeader}>
+          <Text style={styles.liveDot}></Text>
+          <Text style={styles.biddingTitle}>LIVE BIDDING</Text>
+        </View>
+        <Text style={styles.biddingSubtitle}>Bid on exclusive pieces before they're gone</Text>
+        <View style={styles.auctionRow}>
+          <TouchableOpacity style={styles.auctionCard}>
+            <Image source={require('../source/assets/images/shoes.png')} style={styles.auctionImage} resizeMode="contain" />
+            <Text style={styles.itemName}>YSL Heels</Text>
+            <Text style={styles.bidPrice}>Current bid: $400</Text>
+            <Text style={styles.bidTime}>1h left</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.auctionCard}>
+            <Image source={require('../source/assets/images/bag.png')} style={styles.auctionImage} resizeMode="contain" />
+            <Text style={styles.itemName}>Miu Miu Bag</Text>
+            <Text style={styles.bidPrice}>Current bid: $345</Text>
+            <Text style={styles.bidTime}>2h left</Text>
+          </TouchableOpacity>
+        </View>
+        <TouchableOpacity style={styles.bidButton}>
+          <Text style={styles.bidButtonText}>Join the Auction</Text>
+        </TouchableOpacity>
+      </View>
+ 
+      {/* FASH Share */}
       <Text style={[styles.sectionTitle, { marginTop: 24 }]}>FASH Share</Text>
-
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        style={{ paddingLeft: 20 }}
-      >
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ paddingLeft: 20 }}>
         {sustainabilityItems.map((item) => (
           <TouchableOpacity key={item.id} style={styles.sustainCard}>
-
-            <Image
-              source={item.image}
-              style={styles.sustainImage}
-              resizeMode="cover"
-            />
-
+            <Image source={item.image} style={styles.sustainImage} resizeMode="cover" />
             <Text style={styles.sustainLabel}>{item.label}</Text>
-
           </TouchableOpacity>
         ))}
       </ScrollView>
-
+ 
       <View style={{ height: 30 }} />
-
     </ScrollView>
   );
 }
-
-function WardrobeScreen() {
-  return <View style={styles.placeholder}><Text>Digital Wardrobe</Text></View>;
-}
-
-function SearchScreen() {
-  return <View style={styles.placeholder}><Text>Search</Text></View>;
-}
-
-function WishlistScreen() {
-  return <View style={styles.placeholder}><Text>Wishlist</Text></View>;
-}
-
+ 
 export default function HomeScreen() {
   return (
     <Tab.Navigator
@@ -211,7 +150,7 @@ export default function HomeScreen() {
         tabBarInactiveTintColor: '#999',
       }}
     >
-
+      {/* Tab 1 — Home */}
       <Tab.Screen
         name="HomeTab"
         component={HomeContent}
@@ -221,46 +160,41 @@ export default function HomeScreen() {
           ),
         }}
       />
-
+ 
+      {/* Tab 2 — Wardrobe (was placeholder) */}
       <Tab.Screen
-        name="Upload"
+        name="WardrobeTab"
         component={WardrobeScreen}
-        listeners={{
-          tabPress: e => e.preventDefault(), 
-        }}
         options={{
           tabBarIcon: ({ color }) => (
             <Ionicons name="shirt-outline" size={24} color={color} />
           ),
         }}
       />
-
+ 
+      {/* Tab 3 — Upload (was SearchTab placeholder) */}
       <Tab.Screen
-        name="SearchTab"
-        component={SearchScreen}
-        listeners={{
-          tabPress: e => e.preventDefault(), 
-        }}
+        name="UploadTab"
+        component={UploadScreen}
         options={{
           tabBarIcon: ({ color }) => (
             <Feather name="upload" size={24} color={color} />
           ),
         }}
       />
-
+ 
+      {/* Tab 4 — Saved / Wishlist (was WishList placeholder) */}
       <Tab.Screen
-        name="WishList"
-        component={WishlistScreen}
-        listeners={{
-          tabPress: e => e.preventDefault(), 
-        }}
+        name="SavedTab"
+        component={SavedScreen}
         options={{
           tabBarIcon: ({ color }) => (
             <Ionicons name="heart-outline" size={24} color={color} />
           ),
         }}
       />
-
+ 
+      {/* Tab 5 — Profile */}
       <Tab.Screen
         name="Profile"
         component={ProfileScreen}
@@ -270,12 +204,11 @@ export default function HomeScreen() {
           ),
         }}
       />
-
     </Tab.Navigator>
   );
 }
-
-const boxSize = width * 0.45; 
+ 
+const boxSize = width * 0.45;
 
 const styles = StyleSheet.create({
 
