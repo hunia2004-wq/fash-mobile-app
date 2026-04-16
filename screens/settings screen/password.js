@@ -6,16 +6,20 @@ import { changePassword } from '../../services/authService';
 
 const ChangePasswordScreen = ({ navigation }) => {
   const { getToken } = useContext(AuthContext);
-  const [currentPassword, setCurrentPassword] = useState('');
+  const [oldPassword, setOldPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [saving, setSaving] = useState(false);
-  const [showCurrent, setShowCurrent] = useState(false);
+  const [showOld, setShowOld] = useState(false);
   const [showNew, setShowNew] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
 
   const handleSave = async () => {
-    if (!currentPassword || !newPassword || !confirmPassword) {
+    console.log("CLICKED SAVE");
+console.log("Old:", oldPassword);
+console.log("New:", newPassword);
+
+    if (!oldPassword || !newPassword || !confirmPassword) {
       Alert.alert('Validation', 'Please fill in all fields.');
       return;
     }
@@ -28,16 +32,21 @@ const ChangePasswordScreen = ({ navigation }) => {
       return;
     }
     setSaving(true);
+    
     try {
       const token = await getToken();
-      await changePassword(token, { oldPassword: currentPassword, newPassword });
+      console.log("TOKEN:", token);
+      const res = await changePassword(token, { oldPassword, newPassword });
+      console.log("API RESPONSE:", res);
       Alert.alert('Success', 'Your password has been changed.', [
         { text: 'OK', onPress: () => navigation.goBack() },
       ]);
     } catch (e) {
-      console.warn('Change password error:', e);
+      console.log("FULL ERROR:", e);
+      console.log("MESSAGE:", e.message);
+    
       Alert.alert('Error', e.message || 'Failed to change password.');
-    } finally {
+    } finally{
       setSaving(false);
     }
   };
@@ -84,7 +93,7 @@ const ChangePasswordScreen = ({ navigation }) => {
         </View>
 
         <View style={styles.card}>
-          <PasswordField label="Current Password" value={currentPassword} onChange={setCurrentPassword} show={showCurrent} onToggle={() => setShowCurrent(!showCurrent)} />
+          <PasswordField label="Current Password" value={oldPassword} onChange={setOldPassword} show={showOld} onToggle={() => setShowOld(!showOld)} />
           <View style={styles.divider} />
           <PasswordField label="New Password" value={newPassword} onChange={setNewPassword} show={showNew} onToggle={() => setShowNew(!showNew)} />
           <View style={styles.divider} />

@@ -7,14 +7,13 @@ import { updatePrivacy } from '../../services/authService';
 const PrivacyScreen = ({ navigation }) => {
   const { getToken } = useContext(AuthContext);
   const [privacy, setPrivacy] = useState({
-    profileVisible: true,
-    showEmail: false,
+  profileVisible: false,
+  showActivity: false,
+  dataCollection: false,
   });
 
   const handleToggle = async (key, value) => {
     const token = await getToken();
-  
-    const previous = privacy;
   
     const updated = {
       ...privacy,
@@ -26,15 +25,15 @@ const PrivacyScreen = ({ navigation }) => {
     try {
       await updatePrivacy(token, {
         profileVisible: updated.profileVisible,
-        showEmail: updated.showEmail,
+        showActivity: updated.showActivity,
+        dataCollection: updated.dataCollection,
       });
     } catch (err) {
       console.log(err.message);
-      setPrivacy(previous); // rollback
+      setPrivacy(privacy);
       Alert.alert("Update failed");
     }
   };
-
 
   const ToggleRow = ({ label, subtitle, value, onValueChange, isLast }) => (
     <View style={[styles.toggleRow, !isLast && styles.toggleRowBorder]}>
@@ -63,24 +62,25 @@ const PrivacyScreen = ({ navigation }) => {
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.card}>
+
         <ToggleRow
   label="Public Profile"
-  value={privacy.profilePublic}
-  onValueChange={(v) => handleToggle('profilePublic', v)}
+  value={privacy.profileVisible}
+  onValueChange={(v) => handleToggle('profileVisible', v)}
 />
-          <ToggleRow
-            label="Show Activity"
-            subtitle="Let others see your activity"
-            value={privacy.showActivity}
-onValueChange={(v) => handleToggle('showActivity', v)}
-          />
-          <ToggleRow
-            label="Data Collection"
-            subtitle="Help us improve with usage data"
-            value={privacy.dataCollection}
-onValueChange={(v) => handleToggle('dataCollection', v)}
-            isLast
-          />
+
+<ToggleRow
+  label="Show Activity"
+  value={privacy.showActivity}
+  onValueChange={(v) => handleToggle('showActivity', v)}
+/>
+
+<ToggleRow
+  label="Data Collection"
+  value={privacy.dataCollection}
+  onValueChange={(v) => handleToggle('dataCollection', v)}
+  isLast
+/>     
         </View>
 
         <View style={styles.infoBox}>

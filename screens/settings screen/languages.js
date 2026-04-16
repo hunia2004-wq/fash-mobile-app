@@ -42,6 +42,8 @@ const handleLanguageChange = async (language) => {
 
   setSelected(language);
 
+  console.log("SENDING LANGUAGE:", language);
+
   try {
     await updateLanguage(token, { language });
   } catch (e) {

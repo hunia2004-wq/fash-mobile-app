@@ -3,21 +3,24 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Switch, Alert } f
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AuthContext } from '../../context/AuthContext';
 import { updateNotifications } from '../../services/authService';
-import { useEffect } from 'react';
 import { getSettings } from '../../services/authService';
+import { useFocusEffect } from '@react-navigation/native';
+import { useCallback } from 'react';
 
 const NotificationsScreen = ({ navigation }) => {
   const { getToken } = useContext(AuthContext);
   const [notifications, setNotifications] = useState({
     push: false,
     email: false,
-    orders: false,
+    order: false,
     promotions: false,
   });
 
-  useEffect(() => {
-    fetchSettings();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      fetchSettings();
+    }, [])
+  );
 
 
   const fetchSettings = async () => {
@@ -30,8 +33,8 @@ const NotificationsScreen = ({ navigation }) => {
       setNotifications({
         push: n.pushNotifications ?? false,
         email: n.emailNotifications ?? false,
-        orders: n.orders ?? false,
-        promotions: n.promotions ?? false,
+        order: n.orderUpdates ?? false,
+        promotions: n.promotionsOffers ?? false,
       });
   
     } catch (e) {
@@ -42,24 +45,25 @@ const NotificationsScreen = ({ navigation }) => {
   const handleToggle = async (key, value) => {
     const token = await getToken();
   
-    // 1. compute next state safely
-    setNotifications(prev => {
-      return { ...prev, [key]: value };
-    });
-  
-    // 2. get latest state manually (IMPORTANT FIX)
     const updated = {
       ...notifications,
       [key]: value,
     };
+
+    console.log("SENDING TO API:", {
+  emailNotifications: updated.email,
+  pushNotifications: updated.push,
+  orderUpdates: updated.order,
+  promotionsOffers: updated.promotions,
+});
+    setNotifications(updated);
   
-    // 3. send API separately
     try {
       await updateNotifications(token, {
         emailNotifications: updated.email,
         pushNotifications: updated.push,
-        orders: updated.orders,
-        promotions: updated.promotions,
+        orderUpdates: updated.order,
+        promotionsOffers: updated.promotions,
       });
     } catch (err) {
       console.log("Update failed:", err.message);
@@ -123,8 +127,8 @@ const sendUpdate = async (token, updated) => {
           <ToggleRow
             label="Order Updates"
             subtitle="Status changes and delivery"
-            value={notifications.orders}
-onValueChange={(v) => handleToggle('orders', v)}
+            value={notifications.order}
+onValueChange={(v) => handleToggle('order', v)}
           />
           <ToggleRow
             label="Promotions & Offers"
