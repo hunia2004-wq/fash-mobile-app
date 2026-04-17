@@ -146,11 +146,6 @@ export default function App() {
           ) : (
             <>
             <Stack.Screen name="Home" component={HomeScreen} />
-            <Stack.Screen name="Profile" component={ProfileScreen} />
-
-            <Stack.Screen name="Wardrobe" component={WardrobeScreen} />
-            <Stack.Screen name="Upload" component={UploadScreen} />
-            <Stack.Screen name="Saved" component={SavedScreen} />
 
 
               <Stack.Screen name="EditProfileScreen" component={EditProfileScreen} />
