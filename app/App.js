@@ -1,23 +1,6 @@
-import { StatusBar } from "expo-status-bar";
-import { View, Text } from "react-native";
+import React from "react";
+import HomeScreen from "./src/screens/HomeScreen";
 
 export default function App() {
-  return (
-    <View
-      style={{
-        flex: 1,
-        alignItems: "center",
-
-        justifyContent: "center",
-      }}
-    >
-      <Text
-        style={{
-          fontSize: "20%",
-        }}
-      >
-        welcome
-      </Text>
-    </View>
-  );
+  return <HomeScreen />;
 }
