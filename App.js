@@ -17,7 +17,7 @@ import ProfileScreen from './screens/profile';
 
 import EditProfileScreen from './screens/editpersonal';
 
-import WardrobeScreen from './screens/digital wardorbe/wardrobe';
+import WardrobeScreen from './screens/digital-wardrobe/wardrobe';
 import UploadScreen from './screens/uploading/upload';
 import SavedScreen from './screens/favorites/saved';
 

@@ -1,14 +1,5 @@
 import React, { useContext, useState, useCallback } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  Image,
-  TouchableOpacity,
-  ActivityIndicator,
-  ScrollView,
-  Dimensions,
-} from "react-native";
+import {View, Text, StyleSheet, Image, TouchableOpacity, ActivityIndicator, ScrollView, Dimensions,} from "react-native";
 import { AuthContext } from "../context/AuthContext";
 import { getProfile } from "../services/authService";
 import * as ImagePicker from "expo-image-picker";

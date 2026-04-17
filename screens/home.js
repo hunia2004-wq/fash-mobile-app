@@ -5,7 +5,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import ProfileScreen from './profile'; 
 
 
-import WardrobeScreen from './digital wardorbe/wardrobe';
+import WardrobeScreen from './digital-wardrobe/wardrobe';
 import UploadScreen from './uploading/upload';
 import SavedScreen from './favorites/saved';
  

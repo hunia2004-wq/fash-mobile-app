@@ -1,8 +1,5 @@
 import React, { useContext, useState } from 'react';
-import {
-  View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  TextInput, Image, ActivityIndicator, Alert, Dimensions,
-} from 'react-native';
+import {View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Image, ActivityIndicator, Alert, Dimensions,} from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { AuthContext } from '../context/AuthContext';
 import { updateProfile, uploadAvatar } from '../services/authService';
