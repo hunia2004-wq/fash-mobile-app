@@ -171,6 +171,12 @@ export async function verifyEmailChange(token, otp) {
 // SETTINGS
 // ─────────────────────────────
 
+
+// ─────────────────────────────
+// PASSWORD
+// ─────────────────────────────
+
+
 export async function changePassword(token, { oldPassword, newPassword }) {
   return request("/user/change-password", {
     method: "PUT",
@@ -181,6 +187,12 @@ export async function changePassword(token, { oldPassword, newPassword }) {
   });
 }
 
+
+
+// ─────────────────────────────
+// PRIVACY
+// ─────────────────────────────
+
 export async function updatePrivacy(token, privacySettings) {
   return request("/user/settings/privacy", {
     method: "PUT",
@@ -190,6 +202,11 @@ export async function updatePrivacy(token, privacySettings) {
     body: JSON.stringify(privacySettings),
   });
 }
+
+
+// ─────────────────────────────
+// NOTIFICATIONS
+// ─────────────────────────────
 
 export async function updateNotifications(token, notificationSettings) {
   return request("/user/settings/notifications", {
@@ -208,6 +225,26 @@ export async function getSettings(token) {
     },
   });
 }
+
+
+// ─────────────────────────────
+// LANGUAGE
+// ─────────────────────────────
+
+export async function updateLanguage(token, languageSettings) {
+  return request("/user/settings/language", {
+    method: "PUT",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(languageSettings),
+  });
+}
+
+
+// ─────────────────────────────
+// CARDS
+// ─────────────────────────────
 
 export const getCards = async (token) => {
   return request('/cards', {
@@ -390,6 +427,10 @@ export const getSecurity = (token) => {
   });
 };
 
+// ─────────────────────────────
+// 2FA
+// ─────────────────────────────
+
 export const toggle2FA = (token, data) => {
   return request('/user/security/2fa', {
     method: 'PUT',
@@ -400,6 +441,10 @@ export const toggle2FA = (token, data) => {
     body: JSON.stringify(data),
   });
 };
+
+// ─────────────────────────────
+// LOGIN DEVICES
+// ─────────────────────────────
 
 export const getLoginDevices = (token) => {
   return request('/user/security/devices', {
@@ -428,6 +473,10 @@ export const logoutAllDevices = (token) => {
   });
 };
 
+// ─────────────────────────────
+// CONNECTED ACCOUNTS
+// ─────────────────────────────
+
 export const toggleConnectedAccount = (token, data) => {
   return request('/user/connected-accounts', {
     method: 'GET',
@@ -444,7 +493,7 @@ export const contactSupport = async (token, { subject, orderNumber, message, ima
   const formData = new FormData();
 
   formData.append("subject", subject);
-  formData.append("orderNumber", orderNumber);
+  formData.append("orderNumber", orderNumber || "");
   formData.append("message", message);
 
   if (image) {
@@ -455,13 +504,26 @@ export const contactSupport = async (token, { subject, orderNumber, message, ima
     });
   }
 
-  return fetch(`${BASE_URL}/support/contact`, {
+  const res = await fetch(`${BASE_URL}/support/contact`, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${token}`,
     },
     body: formData,
-  }).then(res => res.json());
+  });
+
+  const data = await res.json();
+
+  if (!res.ok) {
+    throw new Error(data?.message || "Failed to send support request");
+  }
+
+  return {
+    ticketId: data.ticketId,
+    status: data.status,
+    createdAt: data.createdAt,
+    message: data.message,
+  };
 };
 
 export const getFaqs = (token) => {

@@ -7,9 +7,9 @@ import { toggle2FA, getSecurity } from '../../services/authService';
 const TwoFactorAuthScreen = ({ navigation }) => {
   const { getToken } = useContext(AuthContext);
   const [twoFA, setTwoFA] = useState({
-    authenticatorApp: true,
+    authenticatorApp: false,
     smsVerification: false,
-    emailVerification: true,
+    emailVerification: false,
   });
 
   const [loading, setLoading] = useState(false); 
@@ -23,39 +23,45 @@ const TwoFactorAuthScreen = ({ navigation }) => {
 
   const handleToggle = async (key, value) => {
     const token = await getToken();
-    const prevState = twoFA;
   
+    const prevState = { ...twoFA }; 
     setLoading(true);
   
     setTwoFA(prev => ({ ...prev, [key]: value }));
   
     try {
-      await toggle2FA(token, {
+      const res = await toggle2FA(token, {
         method: key,
         enabled: value,
       });
+  
+      setTwoFA(res.twoFactor); 
     } catch (e) {
-      setTwoFA(prevState);
+      setTwoFA(prevState); 
       Alert.alert('Error', 'Failed to update 2FA settings.');
     } finally {
       setLoading(false);
     }
   };
 
-useEffect(() => {
-  const loadSecurity = async () => {
-    const token = await getToken();
-    const res = await getSecurity(token); // you need this API
-
-    setTwoFA({
-      authenticatorApp: res.twoFactor?.authenticatorApp ?? false,
-      smsVerification: res.twoFactor?.smsVerification ?? false,
-      emailVerification: res.twoFactor?.emailVerification ?? false,
-    });
-  };
-
-  loadSecurity();
-}, []);
+  useEffect(() => {
+    const loadSecurity = async () => {
+      try {
+        const token = await getToken();
+        const res = await getSecurity(token);
+  
+        setTwoFA({
+          authenticatorApp: res.twoFactor?.authenticatorApp ?? false,
+          smsVerification: res.twoFactor?.smsVerification ?? false,
+          emailVerification: res.twoFactor?.emailVerification ?? false,
+        });
+      } catch (e) {
+        console.log("FAILED TO LOAD 2FA:", e.message);
+      }
+    };
+  
+    loadSecurity();
+  }, []);
 
   return (
 
@@ -91,7 +97,7 @@ useEffect(() => {
               <Text style={styles.itemTitle}>Authenticator App</Text>
               <Text style={styles.itemSubtitle}>Google Authenticator, Authy</Text>
             </View>
-            <Switch
+            <Switch  disabled={loading}
   value={twoFA.authenticatorApp}
   onValueChange={(v) => handleToggle('authenticatorApp', v)}
   trackColor={{ false: '#ccc', true: '#B07070' }}
@@ -104,7 +110,7 @@ useEffect(() => {
               <Text style={styles.itemTitle}>SMS Verification</Text>
               <Text style={styles.itemSubtitle}>Text message to +20 *** ***9856</Text>
             </View>
-            <Switch
+            <Switch  disabled={loading}
   value={twoFA.smsVerification}
   onValueChange={(v) => handleToggle('smsVerification', v)}
   trackColor={{ false: '#ccc', true: '#B07070' }}
@@ -117,7 +123,7 @@ useEffect(() => {
               <Text style={styles.itemTitle}>Email Verification</Text>
               <Text style={styles.itemSubtitle}>aynourhamadaa@gmail.com</Text>
             </View>
-            <Switch
+            <Switch  disabled={loading}
   value={twoFA.emailVerification}
   onValueChange={(v) => handleToggle('emailVerification', v)}
   trackColor={{ false: '#ccc', true: '#B07070' }}

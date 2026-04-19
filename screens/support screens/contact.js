@@ -3,50 +3,83 @@ import {View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Alert, 
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AuthContext } from '../../context/AuthContext';
 import { contactSupport } from '../../services/authService';
+import * as ImagePicker from 'expo-image-picker';
 
-const SUBJECTS = ['Order issue', 'Payment problem', 'Account issue', 'Delivery issue', 'Help Request', 'Report a problem', 'Other'];
+const SUBJECTS = [
+  'Order issue',
+  'Payment problem',
+  'Account issue',
+  'Delivery issue',
+  'Help Request',
+  'Report a problem',
+  'Other',
+];
 
 const ContactSupportScreen = ({ navigation }) => {
   const [subject, setSubject] = useState(SUBJECTS[0]);
   const [orderNumber, setOrderNumber] = useState('');
   const [message, setMessage] = useState('');
   const [showSubjectPicker, setShowSubjectPicker] = useState(false);
-  const [sending, setSending] = useState(false);  
-
+  const [sending, setSending] = useState(false);
+  const [image, setImage] = useState(null);
 
   const { getToken } = useContext(AuthContext);
 
-const handleSend = async () => {
-  if (!message.trim()) {
-    Alert.alert('Missing info', 'Please describe your issue before sending.');
-    return;
-  }
-
-  setSending(true);
-  try {
-    const token = await getToken();
-
-    await contactSupport(token, {
-      subject,
-      orderNumber,
-      message,
+  // -------------------------
+  // PICK IMAGE
+  // -------------------------
+  const pickImage = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      quality: 0.7,
     });
 
-    Alert.alert('Message Sent', "We'll get back to you within 24 hours.", [
-      { text: 'OK', onPress: () => navigation.goBack() },
-    ]);
-  } catch (e) {
-    Alert.alert('Error', e.message || 'Failed to send message. Please try again.');
-  } finally {
-    setSending(false);
-  }
-};
+    if (!result.canceled) {
+      setImage(result.assets[0].uri);
+    }
+  };
 
+  // -------------------------
+  // SEND SUPPORT TICKET
+  // -------------------------
+  const handleSend = async () => {
+    if (!subject || !message.trim()) {
+      Alert.alert('Missing info', 'Please complete all required fields.');
+      return;
+    }
+
+    setSending(true);
+
+    try {
+      const token = await getToken();
+
+      const response = await contactSupport(token, {
+        subject,
+        orderNumber,
+        message,
+        image,
+      });
+
+      const { ticketId, status } = response;
+
+      Alert.alert(
+        'Message Sent',
+        `We'll get back to you within 24 hours.\n\nTicket #${ticketId}\nStatus: ${status}`,
+        [{ text: 'OK', onPress: () => navigation.goBack() }]
+      );
+    } catch (e) {
+      Alert.alert(
+        'Error',
+        e.message || 'Failed to send message. Please try again.'
+      );
+    } finally {
+      setSending(false);
+    }
+  };
 
   return (
     <SafeAreaView style={styles.container}>
-
-      {/* header */}
+      {/* HEADER */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Text style={styles.backBtn}>‹</Text>
@@ -54,25 +87,29 @@ const handleSend = async () => {
         <Text style={styles.headerTitle}>Contact Support</Text>
       </View>
 
-      <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
+      <ScrollView contentContainerStyle={styles.scrollContent}>
 
-        {/* info box */}
+        {/* INFO */}
         <View style={styles.infoBox}>
           <Text style={styles.infoText}>
-            We aim to reply within 24 hours. For urgent issues, please call (+20) 000 00 00 000.
+            We aim to reply within 24 hours. For urgent issues, call (+20) 000 00 00 000.
           </Text>
         </View>
 
-        {/* subject picker */}
+        {/* SUBJECT */}
         <View style={styles.formGroup}>
           <Text style={styles.formLabel}>Subject</Text>
+
           <TouchableOpacity
             style={styles.input}
             onPress={() => setShowSubjectPicker(!showSubjectPicker)}
           >
             <Text style={styles.inputText}>{subject}</Text>
-            <Text style={styles.chevron}>{showSubjectPicker ? '▲' : '▼'}</Text>
+            <Text style={styles.chevron}>
+              {showSubjectPicker ? '▲' : '▼'}
+            </Text>
           </TouchableOpacity>
+
           {showSubjectPicker && (
             <View style={styles.pickerDropdown}>
               {SUBJECTS.map((s) => (
@@ -84,7 +121,12 @@ const handleSend = async () => {
                     setShowSubjectPicker(false);
                   }}
                 >
-                  <Text style={[styles.pickerOptionText, s === subject && styles.pickerSelected]}>
+                  <Text
+                    style={[
+                      styles.pickerOptionText,
+                      s === subject && styles.pickerSelected,
+                    ]}
+                  >
                     {s}
                   </Text>
                 </TouchableOpacity>
@@ -93,7 +135,7 @@ const handleSend = async () => {
           )}
         </View>
 
-        {/* order number */}
+        {/* ORDER NUMBER */}
         <View style={styles.formGroup}>
           <Text style={styles.formLabel}>Order number (optional)</Text>
           <TextInput
@@ -105,7 +147,7 @@ const handleSend = async () => {
           />
         </View>
 
-        {/* message */}
+        {/* MESSAGE */}
         <View style={styles.formGroup}>
           <Text style={styles.formLabel}>Describe your issue</Text>
           <TextInput
@@ -119,27 +161,35 @@ const handleSend = async () => {
           />
         </View>
 
-        {/* attach photo */}
+        {/* IMAGE */}
         <View style={styles.formGroup}>
           <Text style={styles.formLabel}>Attach a photo (optional)</Text>
-          <TouchableOpacity style={styles.uploadBox}>
-            <Text style={styles.uploadText}>+ Add image</Text>
+
+          <TouchableOpacity style={styles.uploadBox} onPress={pickImage}>
+            <Text style={styles.uploadText}>
+              {image ? 'Image selected ✓' : '+ Add image'}
+            </Text>
           </TouchableOpacity>
         </View>
 
-        {/* send button */}
-        <TouchableOpacity style={styles.sendBtn} onPress={handleSend} disabled={sending}>
-         {sending
-         ? <ActivityIndicator color="#fff" />
-         : <Text style={styles.sendBtnText}>Send Message</Text>
-         }
+        {/* SEND BUTTON */}
+        <TouchableOpacity
+          style={styles.sendBtn}
+          onPress={handleSend}
+          disabled={sending}
+        >
+          {sending ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <Text style={styles.sendBtnText}>Send Message</Text>
+          )}
         </TouchableOpacity>
-
-
       </ScrollView>
     </SafeAreaView>
   );
 };
+
+export default ContactSupportScreen;
 
 const styles = StyleSheet.create({
   container: {
@@ -282,4 +332,3 @@ const styles = StyleSheet.create({
   },
 });
 
-export default ContactSupportScreen;

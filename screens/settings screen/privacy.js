@@ -1,19 +1,21 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext, useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Switch, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AuthContext } from '../../context/AuthContext';
-import { updatePrivacy } from '../../services/authService';
+import { updatePrivacy, getSettings } from '../../services/authService';
 
 const PrivacyScreen = ({ navigation }) => {
   const { getToken } = useContext(AuthContext);
   const [privacy, setPrivacy] = useState({
-  profileVisible: false,
+  profileVisible: true,
   showActivity: false,
   dataCollection: false,
   });
 
   const handleToggle = async (key, value) => {
     const token = await getToken();
+  
+    const previous = { ...privacy }; // ✅ store old state
   
     const updated = {
       ...privacy,
@@ -23,17 +25,33 @@ const PrivacyScreen = ({ navigation }) => {
     setPrivacy(updated);
   
     try {
-      await updatePrivacy(token, {
-        profileVisible: updated.profileVisible,
-        showActivity: updated.showActivity,
-        dataCollection: updated.dataCollection,
-      });
+      await updatePrivacy(token, updated); 
+      
     } catch (err) {
       console.log(err.message);
-      setPrivacy(privacy);
+      setPrivacy(previous); 
       Alert.alert("Update failed");
     }
   };
+
+  useEffect(() => {
+    const loadSettings = async () => {
+      try {
+        const token = await getToken();
+        const data = await getSettings(token);
+  
+        setPrivacy({
+          profileVisible: data?.privacy?.profileVisible ?? true,
+          showActivity: data?.privacy?.showActivity ?? false,
+          dataCollection: data?.privacy?.dataCollection ?? false,
+        });
+      } catch (err) {
+        console.log("Failed to load settings", err.message);
+      }
+    };
+  
+    loadSettings();
+  }, []);
 
   const ToggleRow = ({ label, subtitle, value, onValueChange, isLast }) => (
     <View style={[styles.toggleRow, !isLast && styles.toggleRowBorder]}>

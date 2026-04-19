@@ -19,8 +19,11 @@ const LanguagesScreen = ({ navigation }) => {
       const token = await getToken();
       const settings = await getSettings(token);
   
-      const lang = settings.language || 'en';
+      const lang = settings.language ?? 'en';
       setSelected(lang);
+
+      const updated = await getSettings(token);
+      console.log("UPDATED SETTINGS:", updated);
   
     } catch (e) {
       console.log("ERROR LOADING LANGUAGE:", e);
