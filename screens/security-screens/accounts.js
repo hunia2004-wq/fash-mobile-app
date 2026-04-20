@@ -2,12 +2,13 @@ import React, { useContext, useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AuthContext } from '../../context/AuthContext';
-import { getSecurity, toggleConnectedAccount } from '../../services/authService';
+import { getConnectedAccount, toggleConnectedAccount } from '../../services/authService';
 
 const ConnectedAccountsScreen = ({ navigation }) => {
   const { getToken } = useContext(AuthContext);
   const [accounts, setAccounts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [updatingId, setUpdatingId] = useState(null);
 
   
 
@@ -15,7 +16,7 @@ const ConnectedAccountsScreen = ({ navigation }) => {
     const fetchAccounts = async () => {
       try {
         const token = await getToken();
-        const data = await getSecurity(token);
+        const data = await getConnectedAccount(token);
   
         const backendAccounts = data.connectedAccounts || {};
 
@@ -57,21 +58,32 @@ const ConnectedAccountsScreen = ({ navigation }) => {
   
     const newValue = !account.connected;
   
+    setUpdatingId(id);
+  
     try {
       await toggleConnectedAccount(token, {
-        provider: id,
-        connected: newValue,
+        [id]: newValue,
       });
   
+      const data = await getConnectedAccount(token);
+      const backendAccounts = data.connectedAccounts || {};
+  
       setAccounts((prev) =>
-        prev.map((a) =>
-          a.id === id ? { ...a, connected: newValue } : a
-        )
+        prev.map((a) => ({
+          ...a,
+          connected: backendAccounts[a.id] ?? false,
+        }))
       );
+  
     } catch (e) {
-      Alert.alert('Error', 'Failed to update account');
+      console.log("CONNECTED ACC ERROR:", e.message);
+      Alert.alert('Error', e.message);
+    }
+    finally {
+      setUpdatingId(null);
     }
   };
+
 
 
   if (loading) {
@@ -144,9 +156,11 @@ const ConnectedAccountsScreen = ({ navigation }) => {
 
               {/* button */}
               <TouchableOpacity
+              disabled={updatingId === account.id}
                 style={[
                   styles.toggleBtn,
                   account.connected ? styles.btnDisconnect : styles.btnConnect,
+                  updatingId === account.id && { opacity: 0.5 },
                 ]}
                 onPress={() => handleToggle(account.id)}
               >

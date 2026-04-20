@@ -12,7 +12,7 @@ import ForgotPasswordScreen from './screens/forgotpassword';
 import VerificationScreen from './screens/verification';
 import WelcomeScreen from './screens/welcome';
 
-import HomeScreen from './screens/home';
+import HomeScreen from './screens/home-screen/home';
 import ProfileScreen from './screens/profile';
 
 import EditProfileScreen from './screens/editpersonal';
@@ -21,28 +21,43 @@ import WardrobeScreen from './screens/digital-wardrobe/wardrobe';
 import UploadScreen from './screens/uploading/upload';
 import SavedScreen from './screens/favorites/saved';
 
-import SettingsScreen from './screens/settings screen/settings';
-import AddressScreen from './screens/settings screen/address';
-import CardsScreen from './screens/settings screen/cards';
-import EmailScreen from './screens/settings screen/email';
-import LanguagesScreen from './screens/settings screen/languages';
-import NotificationsScreen from './screens/settings screen/notifications';
-import PrivacyScreen from './screens/settings screen/privacy';
-import ChangePasswordScreen from './screens/settings screen/password';
-import VerifyEmailScreen from './screens/settings screen/verifyemail';
+import SettingsScreen from './screens/settings-screen/settings';
+import AddressScreen from './screens/settings-screen/address';
+import CardsScreen from './screens/settings-screen/cards';
+import EmailScreen from './screens/settings-screen/email';
+import LanguagesScreen from './screens/settings-screen/languages';
+import NotificationsScreen from './screens/settings-screen/notifications';
+import PrivacyScreen from './screens/settings-screen/privacy';
+import ChangePasswordScreen from './screens/settings-screen/password';
+import VerifyEmailScreen from './screens/settings-screen/verifyemail';
+
+import OrdersScreen from './screens/orders-screen/orders';
+import OrderDetailScreen from './screens/orders-screen/orderdteails';
+
+import SecurityScreen from './screens/security-screens/securitymain';
+import TwoFactorAuthScreen from './screens/security-screens/twofa';
+import LoginDevicesScreen from './screens/security-screens/devices';
+import ConnectedAccountsScreen from './screens/security-screens/accounts';
+
+import SupportScreen from './screens/support-screens/supportmain';
+import ContactSupportScreen from './screens/support-screens/contact';
+import FAQScreen from './screens/support-screens/faq';
+
+import AIStyling from "./screens/home-screen/AIStylingScreen";
+import BiddingHome from "./screens/home-screen/BiddingHome";
+import BidInput from "./screens/home-screen/BidInput";
+import ConfirmBid from "./screens/home-screen/ConfirmBid";
+
+import CartScreen from "./screens/home-screen/CartScreen";
+import PaymentScreen from "./screens/home-screen/PaymentScreen";
+
+import MarketplaceHome from "./screens/home-screen/MarketplaceHome";
+import ProductDetails from "./screens/home-screen/ProductDetails";
+
+import PackingHome from "./screens/home-screen/PackingHome";
+import OutfitBuilder from "./screens/home-screen/OutfitBuilder";
 
 
-import OrdersScreen from './screens/orders screen/orders';
-import OrderDetailScreen from './screens/orders screen/orderdteails';
-
-import SecurityScreen from './screens/security screens/securitymain';
-import TwoFactorAuthScreen from './screens/security screens/twofa';
-import LoginDevicesScreen from './screens/security screens/devices';
-import ConnectedAccountsScreen from './screens/security screens/accounts';
-
-import SupportScreen from './screens/support screens/supportmain';
-import ContactSupportScreen from './screens/support screens/contact';
-import FAQScreen from './screens/support screens/faq';
 
 import { logout } from './services/authService';
 
@@ -145,7 +160,7 @@ export default function App() {
               </>
           ) : (
             <>
-            <Stack.Screen name="Home" component={HomeScreen} />
+              <Stack.Screen name="Home" component={HomeScreen} />
 
 
               <Stack.Screen name="EditProfileScreen" component={EditProfileScreen} />
@@ -172,6 +187,18 @@ export default function App() {
               <Stack.Screen name="SupportScreen" component={SupportScreen} options={{ headerShown: false }} />
               <Stack.Screen name="ContactSupportScreen" component={ContactSupportScreen} options={{ headerShown: false }} />
               <Stack.Screen name="FAQScreen" component={FAQScreen} options={{ headerShown: false }} />
+
+              <Stack.Screen name="AIStylingScreen" component={AIStyling} />
+              <Stack.Screen name="BiddingHome" component={BiddingHome} />
+              <Stack.Screen name="BidInput" component={BidInput} />
+              <Stack.Screen name="ConfirmBid" component={ConfirmBid} />
+              <Stack.Screen name="Cart" component={CartScreen} />
+              <Stack.Screen name="Payment" component={PaymentScreen} />
+              <Stack.Screen name="MarketplaceHome" component={MarketplaceHome} />
+              <Stack.Screen name="ProductDetails" component={ProductDetails} />
+              <Stack.Screen name="PackingHome" component={PackingHome} />
+              <Stack.Screen name="OutfitBuilder" component={OutfitBuilder} />
+              
 
               </>
 )}

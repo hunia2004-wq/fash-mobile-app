@@ -1,14 +1,8 @@
 import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  ScrollView,
-  StyleSheet,
-  TouchableOpacity,
-  SafeAreaView,
-  StatusBar,
-} from 'react-native';
+import {View, Text, ScrollView, StyleSheet, TouchableOpacity, StatusBar, Image} from 'react-native';
 import { Ionicons, Feather, MaterialCommunityIcons } from '@expo/vector-icons';
+import { SafeAreaView } from 'react-native-safe-area-context';
+
 
 const COLORS = {
   bg: '#F5F5F5',
@@ -25,7 +19,7 @@ const COLORS = {
   outfitText: '#6b3fa0',
 };
 
-const TABS = ['All', 'FASH', 'Marketplace', 'Outfits'];
+const TABS = ['All', 'FASH', 'Marketplace'];
 
 const SAVE_TYPES = [
   {
@@ -40,12 +34,6 @@ const SAVE_TYPES = [
     sub: 'From other FASH members',
     badge: { label: 'Marketplace', bg: COLORS.c2cBg, color: COLORS.c2cText },
   },
-  {
-    icon: <Ionicons name="sparkles-outline" size={20} color={COLORS.accent} />,
-    title: 'AI-styled outfits',
-    sub: 'Save looks you love',
-    badge: { label: 'AI Outfit', bg: COLORS.outfitBg, color: COLORS.outfitText },
-  },
 ];
 
 export default function SavedScreen() {
@@ -54,6 +42,15 @@ export default function SavedScreen() {
   return (
     <SafeAreaView style={styles.safe}>
       <StatusBar barStyle="dark-content" backgroundColor={COLORS.white} />
+
+      {/* logo */}
+      <View style={styles.logoHeader}>
+        <Image
+          source={require('../../source/assets/images/Blacklogo.png')}
+          style={styles.logo}
+          resizeMode="contain"
+        />
+        </View>
 
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Saved Items</Text>
@@ -143,25 +140,59 @@ export default function SavedScreen() {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: COLORS.bg },
-
-  header: {
-    backgroundColor: COLORS.white,
-    paddingHorizontal: 20,
-    paddingTop: 16,
-    paddingBottom: 12,
-    borderBottomWidth: 0.5,
-    borderBottomColor: COLORS.border,
+  safe: { 
+    flex: 1, 
+    backgroundColor: COLORS.bg 
   },
-  headerTitle: { fontSize: 20, fontWeight: '700', color: COLORS.text, letterSpacing: -0.3 },
-  headerSub: { fontSize: 13, color: COLORS.muted, marginTop: 2 },
+
+  itemImage: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 14,
+  },
+
+  logoHeader: {
+    paddingBottom: 10,
+    alignItems: 'center',
+    backgroundColor: '#F5F5F5',
+  },
+  
+  logo: {
+    width: 120,
+    height: 50,
+  },
+  
+  titleHeader: {
+    backgroundColor: '#F5F5F5',
+    paddingHorizontal: 20,
+  },
+  
+  headerTitle: { 
+    fontSize: 20, 
+    fontWeight: '700', 
+    color: '#C17C74',
+    marginLeft: 20,
+  },
+  
+  headerSub: { 
+    fontSize: 13, 
+    color: '#888888', 
+    marginTop: 2, 
+    marginBottom: 10,
+    marginLeft: 20,
+  },
 
   tabsWrapper: {
-    backgroundColor: COLORS.white,
+    backgroundColor: COLORS.bg,
     borderBottomWidth: 0.5,
     borderBottomColor: COLORS.border,
   },
-  tabsRow: { flexDirection: 'row', paddingHorizontal: 14 },
+
+  tabsRow: { 
+    flexDirection: 'row', 
+    paddingHorizontal: 14 
+  },
+
   tab: {
     paddingHorizontal: 18,
     paddingVertical: 12,
@@ -169,11 +200,24 @@ const styles = StyleSheet.create({
     borderBottomColor: 'transparent',
     marginRight: 2,
   },
-  tabActive: { borderBottomColor: COLORS.accent },
-  tabText: { fontSize: 13, fontWeight: '600', color: COLORS.muted },
-  tabTextActive: { color: COLORS.accent },
 
-  scrollContent: { paddingBottom: 50 },
+  tabActive: { 
+    borderBottomColor: COLORS.accent 
+  },
+
+  tabText: { 
+    fontSize: 13, 
+    fontWeight: '600', 
+    color: COLORS.muted 
+  },
+
+  tabTextActive: { 
+    color: COLORS.accent 
+  },
+
+  scrollContent: { 
+    paddingBottom: 50 
+  },
 
   emptyHero: {
     alignItems: 'center',
@@ -181,6 +225,7 @@ const styles = StyleSheet.create({
     paddingTop: 48,
     paddingBottom: 40,
   },
+
   iconRing: {
     width: 110,
     height: 110,
@@ -190,6 +235,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginBottom: 24,
   },
+
   emptyTitle: {
     fontSize: 20,
     fontWeight: '700',
@@ -197,6 +243,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     textAlign: 'center',
   },
+
   emptySub: {
     fontSize: 14,
     color: COLORS.muted,
@@ -204,6 +251,7 @@ const styles = StyleSheet.create({
     lineHeight: 22,
     marginBottom: 32,
   },
+
   btnPrimary: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -214,7 +262,13 @@ const styles = StyleSheet.create({
     width: '100%',
     marginBottom: 12,
   },
-  btnPrimaryText: { color: COLORS.white, fontSize: 15, fontWeight: '600' },
+
+  btnPrimaryText: { 
+    color: COLORS.white, 
+    fontSize: 15, 
+    fontWeight: '600' 
+  },
+
   btnOutline: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -225,7 +279,12 @@ const styles = StyleSheet.create({
     paddingVertical: 15,
     width: '100%',
   },
-  btnOutlineText: { color: COLORS.accent, fontSize: 15, fontWeight: '600' },
+
+  btnOutlineText: { 
+    color: COLORS.accent, 
+    fontSize: 15, 
+    fontWeight: '600' 
+  },
 
   sectionLabel: {
     fontSize: 11,
@@ -247,6 +306,7 @@ const styles = StyleSheet.create({
     padding: 14,
     gap: 12,
   },
+
   typeIconWrap: {
     width: 44,
     height: 44,
@@ -255,16 +315,33 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  typeText: { flex: 1 },
-  typeTitle: { fontSize: 14, fontWeight: '600', color: COLORS.text },
-  typeSub: { fontSize: 12, color: COLORS.muted, marginTop: 3 },
+
+  typeText: { 
+    flex: 1 
+  },
+
+  typeTitle: { 
+    fontSize: 14, 
+    fontWeight: '600', 
+    color: COLORS.text 
+  },
+
+  typeSub: { 
+    fontSize: 12, 
+    color: COLORS.muted, 
+    marginTop: 3 
+  },
 
   badge: {
     paddingHorizontal: 9,
     paddingVertical: 4,
     borderRadius: 8,
   },
-  badgeText: { fontSize: 10, fontWeight: '700' },
+
+  badgeText: { 
+    fontSize: 10, 
+    fontWeight: '700' 
+  },
 
   tabHint: {
     flexDirection: 'row',
@@ -275,5 +352,12 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     padding: 14,
   },
-  tabHintText: { flex: 1, fontSize: 12, color: COLORS.muted, lineHeight: 18 },
+
+  tabHintText: { 
+    flex: 1, 
+    fontSize: 12, 
+    color: COLORS.muted, 
+    lineHeight: 18 
+  },
+
 });

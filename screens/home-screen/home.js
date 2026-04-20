@@ -2,28 +2,30 @@ import { useState } from 'react';
 import {View, Text, TouchableOpacity, ScrollView, StyleSheet, TextInput, Image, Dimensions,} from 'react-native';
 import { FontAwesome, Ionicons, Feather } from '@expo/vector-icons';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import ProfileScreen from './profile'; 
+import ProfileScreen from '../profile'; 
+import { useNavigation } from "@react-navigation/native";
 
 
-import WardrobeScreen from './digital-wardrobe/wardrobe';
-import UploadScreen from './uploading/upload';
-import SavedScreen from './favorites/saved';
+import WardrobeScreen from '../digital-wardrobe/wardrobe';
+import UploadScreen from '../uploading/upload';
+import SavedScreen from '../favorites/saved';
  
 const { width } = Dimensions.get('window');
 const Tab = createBottomTabNavigator();
  
 function HomeContent() {
+    const navigation = useNavigation();
  
   const boutiqueItems = [
-    { id: '1', label: 'Limited Editions', bid: true, image: require('../source/assets/images/bidnow.png') },
-    { id: '2', label: 'Newborn\nAccessories', bid: false, image: require('../source/assets/images/newborn.png') },
-    { id: '3', label: 'Exclusive\nFragrances', bid: false, image: require('../source/assets/images/perfume.png') },
+    { id: '1', label: 'Limited Editions', bid: true, image: require('../../source/assets/images/bidnow.png') },
+    { id: '2', label: 'Newborn\nAccessories', bid: false, image: require('../../source/assets/images/newborn.png') },
+    { id: '3', label: 'Exclusive\nFragrances', bid: false, image: require('../../source/assets/images/perfume.png') },
   ];
  
   const sustainabilityItems = [
-    { id: '1', image: require('../source/assets/images/packing.png') },
-    { id: '2', image: require('../source/assets/images/donations.png') },
-    { id: '3', image: require('../source/assets/images/borrowcropped.png') },
+    { id: '1', image: require('../../source/assets/images/packing.png') },
+    { id: '2', image: require('../../source/assets/images/donations.png') },
+    { id: '3', image: require('../../source/assets/images/borrowcropped.png') },
   ];
  
   return (
@@ -32,7 +34,7 @@ function HomeContent() {
       {/* Header */}
       <View style={styles.header}>
         <Image
-          source={require('../source/assets/images/Blacklogo.png')}
+          source={require('../../source/assets/images/Blacklogo.png')}
           style={styles.logo}
           resizeMode="contain"
         />
@@ -53,7 +55,7 @@ function HomeContent() {
       {/* Banner */}
       <View style={styles.banner}>
         <Image
-          source={require('../source/assets/images/headercropped.png')}
+          source={require('../../source/assets/images/headercropped.png')}
           style={styles.bannerImage}
           resizeMode="cover"
         />
@@ -68,18 +70,21 @@ function HomeContent() {
             <Text style={styles.closetCardSub}>Organize &{'\n'}Visualize</Text>
           </View>
           <Image
-            source={require('../source/assets/images/wardrobecropped.png')}
+            source={require('../../source/assets/images/wardrobecropped.png')}
             style={styles.closetCardImage}
             resizeMode="contain"
           />
         </TouchableOpacity>
-        <TouchableOpacity style={styles.closetCard}>
+
+
+        {/* AI Styling */}
+        <TouchableOpacity style={styles.closetCard} onPress={() => navigation.navigate("AIStylingScreen")}>
           <View>
             <Text style={styles.closetCardTitle}>AI Styling</Text>
             <Text style={styles.closetCardSub}>Smart Outfit Picks</Text>
           </View>
           <Image
-            source={require('../source/assets/images/aistyling.png')}
+            source={require('../../source/assets/images/aistyling.png')}
             style={styles.closetCardImage}
             resizeMode="contain"
           />
@@ -90,7 +95,7 @@ function HomeContent() {
       <Text style={styles.sectionTitle}>FASH Marketplace</Text>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ paddingLeft: 20 }}>
         {boutiqueItems.map((item) => (
-          <TouchableOpacity key={item.id} style={styles.boutiqueCard}>
+          <TouchableOpacity key={item.id} style={styles.boutiqueCard} onPress={() => navigation.navigate("MarketplaceHome")}>
             <Image source={item.image} style={styles.boutiqueImage} resizeMode="cover" />
             <Text style={styles.boutiqueLabel}>{item.label}</Text>
           </TouchableOpacity>
@@ -106,19 +111,21 @@ function HomeContent() {
         <Text style={styles.biddingSubtitle}>Bid on exclusive pieces before they're gone</Text>
         <View style={styles.auctionRow}>
           <TouchableOpacity style={styles.auctionCard}>
-            <Image source={require('../source/assets/images/shoes.png')} style={styles.auctionImage} resizeMode="contain" />
+            <Image source={require('../../source/assets/images/shoes.png')} style={styles.auctionImage} resizeMode="contain" />
             <Text style={styles.itemName}>YSL Heels</Text>
             <Text style={styles.bidPrice}>Current bid: $400</Text>
             <Text style={styles.bidTime}>1h left</Text>
           </TouchableOpacity>
+
+
           <TouchableOpacity style={styles.auctionCard}>
-            <Image source={require('../source/assets/images/bag.png')} style={styles.auctionImage} resizeMode="contain" />
+            <Image source={require('../../source/assets/images/bag.png')} style={styles.auctionImage} resizeMode="contain" />
             <Text style={styles.itemName}>Miu Miu Bag</Text>
             <Text style={styles.bidPrice}>Current bid: $345</Text>
             <Text style={styles.bidTime}>2h left</Text>
           </TouchableOpacity>
         </View>
-        <TouchableOpacity style={styles.bidButton}>
+        <TouchableOpacity style={styles.bidButton} onPress={() => navigation.navigate("BiddingHome")}>
           <Text style={styles.bidButtonText}>Join the Auction</Text>
         </TouchableOpacity>
       </View>
@@ -127,7 +134,7 @@ function HomeContent() {
       <Text style={[styles.sectionTitle, { marginTop: 24 }]}>FASH Share</Text>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ paddingLeft: 20 }}>
         {sustainabilityItems.map((item) => (
-          <TouchableOpacity key={item.id} style={styles.sustainCard}>
+          <TouchableOpacity key={item.id} style={styles.sustainCard} onPress={() => navigation.navigate("PackingHome")}>
             <Image source={item.image} style={styles.sustainImage} resizeMode="cover" />
             <Text style={styles.sustainLabel}>{item.label}</Text>
           </TouchableOpacity>
@@ -138,6 +145,7 @@ function HomeContent() {
     </ScrollView>
   );
 }
+
  
 export default function HomeScreen() {
   return (
@@ -340,10 +348,12 @@ const styles = StyleSheet.create({
     shadowRadius:6,
     elevation:3
   },
+
   closetCardImage: {
     width: width * 0.18,
     height: width * 0.18,
   },
+  
   closetCardTitle:{
     fontSize:15,
     fontWeight:'600',

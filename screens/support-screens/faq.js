@@ -1,5 +1,5 @@
 import React, { useState, useContext, useEffect } from 'react';
-import { View, Text, StyleSheet, TextInput, ScrollView, TouchableOpacity, LayoutAnimation, Platform, UIManager } from 'react-native';
+import { View, Text, StyleSheet, TextInput, ScrollView, TouchableOpacity, LayoutAnimation, Platform, UIManager, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AuthContext } from '../../context/AuthContext';
 import { getFaqs } from '../../services/authService';
@@ -17,6 +17,11 @@ const FAQScreen = ({ navigation }) => {
   const [query, setQuery] = useState('');
   const [openId, setOpenId] = useState(null);
 
+  const toggle = (id) => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    setOpenId(prev => (prev === id ? null : id));
+  };
+
   const filteredFAQ = faqs.filter((item) =>
     item.question.toLowerCase().includes(query.toLowerCase()) ||
     item.answer.toLowerCase().includes(query.toLowerCase())
@@ -27,9 +32,12 @@ const FAQScreen = ({ navigation }) => {
       try {
         const token = await getToken();
         const data = await getFaqs(token);
-        setFaqs(data || []);
+
+        setFaqs(Array.isArray(data) ? data : data?.data || []);
+
       } catch (e) {
         Alert.alert("Error", "Failed to load FAQs");
+
       } finally {
         setLoading(false);
       }
@@ -63,12 +71,12 @@ const FAQScreen = ({ navigation }) => {
         <View style={styles.card}>
           {filteredFAQ.map((item, index) => (
             <View
-              key={item.id}
+              key={item._id}
               style={[styles.faqItem, index < filteredFAQ.length - 1 && styles.faqBorder]}
             >
-              <TouchableOpacity style={styles.questionRow} onPress={() => toggle(item.id)}>
+              <TouchableOpacity style={styles.questionRow} onPress={() => toggle(item._id)}>
                 <Text style={styles.questionText}>{item.question}</Text>
-                <Text style={styles.chevron}>{openId === item.id ? '˄' : '›'}</Text>
+                <Text style={styles.chevron}>{openId === item._id ? '˄' : '›'}</Text>
               </TouchableOpacity>
               {openId === item.id && (
                 <Text style={styles.answerText}>{item.answer}</Text>
@@ -84,6 +92,8 @@ const FAQScreen = ({ navigation }) => {
     </SafeAreaView>
   );
 };
+
+export default FAQScreen;
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F5F5F5' },
@@ -101,4 +111,3 @@ const styles = StyleSheet.create({
   answerText: { fontSize: 13, color: '#7A6060', marginTop: 10, lineHeight: 20 },
 });
 
-export default FAQScreen;

@@ -1,14 +1,7 @@
 import React from 'react';
-import {
-  View,
-  Text,
-  ScrollView,
-  StyleSheet,
-  TouchableOpacity,
-  SafeAreaView,
-  StatusBar,
-} from 'react-native';
+import {View, Text, ScrollView, StyleSheet, TouchableOpacity, StatusBar, Image} from 'react-native';
 import { Ionicons, Feather, MaterialCommunityIcons } from '@expo/vector-icons';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const COLORS = {
   bg: '#F5F5F5',
@@ -49,9 +42,19 @@ const TipIcon = ({ icon, lib }) => {
 };
 
 export default function WardrobeScreen({ navigation }) {
+
   return (
     <SafeAreaView style={styles.safe}>
       <StatusBar barStyle="dark-content" backgroundColor={COLORS.white} />
+
+       {/* logo */}
+       <View style={styles.logoHeader}>
+        <Image
+          source={require('./images/Blacklogo.png')}
+          style={styles.logo}
+          resizeMode="contain"
+        />
+        </View>
 
       <View style={styles.header}>
         <Text style={styles.headerTitle}>My Wardrobe</Text>
@@ -81,10 +84,6 @@ export default function WardrobeScreen({ navigation }) {
             <Text style={styles.btnPrimaryText}>Add First Item</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.btnOutline} activeOpacity={0.8}>
-            <Ionicons name="compass-outline" size={16} color={COLORS.accent} style={{ marginRight: 7 }} />
-            <Text style={styles.btnOutlineText}>Browse Inspiration</Text>
-          </TouchableOpacity>
         </View>
 
         {/* Tips */}
@@ -107,20 +106,44 @@ export default function WardrobeScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: COLORS.bg },
-
-  header: {
-    backgroundColor: COLORS.white,
-    paddingHorizontal: 20,
-    paddingTop: 16,
-    paddingBottom: 12,
-    borderBottomWidth: 0.5,
-    borderBottomColor: COLORS.border,
+  safe: { 
+    flex: 1, 
+    backgroundColor: COLORS.bg 
   },
-  headerTitle: { fontSize: 20, fontWeight: '700', color: COLORS.text, letterSpacing: -0.3 },
-  headerSub: { fontSize: 13, color: COLORS.muted, marginTop: 2 },
 
-  scrollContent: { paddingBottom: 48 },
+  logoHeader: {
+    paddingBottom: 10,
+    alignItems: 'center',
+    backgroundColor: '#F5F5F5',
+  },
+  
+  logo: {
+    width: 120,
+    height: 50,
+  },
+  
+  titleHeader: {
+    backgroundColor: '#F5F5F5',
+    paddingHorizontal: 20,
+  },
+  
+  headerTitle: { 
+    fontSize: 20, 
+    fontWeight: '700', 
+    color: '#C17C74',
+    marginLeft: 20,
+  },
+  
+  headerSub: { 
+    fontSize: 13, 
+    color: '#888888', 
+    marginTop: 2,
+    marginLeft: 20,
+  },
+
+  scrollContent: { 
+    paddingBottom: 48 
+  },
 
   emptyHero: {
     alignItems: 'center',
@@ -128,6 +151,7 @@ const styles = StyleSheet.create({
     paddingTop: 52,
     paddingBottom: 40,
   },
+
   iconRing: {
     width: 110,
     height: 110,
@@ -137,6 +161,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginBottom: 24,
   },
+
   emptyTitle: {
     fontSize: 20,
     fontWeight: '700',
@@ -144,6 +169,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     textAlign: 'center',
   },
+
   emptySub: {
     fontSize: 14,
     color: COLORS.muted,
@@ -151,6 +177,7 @@ const styles = StyleSheet.create({
     lineHeight: 22,
     marginBottom: 32,
   },
+
   btnPrimary: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -161,7 +188,13 @@ const styles = StyleSheet.create({
     width: '100%',
     marginBottom: 12,
   },
-  btnPrimaryText: { color: COLORS.white, fontSize: 15, fontWeight: '600' },
+
+  btnPrimaryText: { 
+    color: COLORS.white, 
+    fontSize: 15, 
+    fontWeight: '600' 
+  },
+
   btnOutline: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -172,7 +205,12 @@ const styles = StyleSheet.create({
     paddingVertical: 15,
     width: '100%',
   },
-  btnOutlineText: { color: COLORS.accent, fontSize: 15, fontWeight: '600' },
+
+  btnOutlineText: { 
+    color: COLORS.accent, 
+    fontSize: 15, 
+    fontWeight: '600' 
+  },
 
   sectionLabel: {
     fontSize: 11,
@@ -183,6 +221,7 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     letterSpacing: 0.9,
   },
+
   tipCard: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -193,6 +232,7 @@ const styles = StyleSheet.create({
     padding: 16,
     gap: 14,
   },
+
   tipIconWrap: {
     width: 44,
     height: 44,
@@ -201,7 +241,21 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  tipText: { flex: 1 },
-  tipTitle: { fontSize: 14, fontWeight: '600', color: COLORS.text },
-  tipSub: { fontSize: 12, color: COLORS.muted, marginTop: 3 },
+
+  tipText: { 
+    flex: 1 
+  },
+
+  tipTitle: { 
+    fontSize: 14, 
+    fontWeight: '600', 
+    color: COLORS.text 
+  },
+  
+  tipSub: { 
+    fontSize: 12, 
+    color: COLORS.muted, 
+    marginTop: 3 
+  },
+  
 });

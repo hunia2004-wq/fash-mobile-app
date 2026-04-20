@@ -442,6 +442,15 @@ export const toggle2FA = (token, data) => {
   });
 };
 
+export const get2FA = (token) => {
+  return request('/user/security/2fa', {
+    method: 'GET',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+};
+
 // ─────────────────────────────
 // LOGIN DEVICES
 // ─────────────────────────────
@@ -477,16 +486,25 @@ export const logoutAllDevices = (token) => {
 // CONNECTED ACCOUNTS
 // ─────────────────────────────
 
-export const toggleConnectedAccount = (token, data) => {
-  return request('/user/connected-accounts', {
+export const getConnectedAccount = (token, data) => {
+  return request('/connected-accounts', {
     method: 'GET',
     headers: {
       Authorization: `Bearer ${token}`,
-      'Content-Type': 'application/json',
     },
     body: JSON.stringify(data),
   });
 };
+
+export const toggleConnectedAccount = (token, data) => {
+  return request('/connected-accounts', {
+    method: 'PUT',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+};
+
 
 
 export const contactSupport = async (token, { subject, orderNumber, message, image }) => {
@@ -504,7 +522,7 @@ export const contactSupport = async (token, { subject, orderNumber, message, ima
     });
   }
 
-  const res = await fetch(`${BASE_URL}/support/contact`, {
+  const data = await request("/support/contact", {
     method: "POST",
     headers: {
       Authorization: `Bearer ${token}`,
@@ -512,17 +530,10 @@ export const contactSupport = async (token, { subject, orderNumber, message, ima
     body: formData,
   });
 
-  const data = await res.json();
-
-  if (!res.ok) {
-    throw new Error(data?.message || "Failed to send support request");
-  }
-
   return {
     ticketId: data.ticketId,
     status: data.status,
     createdAt: data.createdAt,
-    message: data.message,
   };
 };
 

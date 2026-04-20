@@ -2,7 +2,7 @@ import React, { useState, useContext, useEffect } from 'react';
 import {View, Text, StyleSheet, ScrollView, TouchableOpacity, Switch, Alert, ActivityIndicator} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AuthContext } from '../../context/AuthContext';
-import { toggle2FA, getSecurity } from '../../services/authService';
+import { toggle2FA, get2FA} from '../../services/authService';
 
 const TwoFactorAuthScreen = ({ navigation }) => {
   const { getToken } = useContext(AuthContext);
@@ -35,33 +35,40 @@ const TwoFactorAuthScreen = ({ navigation }) => {
         enabled: value,
       });
   
-      setTwoFA(res.twoFactor); 
+      setTwoFA(res?.twoFactor || res); 
+
     } catch (e) {
+
       setTwoFA(prevState); 
       Alert.alert('Error', 'Failed to update 2FA settings.');
+
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    const loadSecurity = async () => {
-      try {
-        const token = await getToken();
-        const res = await getSecurity(token);
-  
-        setTwoFA({
-          authenticatorApp: res.twoFactor?.authenticatorApp ?? false,
-          smsVerification: res.twoFactor?.smsVerification ?? false,
-          emailVerification: res.twoFactor?.emailVerification ?? false,
-        });
-      } catch (e) {
-        console.log("FAILED TO LOAD 2FA:", e.message);
-      }
-    };
-  
-    loadSecurity();
-  }, []);
+  const loadSecurity = async () => {
+    try {
+      const token = await getToken();
+      const res = await get2FA(token);
+
+      const data = res?.twoFactor || res;
+
+      setTwoFA({
+        authenticatorApp: data?.authenticatorApp ?? false,
+        smsVerification: data?.smsVerification ?? false,
+        emailVerification: data?.emailVerification ?? false,
+      });
+
+    } catch (e) {
+      console.log("FAILED TO LOAD 2FA:", e.message);
+    }
+  };
+
+  loadSecurity();
+}, []);
+
 
   return (
 

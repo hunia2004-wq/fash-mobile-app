@@ -60,7 +60,8 @@ const ContactSupportScreen = ({ navigation }) => {
         image,
       });
 
-      const { ticketId, status } = response;
+      const ticketId = response?.ticketId;
+      const status = response?.status;
 
       Alert.alert(
         'Message Sent',
