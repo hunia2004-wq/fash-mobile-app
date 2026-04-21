@@ -53,11 +53,11 @@ import PaymentScreen from "./screens/home-screen/PaymentScreen";
 
 import MarketplaceHome from "./screens/home-screen/MarketplaceHome";
 import ProductDetails from "./screens/home-screen/ProductDetails";
+import AddListingScreen from "./screens/home-screen/addlisting";
+
 
 import PackingHome from "./screens/home-screen/PackingHome";
 import OutfitBuilder from "./screens/home-screen/OutfitBuilder";
-
-
 
 import { logout } from './services/authService';
 
@@ -198,7 +198,8 @@ export default function App() {
               <Stack.Screen name="ProductDetails" component={ProductDetails} />
               <Stack.Screen name="PackingHome" component={PackingHome} />
               <Stack.Screen name="OutfitBuilder" component={OutfitBuilder} />
-              
+              <Stack.Screen name="AddListingScreen" component={AddListingScreen} />
+
 
               </>
 )}
