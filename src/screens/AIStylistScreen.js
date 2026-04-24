@@ -6,6 +6,7 @@ ScrollView,
 StyleSheet,
 TouchableOpacity,
 StatusBar,
+Image,
 TextInput,
 KeyboardAvoidingView,
 Platform,
@@ -13,7 +14,7 @@ ActivityIndicator,
 Animated,
 Dimensions,
 } from 'react-native';
-import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { Ionicons, Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 const { width } = Dimensions.get('window');
@@ -27,184 +28,227 @@ text: '#2c2c2c',
 muted: '#888888',
 white: '#ffffff',
 border: 'rgba(193,124,116,0.18)',
+iconBg: '#e3c8c5',
 userBubble: '#C17C74',
 aiBubble: '#ffffff',
 };
 
+// ─── Sample wardrobe items ───────────────────────────────────────────────
 const WARDROBE_ITEMS = [
-{ id: 'w1', name: 'White Linen Shirt', category: 'Tops' },
-{ id: 'w2', name: 'High-Waist Beige Trousers', category: 'Bottoms' },
-{ id: 'w3', name: 'Floral Midi Dress', category: 'Dresses' },
-{ id: 'w4', name: 'Oversized Denim Jacket', category: 'Tops' },
-{ id: 'w5', name: 'Black Slim Jeans', category: 'Bottoms' },
+{ id: 'w1', name: 'White Linen Shirt', category: 'Tops', color: 'White', brand: 'Zara' },
+{ id: 'w2', name: 'High-Waist Beige Trousers', category: 'Bottoms', color: 'Beige', brand: 'Mango' },
+{ id: 'w3', name: 'Floral Midi Dress', category: 'Dresses', color: 'Floral', brand: 'H&M' },
+{ id: 'w4', name: 'Oversized Denim Jacket', category: 'Tops', color: 'Blue', brand: "Levi's" },
+{ id: 'w5', name: 'Black Slim Jeans', category: 'Bottoms', color: 'Black', brand: 'Zara' },
+{ id: 'w6', name: 'Silk Cami Top', category: 'Tops', color: 'Dusty Rose', brand: 'ASOS' },
+{ id: 'w7', name: 'White Leather Sneakers', category: 'Shoes', color: 'White', brand: 'Adidas' },
+{ id: 'w8', name: 'Beige Trench Coat', category: 'Outerwear', color: 'Beige', brand: 'Massimo Dutti' },
+{ id: 'w9', name: 'Gold Hoop Earrings', category: 'Accessories', color: 'Gold', brand: 'Mango' },
+{ id: 'w10', name: 'Mini Leather Bag', category: 'Bags', color: 'Tan', brand: 'Zara' },
 ];
 
-const callAIStylist = async (userMessage, history) => {
-const wardrobeList = WARDROBE_ITEMS.map(i => `- ${i.name}`).join('\n');
+// ─── Suggestions ─────────────────────────────────────────────────────────
+const SUGGESTIONS = [
+{ icon: '☀️', label: 'Casual day out' },
+{ icon: '💼', label: 'Work outfit' },
+{ icon: '🌙', label: 'Evening look' },
+{ icon: '🌧️', label: 'Rainy day' },
+{ icon: '💍', label: 'Date night' },
+{ icon: '✈️', label: 'Travel outfit' },
+];
 
-const systemPrompt = `You are a fashion stylist.
+// ─── AI CALL ─────────────────────────────────────────────────────────────
+const callAIStylist = async (userMessage, conversationHistory) => {
+const wardrobeList = WARDROBE_ITEMS.map(
+(item) => `- ${item.name} (${item.category}, ${item.color}, ${item.brand})`
+).join('\n');
+
+const systemPrompt = `You are a personal AI fashion stylist.
 
 Wardrobe:
 ${wardrobeList}
 
-Respond ONLY like this:
+Respond only with outfit JSON wrapped in <outfit> tags.`;
 
-<outfit>
-{
-"title": "",
-"items": [],
-"tip": ""
-}
-</outfit>
+const messages = [
+...conversationHistory.map((m) => ({
+role: m.role,
+content: m.content,
+})),
+{ role: 'user', content: userMessage },
+];
 
-Then short message.`;
-
-const res = await fetch('https://api.anthropic.com/v1/messages', {
+const response = await fetch('https://api.anthropic.com/v1/messages', {
 method: 'POST',
 headers: {
 'Content-Type': 'application/json',
-'x-api-key': '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',
+'x-api-key': 'YOUR_API_KEY',
 'anthropic-version': '2023-06-01',
 },
 body: JSON.stringify({
-model: 'claude-3-sonnet-20240229',
-max_tokens: 800,
+model: 'claude-sonnet-4-20250514',
+max_tokens: 1000,
 system: systemPrompt,
-messages: [
-...history,
-{ role: 'user', content: userMessage },
-],
+messages,
 }),
 });
 
-const data = await res.json();
-return data?.content?.[0]?.text || 'Error';
+const data = await response.json();
+return data.content?.[0]?.text || 'Sorry, error occurred.';
 };
 
-const parseAIResponse = (text) => {
-const regex = /<outfit>([\s\S]*?)<\/outfit>/g;
-let outfits = [];
+// ─── Parse AI response ───────────────────────────────────────────────────
+const parseAIResponse = (rawText) => {
+const outfitRegex = /<outfit>([\s\S]*?)<\/outfit>/g;
+const outfits = [];
 let match;
 
-while ((match = regex.exec(text))) {
+while ((match = outfitRegex.exec(rawText)) !== null) {
 try {
-outfits.push(JSON.parse(match[1]));
-} catch {}
+outfits.push(JSON.parse(match[1].trim()));
+} catch (e) {}
 }
 
-const cleanText = text.replace(regex, '').trim();
-return { outfits, text: cleanText };
+const text = rawText.replace(/<outfit>[\s\S]*?<\/outfit>/g, '').trim();
+return { text, outfits };
 };
 
+// ─── Outfit Card ─────────────────────────────────────────────────────────
+const OutfitCard = ({ outfit }) => {
+return (
+<View style={styles.outfitCard}>
+<Text style={styles.outfitTitle}>{outfit.title}</Text>
+
+{outfit.items.map((item, i) => (
+<Text key={i} style={styles.outfitItem}>• {item}</Text>
+))}
+
+<Text style={styles.outfitTip}>{outfit.tip}</Text>
+</View>
+);
+};
+
+// ─── Message Bubble ──────────────────────────────────────────────────────
 const MessageBubble = ({ message }) => {
 const isUser = message.role === 'user';
 
 if (isUser) {
 return (
-<View style={{ alignSelf: 'flex-end', marginBottom: 10 }}>
+<View style={styles.userRow}>
 <View style={styles.userBubble}>
-<Text style={{ color: '#fff' }}>{message.content}</Text>
+<Text style={styles.userText}>{message.content}</Text>
 </View>
 </View>
 );
 }
 
-const { outfits, text } = parseAIResponse(message.content);
+const { text, outfits } = parseAIResponse(message.content);
 
 return (
-<View style={{ marginBottom: 10 }}>
+<View style={styles.aiRow}>
 {outfits.map((o, i) => (
-<View key={i} style={styles.card}>
-<Text style={{ fontWeight: 'bold' }}>{o.title}</Text>
-{o.items.map((item, idx) => (
-<Text key={idx}>• {item}</Text>
-))}
-<Text style={{ fontStyle: 'italic' }}>{o.tip}</Text>
-</View>
+<OutfitCard key={i} outfit={o} />
 ))}
 
 {text ? (
 <View style={styles.aiBubble}>
-<Text>{text}</Text>
+<Text style={styles.aiText}>{text}</Text>
 </View>
 ) : null}
 </View>
 );
 };
 
+// ─── MAIN SCREEN ─────────────────────────────────────────────────────────
 export default function AIStylistScreen() {
 const [messages, setMessages] = useState([
-{ role: 'assistant', content: 'Hi 👗 what do you want to wear?' },
+{
+id: '1',
+role: 'assistant',
+content: "Hi! I'm your AI stylist 👗 What do you want to wear today?",
+},
 ]);
+
 const [input, setInput] = useState('');
 const [loading, setLoading] = useState(false);
 const scrollRef = useRef();
 
-const send = async () => {
+const sendMessage = async () => {
 if (!input.trim()) return;
 
-const userMsg = { role: 'user', content: input };
-setMessages(prev => [...prev, userMsg]);
+const userMsg = { id: Date.now().toString(), role: 'user', content: input };
+setMessages((p) => [...p, userMsg]);
 setInput('');
 setLoading(true);
 
-const aiText = await callAIStylist(input, messages);
+const ai = await callAIStylist(input, messages);
 
-setMessages(prev => [...prev, { role: 'assistant', content: aiText }]);
+setMessages((p) => [...p, { id: Date.now().toString(), role: 'assistant', content: ai }]);
 setLoading(false);
-
-setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 200);
 };
 
 return (
-<SafeAreaView style={{ flex: 1, backgroundColor: COLORS.bg }}>
+<SafeAreaView style={styles.safe}>
 <StatusBar barStyle="dark-content" />
 
-<ScrollView ref={scrollRef} style={{ padding: 16 }}>
-{messages.map((m, i) => (
-<MessageBubble key={i} message={m} />
+<ScrollView ref={scrollRef} contentContainerStyle={{ padding: 16 }}>
+{messages.map((m) => (
+<MessageBubble key={m.id} message={m} />
 ))}
 {loading && <ActivityIndicator />}
 </ScrollView>
 
-<KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
 <View style={styles.inputBar}>
 <TextInput
-style={{ flex: 1 }}
+style={styles.input}
 value={input}
 onChangeText={setInput}
-placeholder="Type..."
-blurOnSubmit={false}
+placeholder="Ask your stylist..."
 />
-<TouchableOpacity onPress={send}>
-<Ionicons name="arrow-up" size={20} />
+<TouchableOpacity onPress={sendMessage}>
+<Ionicons name="arrow-up" size={22} />
 </TouchableOpacity>
 </View>
-</KeyboardAvoidingView>
 </SafeAreaView>
 );
 }
 
+// ─── STYLES ───────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
+safe: { flex: 1, backgroundColor: COLORS.bg },
+
+userRow: { alignItems: 'flex-end', marginBottom: 10 },
+aiRow: { marginBottom: 10 },
+
 userBubble: {
-backgroundColor: '#C17C74',
-padding: 12,
+backgroundColor: COLORS.accent,
+padding: 10,
 borderRadius: 12,
 },
+userText: { color: '#fff' },
+
 aiBubble: {
 backgroundColor: '#fff',
-padding: 12,
+padding: 10,
 borderRadius: 12,
 },
-card: {
+aiText: { color: '#000' },
+
+outfitCard: {
 backgroundColor: '#fff',
 padding: 12,
 borderRadius: 12,
 marginBottom: 8,
 },
+outfitTitle: { fontWeight: 'bold' },
+outfitItem: { fontSize: 13 },
+outfitTip: { fontStyle: 'italic', marginTop: 5 },
+
 inputBar: {
 flexDirection: 'row',
 padding: 10,
 backgroundColor: '#fff',
+alignItems: 'center',
 },
+input: { flex: 1 },
 });
