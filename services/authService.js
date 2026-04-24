@@ -4,45 +4,57 @@ const BASE_URL = "https://fash-backend-cp3n.vercel.app/api/v1";
 // CORE REQUEST WRAPPER
 // ─────────────────────────────
 
-async function request(endpoint, options = {}) {
-  const { headers: customHeaders, ...restOptions } = options;
+async function request(endpoint, options = {}, retries = 2) {
+  const { headers: customHeaders, body, ...restOptions } = options;
 
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 10000);
+  const timeout = setTimeout(() => controller.abort(), 30000);
 
-  let response;
   try {
-    response = await fetch(`${BASE_URL}${endpoint}`, {
+    const response = await fetch(`${BASE_URL}${endpoint}`, {
       ...restOptions,
       signal: controller.signal,
       headers: {
-        "Content-Type": "application/json",
+        ...(body instanceof FormData ? {} : { "Content-Type": "application/json" }),
         ...customHeaders,
       },
+      body,
     });
+
+    clearTimeout(timeout);
+
+    let data = {};
+    try {
+      data = await response.json();
+    } catch {}
+
+    if (!response.ok) {
+      throw new Error(
+        data?.error?.message ||
+        data?.message ||
+        `Request failed: ${response.status}`
+      );
+    }
+
+    return data.data || data;
+
   } catch (err) {
     clearTimeout(timeout);
-    throw new Error("Network error or request timeout");
+
+    console.log("REQUEST ERROR:", err);
+
+    // 🔥 retry ONLY on timeout
+    if (err.name === "AbortError" && retries > 0) {
+      console.log("Retrying request...");
+      return request(endpoint, options, retries - 1);
+    }
+
+    if (err.name === "AbortError") {
+      throw new Error("Server is slow (cold start). Please try again.");
+    }
+
+    throw err;
   }
-
-  clearTimeout(timeout);
-
-  let data;
-  try {
-    data = await response.json();
-  } catch (e) {
-    data = {};
-  }
-
-  if (!response.ok) {
-    throw new Error(
-      data?.error?.message ||
-      data?.message ||
-      `Request failed: ${response.status}`
-    );
-  }
-
-  return data.data || data;
 }
 
 // ─────────────────────────────

@@ -64,16 +64,19 @@ function HomeContent() {
       {/* Digital Closet */}
       <Text style={styles.sectionTitle}>Your Digital Closet</Text>
       <View style={styles.closetRow}>
-        <TouchableOpacity style={styles.closetCard}>
+      <TouchableOpacity
+          style={[styles.closetCard, styles.closetCardActive]}
+          onPress={() => navigation.navigate('FashCollectionScreen')}
+          activeOpacity={0.85}
+        >
           <View>
-            <Text style={styles.closetCardTitle}>My Wardrobe</Text>
-            <Text style={styles.closetCardSub}>Organize &{'\n'}Visualize</Text>
+            <Text style={styles.closetCardTitle}>FASH Collection</Text>
+            <Text style={styles.closetCardSub}>Shop exclusive{'\n'}drops</Text>
           </View>
-          <Image
-            source={require('../../source/assets/images/wardrobecropped.png')}
-            style={styles.closetCardImage}
-            resizeMode="contain"
-          />
+          {/* shopping-bag icon as a styled box — replace with your image if you have one */}
+          <View style={styles.collectionIconBox}>
+            <Ionicons name="bag-handle-outline" size={28} color="black" />
+          </View>
         </TouchableOpacity>
 
 

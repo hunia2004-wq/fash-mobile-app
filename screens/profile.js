@@ -34,30 +34,29 @@ export default function ProfileScreen({ navigation }) {
   const [loading, setLoading] = useState(true);
   const [avatar, setAvatar] = useState(null);
 
-  // ✅ SAFE FETCH PROFILE
   const fetchUser = async () => {
     try {
+      setLoading(true); 
+  
       const token = await getToken();
-
+  
       if (!token) {
         console.warn("No token found");
         setUser(null);
         return;
       }
-
+  
       const profile = await getProfile(token);
-
-      // handle both API shapes safely
+  
       setUser(profile?.data || profile);
     } catch (e) {
-      console.warn("Failed to fetch profile:", e.message);
+      console.warn("FULL ERROR:", e); 
       setUser(null);
     } finally {
       setLoading(false);
     }
   };
 
-  // ✅ ONLY ONE LIFECYCLE TRIGGER
   useFocusEffect(
     useCallback(() => {
       fetchUser();

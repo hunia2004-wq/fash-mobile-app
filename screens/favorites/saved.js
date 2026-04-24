@@ -1,47 +1,110 @@
 import React, { useState } from 'react';
-import {View, Text, ScrollView, StyleSheet, TouchableOpacity, StatusBar, Image} from 'react-native';
-import { Ionicons, Feather, MaterialCommunityIcons } from '@expo/vector-icons';
+import {View, Text, ScrollView,StyleSheet, TouchableOpacity, StatusBar, Dimensions, Image} from 'react-native';
+import { Ionicons, MaterialCommunityIcons, Feather } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 
-const COLORS = {
-  bg: '#F5F5F5',
-  card: '#F2E6E3',
-  accent: '#C17C74',
-  text: '#2c2c2c',
-  muted: '#888888',
-  white: '#ffffff',
-  border: 'rgba(193,124,116,0.18)',
-  iconBg: '#e3c8c5',
-  c2cBg: '#e0ede8',
-  c2cText: '#3a7a5e',
-  outfitBg: '#e8daf8',
-  outfitText: '#6b3fa0',
-};
+const { width } = Dimensions.get('window');
+
+// const COLORS = {
+//   bg: '#F5F5F5',
+//   card: '#F2E6E3',
+//   accent: '#C17C74',
+//   text: '#2c2c2c',
+//   muted: '#888888',
+//   white: '#ffffff',
+//   border: 'rgba(193,124,116,0.18)',
+//   c2cBg: '#e0ede8',
+//   c2cText: '#3a7a5e',
+//   outfitBg: '#e8daf8',
+//   outfitText: '#6b3fa0',
+// };
 
 const TABS = ['All', 'FASH', 'Marketplace'];
 
-const SAVE_TYPES = [
-  {
-    icon: <MaterialCommunityIcons name="shopping-outline" size={20} color={COLORS.accent} />,
-    title: 'FASH originals',
-    sub: 'Exclusive & limited pieces',
-    badge: { label: 'FASH', bg: COLORS.accent, color: COLORS.white },
-  },
-  {
-    icon: <Ionicons name="people-outline" size={20} color={COLORS.accent} />,
-    title: 'C2C marketplace items',
-    sub: 'From other FASH members',
-    badge: { label: 'Marketplace', bg: COLORS.c2cBg, color: COLORS.c2cText },
-  },
+const ALL_ITEMS = [
+  { id: '1',  name: 'White Abaya',             brand: 'FASH Originals',            price: '$250',  image: require('./images/whiteabaya.png'),   source: 'fash' },
+  { id: '2',  name: 'Chanel Flap Bag',         brand: '@summer_closet · C2C',      price: '$489',  image: require('./images/bluebag.png'),      source: 'c2c'  },
+  { id: '3',  name: 'Burgundy Soirée Dress',   brand: 'FASH Exclusive',            price: '$380',  image: require('./images/reddress.png'),     source: 'fash' },
+  { id: '4',  name: 'YSL Libre Perfume',       brand: '@luxe_preloved · C2C',      price: '500',   image: require('./images/perfume.png'),      source: 'c2c'  },
+  { id: '5',  name: 'TinkerBell Kids Costume', brand: 'FASH Originals',            price: '$150',  image: require('./images/tinkerbell.png'),   source: 'fash' },
+  { id: '6',  name: 'Pink CarSeat',            brand: '@style_vault · C2C',        price: '$1580', image: require('./images/carseat.png'),      source: 'c2c'  },
 ];
+
+
+const SourceBadge = ({ source }) => {
+  if (source === 'fash') {
+    return (
+      <View style={[styles.badge, { backgroundColor: '#C17C74' }]}>
+        <Text style={[styles.badgeText, { color: 'white' }]}>FASH</Text>
+      </View>
+    );
+  }
+
+  if (source === 'c2c') {
+    return (
+      <View style={[styles.badge, { backgroundColor: '#e0ede8' }]}>
+        <Text style={[styles.badgeText, { color: '#3a7a5e' }]}>Marketplace</Text>
+      </View>
+    );
+  }
+
+  return (
+    <View style={[styles.badge, { backgroundColor: '#e8daf8' }]}>
+      <Text style={[styles.badgeText, { color: '#6b3fa0' }]}>AI Outfit</Text>
+    </View>
+  );
+};
+
+const SavedCard = ({ item }) => (
+  <TouchableOpacity style={styles.itemCard} activeOpacity={0.85}>
+    <View style={styles.itemImg}>
+  {item.image ? (
+    <Image
+      source={item.image}
+      style={styles.itemImage}
+      resizeMode="cover"
+    />
+  ) : (
+    <MaterialCommunityIcons
+      name={item.icon}
+      size={32}
+      color="#C17C74"
+    />
+  )}
+</View>
+    <View style={styles.itemInfo}>
+      <Text style={styles.itemName}>{item.name}</Text>
+      <Text style={styles.itemBrand}>{item.brand}</Text>
+      <Text style={styles.itemPrice}>{item.price}</Text>
+      <SourceBadge source={item.source} />
+    </View>
+
+    <TouchableOpacity style={styles.heartBtn} activeOpacity={0.7}>
+      <Ionicons name="heart" size={20} color='#C17C74' />
+    </TouchableOpacity>
+  </TouchableOpacity>
+);
+
 
 export default function SavedScreen() {
   const [activeTab, setActiveTab] = useState('All');
 
+  const filteredItems = () => {
+    if (activeTab === 'FASH')        return ALL_ITEMS.filter(i => i.source === 'fash');
+    if (activeTab === 'Marketplace') return ALL_ITEMS.filter(i => i.source === 'c2c');
+    return ALL_ITEMS;
+  };
+
+  const totalCount = {
+    'All': ALL_ITEMS.length,
+    'FASH': ALL_ITEMS.filter(i => i.source === 'fash').length,
+    'Marketplace': ALL_ITEMS.filter(i => i.source === 'c2c').length,
+  };
+
   return (
     <SafeAreaView style={styles.safe}>
-      <StatusBar barStyle="dark-content" backgroundColor={COLORS.white} />
+      <StatusBar barStyle="dark-content" backgroundColor='white'/>
 
       {/* logo */}
       <View style={styles.logoHeader}>
@@ -52,18 +115,16 @@ export default function SavedScreen() {
         />
         </View>
 
-      <View style={styles.header}>
+      
+      <View style={styles.titleHeader}>
         <Text style={styles.headerTitle}>Saved Items</Text>
         <Text style={styles.headerSub}>Your wishlist & favorites</Text>
       </View>
 
+
       {/* Tabs */}
       <View style={styles.tabsWrapper}>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.tabsRow}
-        >
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.tabsRow}>
           {TABS.map(tab => (
             <TouchableOpacity
               key={tab}
@@ -73,67 +134,38 @@ export default function SavedScreen() {
             >
               <Text style={[styles.tabText, activeTab === tab && styles.tabTextActive]}>
                 {tab}
+                <Text style={styles.tabCount}> {totalCount[tab]}</Text>
               </Text>
             </TouchableOpacity>
           ))}
         </ScrollView>
       </View>
 
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
-      >
-        {/* Empty hero */}
-        <View style={styles.emptyHero}>
-          <View style={styles.iconRing}>
-            <Ionicons name="heart-outline" size={48} color={COLORS.accent} />
-          </View>
-          <Text style={styles.emptyTitle}>Nothing saved yet</Text>
-          <Text style={styles.emptySub}>
-            Tap the{' '}
-            <Text style={{ color: COLORS.accent, fontWeight: '600' }}>♥</Text>
-            {' '}on any item from FASH or the marketplace to save it here
-          </Text>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
 
-          <TouchableOpacity style={styles.btnPrimary} activeOpacity={0.85}>
-            <Ionicons name="storefront-outline" size={16} color={COLORS.white} style={{ marginRight: 7 }} />
-            <Text style={styles.btnPrimaryText}>Explore Marketplace</Text>
-          </TouchableOpacity>
+        {/* Items section */}
+        {filteredItems().length > 0 && (
+  <>
+    <Text style={styles.sectionLabel}>Saved Items</Text>
+    {filteredItems().map(item => (
+      <SavedCard key={item.id} item={item} />
+    ))}
+  </>
+)}
 
-          <TouchableOpacity style={styles.btnOutline} activeOpacity={0.8}>
-            <Feather name="grid" size={15} color={COLORS.accent} style={{ marginRight: 7 }} />
-            <Text style={styles.btnOutlineText}>Browse FASH</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* What can be saved */}
-        <Text style={styles.sectionLabel}>You can save</Text>
-        {SAVE_TYPES.map((item, i) => (
-          <View key={i} style={styles.typeCard}>
-            <View style={styles.typeIconWrap}>{item.icon}</View>
-            <View style={styles.typeText}>
-              <Text style={styles.typeTitle}>{item.title}</Text>
-              <Text style={styles.typeSub}>{item.sub}</Text>
-            </View>
-            <View style={[styles.badge, { backgroundColor: item.badge.bg }]}>
-              <Text style={[styles.badgeText, { color: item.badge.color }]}>
-                {item.badge.label}
-              </Text>
-            </View>
-          </View>
-        ))}
-
-        {/* Empty state hint specific to active tab */}
-        {activeTab !== 'All' && (
-          <View style={styles.tabHint}>
-            <Feather name="info" size={14} color={COLORS.muted} style={{ marginRight: 8 }} />
-            <Text style={styles.tabHintText}>
-              {activeTab === 'FASH' && 'Items from FASH\'s own brand will appear here.'}
-              {activeTab === 'Marketplace' && 'Items saved from C2C sellers will appear here.'}
-              {activeTab === 'Outfits' && 'AI-generated outfits you save will appear here.'}
+        {/* Empty state */}
+        {filteredItems().length === 0 && (
+          <View style={styles.emptyState}>
+            <Ionicons name="heart-outline" size={52} color='#F2E6E3' />
+            <Text style={styles.emptyTitle}>Nothing saved yet</Text>
+            <Text style={styles.emptySub}>
+              Browse the marketplace and tap{' '}
+              <Ionicons name="heart-outline" size={13} color='#888888' />{' '}
+              to save items here.
             </Text>
           </View>
         )}
+
       </ScrollView>
     </SafeAreaView>
   );
@@ -142,7 +174,7 @@ export default function SavedScreen() {
 const styles = StyleSheet.create({
   safe: { 
     flex: 1, 
-    backgroundColor: COLORS.bg 
+    backgroundColor: '#F5F5F5' 
   },
 
   itemImage: {
@@ -171,7 +203,6 @@ const styles = StyleSheet.create({
     fontSize: 20, 
     fontWeight: '700', 
     color: '#C17C74',
-    marginLeft: 20,
   },
   
   headerSub: { 
@@ -179,13 +210,12 @@ const styles = StyleSheet.create({
     color: '#888888', 
     marginTop: 2, 
     marginBottom: 10,
-    marginLeft: 20,
   },
 
   tabsWrapper: {
-    backgroundColor: COLORS.bg,
+    backgroundColor: '#F5F5F5',
     borderBottomWidth: 0.5,
-    borderBottomColor: COLORS.border,
+    borderBottomColor: '#F5F5F5',
   },
 
   tabsRow: { 
@@ -193,149 +223,95 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14 
   },
 
-  tab: {
-    paddingHorizontal: 18,
-    paddingVertical: 12,
-    borderBottomWidth: 2,
-    borderBottomColor: 'transparent',
-    marginRight: 2,
+  tab: { 
+    paddingHorizontal: 16, 
+    paddingVertical: 12, 
+    borderBottomWidth: 2, 
+    borderBottomColor: 'transparent', 
+    marginRight: 2 
   },
 
   tabActive: { 
-    borderBottomColor: COLORS.accent 
+    borderBottomColor: '#C17C74',
   },
 
   tabText: { 
     fontSize: 13, 
     fontWeight: '600', 
-    color: COLORS.muted 
+    color: '#888888',
   },
 
   tabTextActive: { 
-    color: COLORS.accent 
+    color: '#C17C74', 
+  },
+
+  tabCount: { 
+    fontSize: 11, 
+    fontWeight: '400' 
   },
 
   scrollContent: { 
+    padding: 14, 
     paddingBottom: 50 
   },
 
-  emptyHero: {
-    alignItems: 'center',
-    paddingHorizontal: 32,
-    paddingTop: 48,
-    paddingBottom: 40,
-  },
-
-  iconRing: {
-    width: 110,
-    height: 110,
-    borderRadius: 55,
-    backgroundColor: COLORS.card,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 24,
-  },
-
-  emptyTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: COLORS.text,
-    marginBottom: 10,
-    textAlign: 'center',
-  },
-
-  emptySub: {
-    fontSize: 14,
-    color: COLORS.muted,
-    textAlign: 'center',
-    lineHeight: 22,
-    marginBottom: 32,
-  },
-
-  btnPrimary: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: COLORS.accent,
-    borderRadius: 16,
-    paddingVertical: 16,
-    width: '100%',
-    marginBottom: 12,
-  },
-
-  btnPrimaryText: { 
-    color: COLORS.white, 
-    fontSize: 15, 
-    fontWeight: '600' 
-  },
-
-  btnOutline: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1.5,
-    borderColor: COLORS.accent,
-    borderRadius: 16,
-    paddingVertical: 15,
-    width: '100%',
-  },
-
-  btnOutlineText: { 
-    color: COLORS.accent, 
-    fontSize: 15, 
-    fontWeight: '600' 
-  },
-
   sectionLabel: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: COLORS.accent,
-    paddingHorizontal: 20,
-    marginBottom: 12,
-    textTransform: 'uppercase',
+    fontSize: 11, 
+    fontWeight: '700', 
+    color: '#C17C74',
+    marginTop: 10, 
+    marginBottom: 10,
+    textTransform: 'uppercase', 
     letterSpacing: 0.9,
   },
 
-  typeCard: {
+  itemCard: {
+    backgroundColor: '#F2E6E3',
+    borderRadius: 18,
     flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: COLORS.card,
-    marginHorizontal: 16,
+    padding: 12,
     marginBottom: 10,
-    borderRadius: 16,
-    padding: 14,
+    alignItems: 'center',
     gap: 12,
   },
 
-  typeIconWrap: {
-    width: 44,
-    height: 44,
-    borderRadius: 12,
-    backgroundColor: COLORS.iconBg,
+  itemImg: {
+    width: 68,
+    height: 76,
+    borderRadius: 14,
+    backgroundColor: '#dfc8c5',
     alignItems: 'center',
     justifyContent: 'center',
   },
 
-  typeText: { 
-    flex: 1 
+  itemInfo: { 
+    flex: 1, 
+    gap: 3 
   },
 
-  typeTitle: { 
+  itemName: { 
     fontSize: 14, 
     fontWeight: '600', 
-    color: COLORS.text 
+    color: '#2c2c2c',
   },
 
-  typeSub: { 
-    fontSize: 12, 
-    color: COLORS.muted, 
-    marginTop: 3 
+  itemBrand: { 
+    fontSize: 11, 
+    color: '#888888',
   },
 
-  badge: {
-    paddingHorizontal: 9,
-    paddingVertical: 4,
-    borderRadius: 8,
+  itemPrice: { 
+    fontSize: 14, 
+    fontWeight: '700', 
+    color: '#C17C74', 
+  },
+
+  badge: { 
+    alignSelf: 'flex-start', 
+    marginTop: 4, 
+    paddingHorizontal: 9, 
+    paddingVertical: 3, 
+    borderRadius: 7 
   },
 
   badgeText: { 
@@ -343,21 +319,28 @@ const styles = StyleSheet.create({
     fontWeight: '700' 
   },
 
-  tabHint: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: COLORS.card,
-    marginHorizontal: 16,
-    marginTop: 6,
-    borderRadius: 14,
-    padding: 14,
+  heartBtn: { 
+    padding: 8 
   },
 
-  tabHintText: { 
-    flex: 1, 
-    fontSize: 12, 
-    color: COLORS.muted, 
-    lineHeight: 18 
+  emptyState: { 
+    alignItems: 'center', 
+    paddingTop: 80, 
+    paddingHorizontal: 40, 
+    gap: 12 
+  },
+
+  emptyTitle: { 
+    fontSize: 17, 
+    fontWeight: '600', 
+    color: '#2c2c2c',
+  },
+
+  emptySub: { 
+    fontSize: 13, 
+    color: '#888888', 
+    textAlign: 'center', 
+    lineHeight: 20 
   },
 
 });

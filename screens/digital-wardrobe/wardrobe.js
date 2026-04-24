@@ -1,54 +1,69 @@
-import React from 'react';
-import {View, Text, ScrollView, StyleSheet, TouchableOpacity, StatusBar, Image} from 'react-native';
-import { Ionicons, Feather, MaterialCommunityIcons } from '@expo/vector-icons';
+import React, { useState } from 'react';
+import {View, Text, ScrollView, StyleSheet, TouchableOpacity, StatusBar, Dimensions, Image} from 'react-native';
+import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-const COLORS = {
-  bg: '#F5F5F5',
-  card: '#F2E6E3',
-  accent: '#C17C74',
-  text: '#2c2c2c',
-  muted: '#888888',
-  white: '#ffffff',
-  border: 'rgba(193,124,116,0.18)',
-  iconBg: '#e3c8c5',
-};
+const { width } = Dimensions.get('window');
 
-const TIPS = [
-  {
-    icon: 'hanger',
-    lib: 'mci',
-    title: 'Upload your clothes',
-    sub: 'Photo or manual entry',
-  },
-  {
-    icon: 'sparkles-outline',
-    lib: 'ion',
-    title: 'Get AI outfit picks',
-    sub: 'Smart styling suggestions',
-  },
-  {
-    icon: 'heart-outline',
-    lib: 'ion',
-    title: 'Save marketplace items',
-    sub: 'Wishlist from FASH & C2C',
-  },
+const CATEGORIES = ['All', 'Tops', 'Bottoms', 'Dresses', 'Shoes', 'Bags', 'Accessories'];
+
+// const COLORS = {
+//   bg: '#F5F5F5',
+//   card: '#F2E6E3',
+//   accent: '#C17C74',
+//   accentDark: '#a5635b',
+//   text: '#2c2c2c',
+//   muted: '#888888',
+//   white: '#ffffff',
+//   border: 'rgba(193,124,116,0.18)',
+// };
+
+const WARDROBE_ITEMS = [
+  { id: '1', name: 'Floral Midi Dress', detail: 'Zara · Size S',    image: require('./images/floralmididress.png'),  badge: 'New', category: 'Dresses'} ,
+  { id: '2', name: 'Tan Leather Tote',  detail: 'Polene · own',     image: require('./images/tanleathertote.png'),   badge: null,  category: 'Bags'},
+  { id: '3', name: 'White Sneakers',    detail: 'Adidas · Size 38', image: require('./images/whitesneakers.png'),    badge: null,  category: 'Shoes'},
+  { id: '4', name: 'Beige Trench',      detail: 'Mango · Size M',   image: require('./images/beigetrench.png'),      badge: 'Fav', category: 'Tops'},
+  { id: '5', name: 'High-Waist Jeans',  detail: "Levi's · W26",     image: require('./images/lightdenimpants.png'),  badge: null,  category: 'Bottoms'},
 ];
 
-const TipIcon = ({ icon, lib }) => {
-  if (lib === 'mci')
-    return <MaterialCommunityIcons name={icon} size={20} color={COLORS.accent} />;
-  return <Ionicons name={icon} size={20} color={COLORS.accent} />;
-};
+const WardrobeCard = ({ item }) => (
+  <TouchableOpacity style={styles.wCard} activeOpacity={0.85}>
+    <View style={styles.wCardImg}>
+    {item.image ? (
+  <Image 
+    source={item.image} 
+    style={{ width: '90%', height: '90%', resizeMode: 'cover' }}
+  />
+) : (
+  <MaterialCommunityIcons name={item.icon} size={48} color='#C17C74' />
+)}
+      {item.badge && (
+        <View style={styles.wCardBadge}>
+          <Text style={styles.wCardBadgeText}>{item.badge}</Text>
+        </View>
+      )}
 
-export default function WardrobeScreen({ navigation }) {
+    </View>
+    <View style={styles.wCardInfo}>
+      <Text style={styles.wCardName}>{item.name}</Text>
+      <Text style={styles.wCardDetail}>{item.detail}</Text>
+    </View>
+  </TouchableOpacity>
+);
+
+export default function WardrobeScreen() {
+  const [activeCategory, setActiveCategory] = useState('All');
+
+  const filteredItems = activeCategory === 'All'
+  ? WARDROBE_ITEMS
+  : WARDROBE_ITEMS.filter(item => item.category === activeCategory);
 
   return (
     <SafeAreaView style={styles.safe}>
-      <StatusBar barStyle="dark-content" backgroundColor={COLORS.white} />
+      <StatusBar barStyle="dark-content" backgroundColor='white' />
 
-       {/* logo */}
-       <View style={styles.logoHeader}>
+      {/* logo */}
+      <View style={styles.logoHeader}>
         <Image
           source={require('./images/Blacklogo.png')}
           style={styles.logo}
@@ -56,59 +71,74 @@ export default function WardrobeScreen({ navigation }) {
         />
         </View>
 
-      <View style={styles.header}>
+        {/* title */}
+        <View style={styles.titleHeader}>
         <Text style={styles.headerTitle}>My Wardrobe</Text>
-        <Text style={styles.headerSub}>0 items · 0 outfits</Text>
+        <Text style={styles.headerSub}>5 items</Text>
       </View>
 
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
-      >
-        {/* Empty hero */}
-        <View style={styles.emptyHero}>
-          <View style={styles.iconRing}>
-            <MaterialCommunityIcons name="wardrobe-outline" size={48} color={COLORS.accent} />
-          </View>
-          <Text style={styles.emptyTitle}>Your wardrobe is empty</Text>
-          <Text style={styles.emptySub}>
-            Add your first item and start building your digital closet
-          </Text>
+      <ScrollView 
+  style={{ flex: 1 }} 
+  showsVerticalScrollIndicator={false} 
+  contentContainerStyle={styles.scrollContent}
+>
 
-          <TouchableOpacity
-            style={styles.btnPrimary}
-            activeOpacity={0.85}
-            onPress={() => navigation.navigate('UploadTab')}
-          >
-            <Feather name="plus" size={16} color={COLORS.white} style={{ marginRight: 7 }} />
-            <Text style={styles.btnPrimaryText}>Add First Item</Text>
-          </TouchableOpacity>
-
+        {/* Stats */}
+        <View style={styles.statsBar}>
+          {[['5', 'Items']].map(([num, lbl]) => (
+            <View key={lbl} style={styles.statBox}>
+              <Text style={styles.statNum}>{num}</Text>
+              <Text style={styles.statLbl}>{lbl}</Text>
+            </View>
+          ))}
         </View>
 
-        {/* Tips */}
-        <Text style={styles.sectionLabel}>What you can do</Text>
-        {TIPS.map((tip, i) => (
-          <View key={i} style={styles.tipCard}>
-            <View style={styles.tipIconWrap}>
-              <TipIcon icon={tip.icon} lib={tip.lib} />
+        {/* Category chips */}
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.chipsRow}
+        >
+          {CATEGORIES.map(cat => (
+            <TouchableOpacity
+              key={cat}
+              style={[styles.chip, activeCategory === cat && styles.chipActive]}
+              onPress={() => setActiveCategory(cat)}
+              activeOpacity={0.8}
+            >
+              <Text style={[styles.chipText, activeCategory === cat && styles.chipTextActive]}>
+                {cat}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+
+        {/* Grid */}
+        <View style={styles.grid}>
+        {filteredItems.map(item => (
+            <View key={item.id} style={styles.gridItem}>
+              <WardrobeCard item={item} />
             </View>
-            <View style={styles.tipText}>
-              <Text style={styles.tipTitle}>{tip.title}</Text>
-              <Text style={styles.tipSub}>{tip.sub}</Text>
-            </View>
-            <Feather name="chevron-right" size={14} color={COLORS.muted} />
-          </View>
-        ))}
+          ))}
+        </View>
+
+        {/* Add button */}
+        <TouchableOpacity style={styles.btnAccent} activeOpacity={0.85}>
+          <Feather name="plus" size={16} color='white' style={{ marginRight: 6 }} />
+          <Text style={styles.btnAccentText}>Add Item</Text>
+        </TouchableOpacity>
+
       </ScrollView>
     </SafeAreaView>
   );
 }
 
+const CARD_WIDTH = (width - 44) / 2;
+
 const styles = StyleSheet.create({
   safe: { 
     flex: 1, 
-    backgroundColor: COLORS.bg 
+    backgroundColor: '#F5F5F5',
   },
 
   logoHeader: {
@@ -131,131 +161,146 @@ const styles = StyleSheet.create({
     fontSize: 20, 
     fontWeight: '700', 
     color: '#C17C74',
-    marginLeft: 20,
   },
   
   headerSub: { 
     fontSize: 13, 
     color: '#888888', 
-    marginTop: 2,
-    marginLeft: 20,
+    marginTop: 2 
   },
 
   scrollContent: { 
-    paddingBottom: 48 
+    paddingBottom: 20,
   },
 
-  emptyHero: {
-    alignItems: 'center',
-    paddingHorizontal: 32,
-    paddingTop: 52,
-    paddingBottom: 40,
+  statsBar: { 
+    flexDirection: 'row', 
+    gap: 10, 
+    padding: 14 
   },
 
-  iconRing: {
-    width: 110,
-    height: 110,
-    borderRadius: 55,
-    backgroundColor: COLORS.card,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 24,
+  statBox: { 
+    flex: 1, 
+    backgroundColor: '#F2E6E3', 
+    borderRadius: 14, 
+    paddingVertical: 12, 
+    alignItems: 'center' 
   },
 
-  emptyTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: COLORS.text,
-    marginBottom: 10,
-    textAlign: 'center',
+  statNum: { 
+    fontSize: 20, 
+    fontWeight: '700', 
+    color: '#C17C74', 
   },
 
-  emptySub: {
-    fontSize: 14,
-    color: COLORS.muted,
-    textAlign: 'center',
-    lineHeight: 22,
-    marginBottom: 32,
+  statLbl: { 
+    fontSize: 11, 
+    color: '#888888', 
+    marginTop: 2 
   },
 
-  btnPrimary: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: COLORS.accent,
-    borderRadius: 16,
-    paddingVertical: 16,
+  chipsRow: { 
+    paddingHorizontal: 14, 
+    paddingBottom: 12, 
+    gap: 8, 
+    flexDirection: 'row' 
+  },
+
+  chip: { 
+    paddingHorizontal: 16, 
+    paddingVertical: 7, 
+    borderRadius: 20, 
+    borderWidth: 1, 
+    borderColor: '#C17C74', 
+    backgroundColor: 'white',
+  },
+
+  chipActive: { 
+    backgroundColor: '#C17C74',
+  },
+
+  chipText: { 
+    fontSize: 12, 
+    color: '#C17C74', 
+    fontWeight: '500' 
+  },
+
+  chipTextActive: { 
+    color: 'white'
+  },
+
+  grid: { 
+    flexDirection: 'row', 
+    flexWrap: 'wrap', 
+    paddingHorizontal: 14, 
+    gap: 10 
+  },
+
+  gridItem: { 
+    width: CARD_WIDTH 
+  },
+
+  wCard: { 
+    backgroundColor: '#F2E6E3', 
+    borderRadius: 18, 
+    overflow: 'hidden' 
+  },
+
+  wCardImg: {
     width: '100%',
-    marginBottom: 12,
-  },
-
-  btnPrimaryText: { 
-    color: COLORS.white, 
-    fontSize: 15, 
-    fontWeight: '600' 
-  },
-
-  btnOutline: {
-    flexDirection: 'row',
+    aspectRatio: 3 / 4,
+    backgroundColor: '#F2E6E3',
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1.5,
-    borderColor: COLORS.accent,
+  },
+
+  wCardBadge: {
+    position: 'absolute', 
+    top: 10, 
+    right: 10,
+    backgroundColor: '#C17C74',
+    borderRadius: 8, 
+    paddingHorizontal: 7,
+    paddingVertical: 3,
+  },
+
+  wCardBadgeText: { 
+    color: 'white', 
+    fontSize: 9, 
+    fontWeight: '700' 
+  },
+
+  wCardInfo: { 
+    padding: 10 
+  },
+
+  wCardName: { 
+    fontSize: 12, 
+    fontWeight: '600', 
+    color: '#2c2c2c',
+  },
+
+  wCardDetail: { 
+    fontSize: 10, 
+    color: '#888888', 
+    marginTop: 2 
+  },
+
+  btnAccent: {
+    flexDirection: 'row',
+    backgroundColor: '#C17C74',
+    marginHorizontal: 14,
+    marginTop: 18,
     borderRadius: 16,
     paddingVertical: 15,
-    width: '100%',
-  },
-
-  btnOutlineText: { 
-    color: COLORS.accent, 
-    fontSize: 15, 
-    fontWeight: '600' 
-  },
-
-  sectionLabel: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: COLORS.accent,
-    paddingHorizontal: 20,
-    marginBottom: 12,
-    textTransform: 'uppercase',
-    letterSpacing: 0.9,
-  },
-
-  tipCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: COLORS.card,
-    marginHorizontal: 16,
-    marginBottom: 10,
-    borderRadius: 16,
-    padding: 16,
-    gap: 14,
-  },
-
-  tipIconWrap: {
-    width: 44,
-    height: 44,
-    borderRadius: 12,
-    backgroundColor: COLORS.iconBg,
     alignItems: 'center',
     justifyContent: 'center',
   },
 
-  tipText: { 
-    flex: 1 
+  btnAccentText: { 
+    color: 'white', 
+    fontSize: 15, 
+    fontWeight: '600' 
   },
 
-  tipTitle: { 
-    fontSize: 14, 
-    fontWeight: '600', 
-    color: COLORS.text 
-  },
-  
-  tipSub: { 
-    fontSize: 12, 
-    color: COLORS.muted, 
-    marginTop: 3 
-  },
-  
 });
