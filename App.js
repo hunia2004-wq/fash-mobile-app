@@ -59,6 +59,8 @@ import AddListingScreen from "./screens/home-screen/addlisting";
 import PackingHome from "./screens/home-screen/PackingHome";
 import OutfitBuilder from "./screens/home-screen/OutfitBuilder";
 
+import FashCollectionScreen from './screens/home-screen/fashcollection';
+
 import { logout } from './services/authService';
 
 const Stack = createNativeStackNavigator();
@@ -199,6 +201,9 @@ export default function App() {
               <Stack.Screen name="PackingHome" component={PackingHome} />
               <Stack.Screen name="OutfitBuilder" component={OutfitBuilder} />
               <Stack.Screen name="AddListingScreen" component={AddListingScreen} />
+
+              <Stack.Screen name="FashCollectionScreen" component={FashCollectionScreen} options={{ headerShown: false }} />
+
 
 
               </>
