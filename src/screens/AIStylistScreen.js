@@ -58,48 +58,42 @@ const SUGGESTIONS = [
 
 
 const callAIStylist = async (userMessage, conversationHistory) => {
-const wardrobeList = WARDROBE_ITEMS.map(
-(item) => `- ${item.name} (${item.category}, ${item.color}, ${item.brand})`
-).join('\n');
+  const wardrobeList = WARDROBE_ITEMS.map(
+    (item) => `- ${item.name} (${item.category}, ${item.color}, ${item.brand})`
+  ).join('\n');
 
-const systemPrompt = `You are a personal AI fashion stylist.
+  const systemPrompt = `You are a personal AI fashion stylist.
 
 Wardrobe:
 ${wardrobeList}
 
 Respond only with outfit JSON wrapped in <outfit> tags.`;
 
-const messages = [
-...conversationHistory.map((m) => ({
-role: m.role,
-content: m.content,
-})),
-{ role: 'user', content: userMessage },
-];
+  const messages = [
+    ...conversationHistory.map((m) => ({
+      role: m.role,
+      content: m.content,
+    })),
+    { role: 'user', content: userMessage },
+  ];
 
-const response = await fetch('https://api.anthropic.com/v1/messages', {
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json',
-    'x-api-key': process.env.ANTHROPIC_API_KEY,
-    'anthropic-version': '2023-06-01',
-  },
-  body: JSON.stringify({
-    model: 'claude-3-opus-20240229',
-    max_tokens: 100,
-    messages: [{ role: 'user', content: 'Hello!' }]
-  })
-});
-body: JSON.stringify({
-model: 'claude-sonnet-4-20250514',
-max_tokens: 1000,
-system: systemPrompt,
-messages,
-}),
-});
+  const response = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': process.env.ANTHROPIC_API_KEY,
+      'anthropic-version': '2023-06-01',
+    },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 1000,
+      system: systemPrompt,
+      messages: messages,
+    }),
+  });
 
-const data = await response.json();
-return data.content?.[0]?.text || 'Sorry, error occurred.';
+  const data = await response.json();
+  return data?.content?.[0]?.text || 'Sorry, error occurred.';
 };
 
 const parseAIResponse = (rawText) => {
