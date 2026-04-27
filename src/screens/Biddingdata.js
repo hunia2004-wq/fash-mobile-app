@@ -11,7 +11,7 @@ import { COLORS, MOCK_AUCTIONS, MOCK_BIDS } from './biddingData';
 const { width } = Dimensions.get('window');
 const QUICK_INCREMENTS = [5, 10, 25, 50];
 
-// ─── Countdown hook ───────────────────────────────────────────────────────
+
 const useCountdown = (endsAt) => {
   const calc = () => {
     const diff = new Date(endsAt) - new Date();
@@ -32,7 +32,7 @@ const useCountdown = (endsAt) => {
   return time;
 };
 
-// ─── Countdown Block ──────────────────────────────────────────────────────
+
 const CountdownBlock = ({ value, label, urgent }) => (
   <View style={[styles.countBlock, urgent && { backgroundColor: COLORS.liveLight }]}>
     <Text style={[styles.countValue, urgent && { color: COLORS.live }]}>
@@ -42,7 +42,6 @@ const CountdownBlock = ({ value, label, urgent }) => (
   </View>
 );
 
-// ─── Bid Row ──────────────────────────────────────────────────────────────
 const BidRow = ({ bid, isTop, isMe }) => {
   const slideAnim = useRef(new Animated.Value(-20)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -81,12 +80,10 @@ const BidRow = ({ bid, isTop, isMe }) => {
     </Animated.View>
   );
 };
-
-// ─── Main Screen ──────────────────────────────────────────────────────────
 export default function AuctionRoomScreen({ navigation, route }) {
   const { auctionId } = route.params;
 
-  // Load mock data — replace these two lines with API calls later
+  //hoto ay data and then replace it bl api bta3etna
   const [auction, setAuction] = useState(
     MOCK_AUCTIONS.find((a) => a.id === auctionId)
   );
@@ -207,7 +204,7 @@ export default function AuctionRoomScreen({ navigation, route }) {
                 <Text style={styles.imagePlaceholderText}>{auction.brand}</Text>
               </View>
             )}
-            {/* Condition badge on image */}
+        
             <View style={[
               styles.conditionOverlay,
               { backgroundColor: auction.condition === 'Like New' ? '#e8f5e9' : '#fff8e1' },
@@ -221,7 +218,7 @@ export default function AuctionRoomScreen({ navigation, route }) {
             </View>
           </View>
 
-          {/* Item info */}
+         
           <View style={styles.section}>
             <View style={styles.titleRow}>
               <View style={{ flex: 1 }}>
@@ -237,7 +234,7 @@ export default function AuctionRoomScreen({ navigation, route }) {
 
           <View style={styles.divider} />
 
-          {/* Bid info + countdown */}
+
           <View style={styles.section}>
             <View style={styles.bidInfoRow}>
               <View>
@@ -253,7 +250,6 @@ export default function AuctionRoomScreen({ navigation, route }) {
               </View>
             </View>
 
-            {/* Countdown */}
             {!isEnded ? (
               <View style={styles.countdownRow}>
                 <CountdownBlock value={countdown.h} label="HRS" urgent={countdown.urgent} />
@@ -272,7 +268,7 @@ export default function AuctionRoomScreen({ navigation, route }) {
             )}
           </View>
 
-          {/* Leading banner */}
+    
           {isLeading && !isEnded && (
             <View style={styles.leadingBanner}>
               <Ionicons name="trophy-outline" size={16} color={COLORS.success} />
