@@ -4,7 +4,9 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import * as SecureStore from 'expo-secure-store';
 import { AuthContext } from './context/AuthContext';
-import { Provider as PaperProvider } from 'react-native-paper';
+import { Provider as PaperProvider } from 'react-native-paper'
+import { GalioProvider } from "galio-framework";
+
 
 import LoginScreen from './screens/login';
 import SignupScreen from './screens/signup';
@@ -56,12 +58,15 @@ import ProductDetails from "./screens/home-screen/ProductDetails";
 import AddListingScreen from "./screens/home-screen/addlisting";
 
 
-import PackingHome from "./screens/home-screen/PackingHome";
-import OutfitBuilder from "./screens/home-screen/OutfitBuilder";
+
+import OutfitBuilderscreen from "./screens/home-screen/OutfitBuilderscreen";
+import OutfitPickerScreen from './screens/home-screen/Outfitpickerscreen';
+import OutfitDetailScreen from './screens/home-screen/Outfitdetailscreen';
 
 import FashCollectionScreen from './screens/home-screen/fashcollection';
 
 import { logout } from './services/authService';
+
 
 const Stack = createNativeStackNavigator();
 
@@ -142,6 +147,7 @@ export default function App() {
     return <SplashScreen />;
   
   return (
+    <GalioProvider>
     <PaperProvider>
       <AuthContext.Provider value={authContext}>
         <NavigationContainer>
@@ -198,9 +204,14 @@ export default function App() {
               <Stack.Screen name="Payment" component={PaymentScreen} />
               <Stack.Screen name="MarketplaceHome" component={MarketplaceHome} />
               <Stack.Screen name="ProductDetails" component={ProductDetails} />
-              <Stack.Screen name="PackingHome" component={PackingHome} />
-              <Stack.Screen name="OutfitBuilder" component={OutfitBuilder} />
+
+              <Stack.Screen name="OutfitBuilderscreen" component={OutfitBuilderscreen} options={{ animation: 'slide_from_bottom' }} />              
+              <Stack.Screen name="OutfitPicker" component={OutfitPickerScreen} />
+              <Stack.Screen name="OutfitDetail" component={OutfitDetailScreen} options={{ animation: 'slide_from_right' }} />
+
               <Stack.Screen name="AddListingScreen" component={AddListingScreen} />
+
+
 
               <Stack.Screen name="FashCollectionScreen" component={FashCollectionScreen} options={{ headerShown: false }} />
 
@@ -212,6 +223,7 @@ export default function App() {
       </NavigationContainer>
     </AuthContext.Provider>
   </PaperProvider>
+</GalioProvider>
   
   );
 }

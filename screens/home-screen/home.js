@@ -25,7 +25,6 @@ function HomeContent() {
   const sustainabilityItems = [
     { id: '1', image: require('../../source/assets/images/packing.png') },
     { id: '2', image: require('../../source/assets/images/donations.png') },
-    { id: '3', image: require('../../source/assets/images/borrowcropped.png') },
   ];
  
   return (
@@ -48,7 +47,7 @@ function HomeContent() {
           <FontAwesome name="microphone" size={16} color="#C17C74" />
         </View>
         <TouchableOpacity style={styles.filterBtn}>
-          <Feather name="sliders" size={20} color="gray" />
+          <Feather name="sliders" size={20} color="#C17C74" />
         </TouchableOpacity>
       </View>
  
@@ -137,7 +136,7 @@ function HomeContent() {
       <Text style={[styles.sectionTitle, { marginTop: 24 }]}>FASH Share</Text>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ paddingLeft: 20 }}>
         {sustainabilityItems.map((item) => (
-          <TouchableOpacity key={item.id} style={styles.sustainCard} onPress={() => navigation.navigate("PackingHome")}>
+          <TouchableOpacity key={item.id} style={styles.sustainCard} onPress={() => navigation.navigate("OutfitBuilderscreen")}>
             <Image source={item.image} style={styles.sustainImage} resizeMode="cover" />
             <Text style={styles.sustainLabel}>{item.label}</Text>
           </TouchableOpacity>

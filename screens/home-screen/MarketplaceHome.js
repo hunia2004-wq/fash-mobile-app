@@ -1,41 +1,15 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity,
-  StatusBar, Image, TextInput, Dimensions,
+  StatusBar, Image, TextInput, Dimensions, ActivityIndicator,
 } from 'react-native';
 import { Ionicons, Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { COLORS, CATEGORIES, SAMPLE_ITEMS } from './marketplacedata';
+import { COLORS, CATEGORIES } from './marketplacedata';
+import { getAllListings } from '../../services/authService'; 
 
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = (width - 48) / 2;
-
-const TIPS = [
-  {
-    icon: 'storefront-outline',
-    lib: 'ion',
-    title: 'Browse listings',
-    sub: 'Shop from FASH & C2C sellers',
-  },
-  {
-    icon: 'heart-outline',
-    lib: 'ion',
-    title: 'Save favourites',
-    sub: 'Wishlist items you love',
-  },
-  {
-    icon: 'add-circle-outline',
-    lib: 'ion',
-    title: 'List your items',
-    sub: 'Sell clothes from your wardrobe',
-  },
-];
-
-const TipIcon = ({ icon, lib }) => {
-  if (lib === 'mci')
-    return <MaterialCommunityIcons name={icon} size={20} color={COLORS.accent} />;
-  return <Ionicons name={icon} size={20} color={COLORS.accent} />;
-};
 
 const ConditionBadge = ({ condition }) => (
   <View style={[
@@ -52,34 +26,43 @@ const ConditionBadge = ({ condition }) => (
 );
 
 export default function MarketplaceScreen({ navigation }) {
-  const [savedItems, setSavedItems] = useState({});
+  const [listings, setListings] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [activeCategory, setActiveCategory] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
   const [showSearch, setShowSearch] = useState(false);
 
-  const toggleSave = (id, e) => {
-    e.stopPropagation();
-    setSavedItems((prev) => ({ ...prev, [id]: !prev[id] }));
-  };
-
-  const normalize = (str) => str.trim().toLowerCase();
-
-  const filteredItems = useMemo(() => {
-    return SAMPLE_ITEMS.filter((item) => {
-      const matchCat =
-        activeCategory === 'All' ||
-        normalize(item.category) === normalize(activeCategory);
-
-      const matchSearch =
-        !searchQuery ||
-        item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.brand.toLowerCase().includes(searchQuery.toLowerCase());
-
-      return matchCat && matchSearch;
-    });
+  const fetchListings = useCallback(async () => {
+    try {
+      setLoading(listings.length === 0);
+      setError(null);
+  
+      const data = await getAllListings({
+        category: activeCategory === 'All' ? undefined : activeCategory,
+        search: searchQuery,
+      });
+  
+      setListings(Array.isArray(data) ? data : data.listings || []);
+    } catch (err) {
+      setError(
+        err?.response?.data?.error?.message ||
+        err.message ||
+        'Failed to load listings'
+      );
+    } finally {
+      setLoading(false);
+    }
   }, [activeCategory, searchQuery]);
 
-  const hasItems = filteredItems.length > 0;
+  useEffect(() => {
+    const delay = setTimeout(() => {
+      fetchListings();
+    }, searchQuery ? 400 : 0);
+  
+    return () => clearTimeout(delay);
+  }, [fetchListings]);
+
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -113,18 +96,23 @@ export default function MarketplaceScreen({ navigation }) {
           </View>
         ) : (
           <>
-            <View>
-              <Text style={styles.headerTitle}>Marketplace</Text>
-              <Text style={styles.headerSub}>{SAMPLE_ITEMS.length} listings near you</Text>
-            </View>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+  <TouchableOpacity onPress={() => navigation.goBack()}>
+    <Text style={styles.backBtn}>‹</Text>
+  </TouchableOpacity>
+  <View>
+    <Text style={styles.headerTitle}>Marketplace</Text>
+    <Text style={styles.headerSub}>
+      {loading ? 'Loading...' : `${listings.length} listings near you`}
+    </Text>
+  </View>
+</View>
+
+            
             <View style={styles.headerActions}>
-              <TouchableOpacity
-                style={styles.iconBtn}
-                onPress={() => setShowSearch(true)}
-              >
+              <TouchableOpacity style={styles.iconBtn} onPress={() => setShowSearch(true)}>
                 <Ionicons name="search-outline" size={20} color={COLORS.accent} />
               </TouchableOpacity>
-
               <TouchableOpacity
                 style={styles.addBtn}
                 onPress={() => navigation.navigate('AddListingScreen')}
@@ -136,7 +124,7 @@ export default function MarketplaceScreen({ navigation }) {
         )}
       </View>
 
-      {/* ✅ FIXED CATEGORY SCROLL */}
+      {/* Category Pills */}
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
@@ -146,19 +134,10 @@ export default function MarketplaceScreen({ navigation }) {
         {CATEGORIES.map((cat) => (
           <TouchableOpacity
             key={cat}
-            style={[
-              styles.categoryPill,
-              activeCategory === cat && styles.categoryPillActive
-            ]}
+            style={[styles.categoryPill, activeCategory === cat && styles.categoryPillActive]}
             onPress={() => setActiveCategory(cat)}
           >
-            <Text
-              numberOfLines={1}
-              style={[
-                styles.categoryText,
-                activeCategory === cat && styles.categoryTextActive
-              ]}
-            >
+            <Text style={[styles.categoryText, activeCategory === cat && styles.categoryTextActive]}>
               {cat}
             </Text>
           </TouchableOpacity>
@@ -167,38 +146,51 @@ export default function MarketplaceScreen({ navigation }) {
 
       {/* Content */}
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-        {!hasItems ? (
-          <Text style={{ textAlign: 'center', marginTop: 40 }}>
-            No items found
-          </Text>
+        {loading ? (
+          <ActivityIndicator size="large" color={COLORS.accent} style={{ marginTop: 60 }} />
+        ) : error ? (
+          <View style={styles.centerMsg}>
+            <Text style={styles.errorText}>{error}</Text>
+            <TouchableOpacity style={styles.retryBtn} onPress={fetchListings}>
+              <Text style={styles.retryText}>Retry</Text>
+            </TouchableOpacity>
+          </View>
+        ) : listings.length === 0 ? (
+          <Text style={styles.emptyText}>No items found</Text>
         ) : (
           <View style={styles.grid}>
-            {filteredItems.map((item) => (
+            {listings.map((item) => (
               <TouchableOpacity
-                key={item.id}
+                key={item._id}
                 style={styles.itemCard}
                 onPress={() => navigation.navigate('ProductDetail', { item })}
               >
                 <View style={styles.itemImageBox}>
                   {item.image ? (
-                    <Image source={item.image} style={styles.itemImage} />
+                    <Image
+                    source={{ uri: item.image }}
+                    style={styles.itemImage}
+                    onError={() => console.log('Image failed')}
+                  />
                   ) : (
                     <MaterialCommunityIcons name="hanger" size={40} color={COLORS.accent} />
                   )}
-
                   <View style={styles.badgeWrap}>
                     <ConditionBadge condition={item.condition} />
                   </View>
                 </View>
 
                 <View style={styles.itemInfo}>
-                  <Text style={styles.itemTitle}>{item.title}</Text>
-                  <Text style={styles.itemBrand}>{item.brand} · {item.size}</Text>
-                  <Text style={styles.itemDescription}>{item.description}</Text>
-
+                  <Text style={styles.itemTitle} numberOfLines={1}>{item.title}</Text>
+                  <Text style={styles.itemBrand}>
+                    {item.brand || 'No brand'} · {item.size || 'N/A'}
+                  </Text>
+                  <Text style={styles.itemDescription} numberOfLines={2}>{item.description}</Text>
                   <View style={styles.priceRow}>
-                    <Text style={styles.itemPrice}>{item.price}</Text>
-                    <Text style={styles.itemOriginalPrice}>{item.originalPrice}</Text>
+                    <Text style={styles.itemPrice}>EGP {item.price}</Text>
+                    {item.originalPrice && (
+                      <Text style={styles.itemOriginalPrice}>EGP {item.originalPrice}</Text>
+                    )}
                   </View>
                 </View>
               </TouchableOpacity>
@@ -210,114 +202,43 @@ export default function MarketplaceScreen({ navigation }) {
   );
 }
 
-/* ✅ STYLES */
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: COLORS.bg },
-
   logoHeader: { paddingBottom: 10, alignItems: 'center' },
   logo: { width: 120, height: 50 },
-
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    marginBottom: 14,
-  },
-
+  header: { flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 20, marginBottom: 14 },
   headerTitle: { fontSize: 20, fontWeight: '700', color: COLORS.accent },
   headerSub: { fontSize: 13, color: COLORS.muted },
-
   headerActions: { flexDirection: 'row', gap: 10 },
-
-  iconBtn: {
-    width: 40, height: 40,
-    borderRadius: 12,
-    backgroundColor: COLORS.card,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-
-  addBtn: {
-    width: 40, height: 40,
-    borderRadius: 12,
-    backgroundColor: COLORS.accent,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-
-  /* ✅ FINAL FIX */
-  categoryScroll: {
-    flexGrow: 0,
-    maxHeight: 50,
-  },
-
-  categoryRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingBottom: 6,
-  },
-
-  categoryPill: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    backgroundColor: COLORS.card,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    marginRight: 8,
-    alignSelf: 'flex-start',
-  },
-
-  categoryPillActive: {
-    backgroundColor: COLORS.accent,
-    borderColor: COLORS.accent,
-  },
-
+  iconBtn: { width: 40, height: 40, borderRadius: 12, backgroundColor: COLORS.card, alignItems: 'center', justifyContent: 'center' },
+  addBtn: { width: 40, height: 40, borderRadius: 12, backgroundColor: COLORS.accent, alignItems: 'center', justifyContent: 'center' },
+  categoryScroll: { flexGrow: 0, maxHeight: 50 },
+  categoryRow: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingBottom: 6 },
+  categoryPill: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20, backgroundColor: COLORS.card, borderWidth: 1, borderColor: COLORS.border, marginRight: 8 },
+  categoryPillActive: { backgroundColor: COLORS.accent, borderColor: COLORS.accent },
   categoryText: { fontSize: 13, fontWeight: '600', color: COLORS.muted },
   categoryTextActive: { color: COLORS.white },
-
   scrollContent: { paddingBottom: 40 },
-
-  grid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    paddingHorizontal: 12,
-    gap: 12,
-  },
-
-  itemCard: {
-    width: CARD_WIDTH,
-    backgroundColor: COLORS.white,
-    borderRadius: 16,
-    overflow: 'hidden',
-  },
-
-  itemImageBox: {
-    height: 170,
-    backgroundColor: COLORS.card,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-
+  grid: { flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: 12, gap: 12 },
+  itemCard: { width: CARD_WIDTH, backgroundColor: COLORS.white, borderRadius: 16, overflow: 'hidden' },
+  itemImageBox: { height: 170, backgroundColor: COLORS.card, alignItems: 'center', justifyContent: 'center' },
   itemImage: { width: '100%', height: '100%' },
-
   badgeWrap: { position: 'absolute', top: 10, left: 10 },
-
-  conditionBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 8,
-  },
-
+  conditionBadge: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8 },
   conditionText: { fontSize: 10, fontWeight: '700' },
-
   itemInfo: { padding: 10 },
   itemTitle: { fontSize: 13, fontWeight: '700' },
   itemBrand: { fontSize: 11, color: COLORS.accent },
   itemDescription: { fontSize: 11, color: COLORS.muted },
-
-  priceRow: { flexDirection: 'row', gap: 6 },
+  priceRow: { flexDirection: 'row', gap: 6, marginTop: 4 },
   itemPrice: { fontSize: 14, fontWeight: '700' },
-  itemOriginalPrice: { fontSize: 11, textDecorationLine: 'line-through' },
+  itemOriginalPrice: { fontSize: 11, textDecorationLine: 'line-through', color: COLORS.muted },
+  centerMsg: { alignItems: 'center', marginTop: 60 },
+  errorText: { color: 'red', marginBottom: 12 },
+  retryBtn: { backgroundColor: COLORS.accent, paddingHorizontal: 20, paddingVertical: 10, borderRadius: 10 },
+  retryText: { color: COLORS.white, fontWeight: '700' },
+  emptyText: { textAlign: 'center', marginTop: 40, color: COLORS.muted },
+  searchBar: { flex: 1, flexDirection: 'row', alignItems: 'center', backgroundColor: COLORS.card, borderRadius: 12, paddingHorizontal: 12, height: 40 },
+  searchInput: { flex: 1, fontSize: 14, color: COLORS.text },
+  backBtn: { fontSize: 28, color: COLORS.accent, lineHeight: 32 },
 });

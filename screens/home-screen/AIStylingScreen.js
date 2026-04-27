@@ -33,7 +33,7 @@ userBubble: '#C17C74',
 aiBubble: '#ffffff',
 };
 
-// ─── Sample wardrobe items ───────────────────────────────────────────────
+
 const WARDROBE_ITEMS = [
 { id: 'w1', name: 'White Linen Shirt', category: 'Tops', color: 'White', brand: 'Zara' },
 { id: 'w2', name: 'High-Waist Beige Trousers', category: 'Bottoms', color: 'Beige', brand: 'Mango' },
@@ -47,7 +47,6 @@ const WARDROBE_ITEMS = [
 { id: 'w10', name: 'Mini Leather Bag', category: 'Bags', color: 'Tan', brand: 'Zara' },
 ];
 
-// ─── Suggestions ─────────────────────────────────────────────────────────
 const SUGGESTIONS = [
 { icon: '☀️', label: 'Casual day out' },
 { icon: '💼', label: 'Work outfit' },
@@ -57,47 +56,46 @@ const SUGGESTIONS = [
 { icon: '✈️', label: 'Travel outfit' },
 ];
 
-// ─── AI CALL ─────────────────────────────────────────────────────────────
-const callAIStylist = async (userMessage, conversationHistory) => {
-const wardrobeList = WARDROBE_ITEMS.map(
-(item) => `- ${item.name} (${item.category}, ${item.color}, ${item.brand})`
-).join('\n');
 
-const systemPrompt = `You are a personal AI fashion stylist.
+const callAIStylist = async (userMessage, conversationHistory) => {
+  const wardrobeList = WARDROBE_ITEMS.map(
+    (item) => `- ${item.name} (${item.category}, ${item.color}, ${item.brand})`
+  ).join('\n');
+
+  const systemPrompt = `You are a personal AI fashion stylist.
 
 Wardrobe:
 ${wardrobeList}
 
 Respond only with outfit JSON wrapped in <outfit> tags.`;
 
-const messages = [
-...conversationHistory.map((m) => ({
-role: m.role,
-content: m.content,
-})),
-{ role: 'user', content: userMessage },
-];
+  const messages = [
+    ...conversationHistory.map((m) => ({
+      role: m.role,
+      content: m.content,
+    })),
+    { role: 'user', content: userMessage },
+  ];
 
-const response = await fetch('https://api.anthropic.com/v1/messages', {
-method: 'POST',
-headers: {
-'Content-Type': 'application/json',
-'x-api-key': 'YOUR_API_KEY',
-'anthropic-version': '2023-06-01',
-},
-body: JSON.stringify({
-model: 'claude-sonnet-4-20250514',
-max_tokens: 1000,
-system: systemPrompt,
-messages,
-}),
-});
+  const response = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': process.env.ANTHROPIC_API_KEY,
+      'anthropic-version': '2023-06-01',
+    },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 1000,
+      system: systemPrompt,
+      messages: messages,
+    }),
+  });
 
-const data = await response.json();
-return data.content?.[0]?.text || 'Sorry, error occurred.';
+  const data = await response.json();
+  return data?.content?.[0]?.text || 'Sorry, error occurred.';
 };
 
-// ─── Parse AI response ───────────────────────────────────────────────────
 const parseAIResponse = (rawText) => {
 const outfitRegex = /<outfit>([\s\S]*?)<\/outfit>/g;
 const outfits = [];
@@ -113,7 +111,7 @@ const text = rawText.replace(/<outfit>[\s\S]*?<\/outfit>/g, '').trim();
 return { text, outfits };
 };
 
-// ─── Outfit Card ─────────────────────────────────────────────────────────
+
 const OutfitCard = ({ outfit }) => {
 return (
 <View style={styles.outfitCard}>
@@ -128,7 +126,7 @@ return (
 );
 };
 
-// ─── Message Bubble ──────────────────────────────────────────────────────
+
 const MessageBubble = ({ message }) => {
 const isUser = message.role === 'user';
 
@@ -159,8 +157,7 @@ return (
 );
 };
 
-// ─── MAIN SCREEN ─────────────────────────────────────────────────────────
-export default function AIStylistScreen() {
+export default function AIStylingScreen() {
 const [messages, setMessages] = useState([
 {
 id: '1',
@@ -213,7 +210,6 @@ placeholder="Ask your stylist..."
 );
 }
 
-// ─── STYLES ───────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
 safe: { flex: 1, backgroundColor: COLORS.bg },
 

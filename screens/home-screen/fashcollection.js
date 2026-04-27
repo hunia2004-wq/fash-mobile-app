@@ -1,16 +1,5 @@
 import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  ScrollView,
-  StyleSheet,
-  TouchableOpacity,
-  StatusBar,
-  Dimensions,
-  Image,
-  TextInput,
-} from 'react-native';
-
+import {View, Text, ScrollView, StyleSheet, TouchableOpacity, StatusBar, Dimensions, Image, TextInput,} from 'react-native';
 import { Feather, Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -23,32 +12,44 @@ const ALL_PRODUCTS = [
     id: '1',
     name: 'White Abaya',
     brand: 'FASH Originals',
-    price: '$250',
+    price: 'EGP 1000',
     category: 'Umrah & Hajj',
     image: require('./images/whiteabaya.png'),
     badge: null,
   },
+
   {
-    id: '3',
+    id: '2',
     name: 'Burgundy Soirée Dress',
     brand: 'FASH Exclusive',
-    price: '$380',
+    price: 'EGP 5000',
     category: 'Soirée',
     image: require('./images/reddress.png'),
     badge: 'New',
   },
+
   {
-    id: '5',
+    id: '3',
     name: 'TinkerBell Kids Costume',
     brand: 'FASH Originals',
-    price: '$150',
+    price: 'EGP 450',
     category: 'Kids',
     image: require('./images/tinkerbell.png'),
     badge: 'Sale',
   },
+
+  {
+    id: '4',
+    name: 'Navy Blue Suit',
+    brand: 'FASH Originals',
+    price: 'EGP 2500',
+    category: 'Suits',
+    image: require('./images/navybluesuit.png'),
+    badge: 'Sale',
+  },
 ];
 
-// ── Product card — mirrors WardrobeCard exactly ───────────────────
+// Product card 
 const ProductCard = ({ item }) => {
   const [saved, setSaved] = useState(false);
 
@@ -61,19 +62,21 @@ const ProductCard = ({ item }) => {
           resizeMode="cover"
         />
 
-        {/* FASH badge — bottom left */}
+         {/* FASH badge */}
         <View style={styles.fashBadge}>
           <Text style={styles.fashBadgeText}>FASH</Text>
         </View>
 
-        {/* New / Sale badge — top right, same as wardrobe badge */}
+
+        {/* New / Sale badge */}
         {item.badge && (
           <View style={styles.wCardBadge}>
             <Text style={styles.wCardBadgeText}>{item.badge}</Text>
           </View>
         )}
 
-        {/* Heart save — top left */}
+
+        {/* Heart save  */}
         <TouchableOpacity
           style={styles.heartOverlay}
           onPress={() => setSaved(s => !s)}
@@ -86,6 +89,7 @@ const ProductCard = ({ item }) => {
           />
         </TouchableOpacity>
       </View>
+      
 
       <View style={styles.wCardInfo}>
         <Text style={styles.wCardBrand}>{item.brand}</Text>
@@ -115,7 +119,7 @@ const ComingSoonCard = () => (
   </View>
 );
 
-// ── Main screen ───────────────────────────────────────────────────
+// main screen
 export default function FashCollectionScreen({ navigation }) {
   const [activeCategory, setActiveCategory] = useState('All');
   const [search, setSearch] = useState('');
@@ -138,17 +142,17 @@ export default function FashCollectionScreen({ navigation }) {
     <SafeAreaView style={styles.safe}>
       <StatusBar barStyle="dark-content" backgroundColor="#F5F5F5" />
 
-      {/* ── Header — back button style matching 2FA screen ── */}
+      {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} activeOpacity={0.7}>
           <Text style={styles.backBtn}>‹</Text>
         </TouchableOpacity>
         <Text style={styles.headerTitle}>FASH Collection</Text>
-        {/* balance right side — same trick as 2FA */}
+
         <View style={{ width: 40 }} />
       </View>
 
-      {/* ── Search bar ── */}
+      {/* Search bar */}
       <View style={styles.searchRow}>
         <View style={styles.searchBar}>
           <Feather name="search" size={14} color="#C17C74" style={{ marginRight: 8 }} />
@@ -172,7 +176,7 @@ export default function FashCollectionScreen({ navigation }) {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
-        {/* ── Category chips — identical to wardrobe.js ── */}
+        {/*  Category chips */}
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
@@ -192,7 +196,7 @@ export default function FashCollectionScreen({ navigation }) {
           ))}
         </ScrollView>
 
-        {/* ── No search results ── */}
+        {/* No search results */}
         {filtered.length === 0 && !showSuits && (
           <View style={styles.emptyState}>
             <Feather name="search" size={42} color="#F2E6E3" />
@@ -201,7 +205,7 @@ export default function FashCollectionScreen({ navigation }) {
           </View>
         )}
 
-        {/* ── Product grid — identical layout to wardrobe.js ── */}
+        {/* Product grid  */}
         {(filtered.length > 0 || showSuits) && (
           <View style={styles.grid}>
             {filtered.map(item => (
@@ -217,7 +221,7 @@ export default function FashCollectionScreen({ navigation }) {
           </View>
         )}
 
-        {/* ── Promo strip ── */}
+        {/*  Promo strip */}
         {search.length === 0 && (
           <View style={styles.promoBanner}>
             <Ionicons name="sparkles-outline" size={16} color="#C17C74" style={{ marginRight: 10 }} />
@@ -234,7 +238,7 @@ export default function FashCollectionScreen({ navigation }) {
   );
 }
 
-// ── Styles ────────────────────────────────────────────────────────
+
 const CARD_WIDTH = (width - 44) / 2;
 
 const styles = StyleSheet.create({
@@ -243,7 +247,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#F5F5F5',
   },
 
-  // ── Header — matches 2FA screen exactly ──
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -251,11 +254,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingBottom: 12,
   },
+
   backBtn: {
     fontSize: 28,
     color: '#C17C74',
     lineHeight: 32,
   },
+
   headerTitle: {
     position: 'absolute',
     left: 0,
@@ -267,12 +272,12 @@ const styles = StyleSheet.create({
     pointerEvents: 'none',
   },
 
-  // Search
   searchRow: {
     paddingHorizontal: 14,
     paddingTop: 10,
     paddingBottom: 2,
   },
+
   searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -283,6 +288,7 @@ const styles = StyleSheet.create({
     borderWidth: 0.5,
     borderColor: 'rgba(193,124,116,0.18)',
   },
+
   searchInput: {
     flex: 1,
     fontSize: 14,
@@ -293,7 +299,6 @@ const styles = StyleSheet.create({
     paddingBottom: 32,
   },
 
-  // ── Chips — copy-pasted from wardrobe.js ──
   chipsRow: {
     paddingHorizontal: 14,
     paddingTop: 12,
@@ -301,6 +306,7 @@ const styles = StyleSheet.create({
     gap: 8,
     flexDirection: 'row',
   },
+
   chip: {
     paddingHorizontal: 16,
     paddingVertical: 7,
@@ -309,35 +315,38 @@ const styles = StyleSheet.create({
     borderColor: '#C17C74',
     backgroundColor: '#fff',
   },
+
   chipActive: {
     backgroundColor: '#C17C74',
   },
+
   chipText: {
     fontSize: 12,
     color: '#C17C74',
     fontWeight: '500',
   },
+
   chipTextActive: {
     color: '#fff',
   },
 
-  // ── Grid — copy-pasted from wardrobe.js ──
   grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     paddingHorizontal: 14,
     gap: 10,
   },
+
   gridItem: {
     width: CARD_WIDTH,
   },
 
-  // ── Card — mirrors WardrobeCard ──
   wCard: {
     backgroundColor: '#F2E6E3',
     borderRadius: 18,
     overflow: 'hidden',
   },
+
   wCardImg: {
     width: '100%',
     aspectRatio: 3 / 4,
@@ -347,7 +356,6 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
 
-  // FASH label — bottom left
   fashBadge: {
     position: 'absolute',
     bottom: 8,
@@ -357,6 +365,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 7,
     paddingVertical: 3,
   },
+
   fashBadgeText: {
     color: '#fff',
     fontSize: 8,
@@ -364,7 +373,6 @@ const styles = StyleSheet.create({
     letterSpacing: 0.4,
   },
 
-  // New / Sale — top right (same style as wardrobe badge)
   wCardBadge: {
     position: 'absolute',
     top: 10,
@@ -374,13 +382,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 7,
     paddingVertical: 3,
   },
+
   wCardBadgeText: {
     color: '#fff',
     fontSize: 9,
     fontWeight: '700',
   },
 
-  // Heart — top left
   heartOverlay: {
     position: 'absolute',
     top: 9,
@@ -396,6 +404,7 @@ const styles = StyleSheet.create({
   wCardInfo: {
     padding: 10,
   },
+
   wCardBrand: {
     fontSize: 9,
     fontWeight: '700',
@@ -404,27 +413,32 @@ const styles = StyleSheet.create({
     letterSpacing: 0.4,
     marginBottom: 2,
   },
+
   wCardName: {
     fontSize: 12,
     fontWeight: '600',
     color: '#2c2c2c',
   },
+
   wCardDetail: {
     fontSize: 10,
     color: '#888888',
     marginTop: 2,
   },
+
   wCardBottom: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     marginTop: 6,
   },
+
   wCardPrice: {
     fontSize: 14,
     fontWeight: '800',
     color: '#C17C74',
   },
+
   bagBtn: {
     width: 26,
     height: 26,
@@ -434,18 +448,19 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
 
-  // Empty search state
   emptyState: {
     alignItems: 'center',
     paddingTop: 60,
     paddingHorizontal: 40,
     gap: 10,
   },
+
   emptyTitle: {
     fontSize: 17,
     fontWeight: '600',
     color: '#2c2c2c',
   },
+
   emptySub: {
     fontSize: 13,
     color: '#888888',
@@ -453,7 +468,6 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
 
-  // Promo strip
   promoBanner: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -463,21 +477,25 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     padding: 14,
   },
+
   promoText: {
     flex: 1,
     fontSize: 13,
     fontWeight: '600',
     color: '#2c2c2c',
   },
+
   promoBtn: {
     backgroundColor: '#C17C74',
     borderRadius: 10,
     paddingHorizontal: 14,
     paddingVertical: 8,
   },
+
   promoBtnText: {
     fontSize: 12,
     fontWeight: '700',
     color: '#fff',
   },
+
 });

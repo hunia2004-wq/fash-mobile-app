@@ -1,17 +1,10 @@
 import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  ScrollView,
-  StyleSheet,
-  TouchableOpacity,
-  StatusBar,
-  TextInput,
-  Alert,
-} from 'react-native';
+import {View, Text, ScrollView, StyleSheet, TouchableOpacity, StatusBar, TextInput, Alert,} from 'react-native';
 import { Ionicons, Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { COLORS, CATEGORIES } from './marketplacedata';
+import { createListing } from '../../services/authService'; 
+import AsyncStorage from '@react-native-async-storage/async-storage'; 
 
 const CONDITIONS = ['Like New', 'Good', 'Fair'];
 const SIZES = ['XS', 'S', 'M', 'L', 'XL', 'XXL', 'One Size'];
@@ -26,21 +19,27 @@ const Field = ({ label, required, children }) => (
   </View>
 );
 
-const SelectPill = ({ options, value, onChange }) => (
-  <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.pillsRow}>
-    {options.map((opt) => (
-      <TouchableOpacity
-        key={opt}
-        style={[styles.selectPill, value === opt && styles.selectPillActive]}
-        onPress={() => onChange(opt)}
-        activeOpacity={0.8}
-      >
-        <Text style={[styles.selectPillText, value === opt && styles.selectPillTextActive]}>
-          {opt}
-        </Text>
-      </TouchableOpacity>
-    ))}
-  </ScrollView>
+const TagRow = ({ options, selected, onSelect, single = true }) => (
+  <View style={styles.tagRow}>
+    {options.map(opt => {
+      const isActive = single
+        ? selected === opt
+        : selected.includes(opt);
+
+      return (
+        <TouchableOpacity
+          key={opt}
+          style={[styles.tag, isActive && styles.tagActive]}
+          onPress={() => onSelect(opt)}
+          activeOpacity={0.8}
+        >
+          <Text style={[styles.tagText, isActive && styles.tagTextActive]}>
+            {opt}
+          </Text>
+        </TouchableOpacity>
+      );
+    })}
+  </View>
 );
 
 export default function AddListingScreen({ navigation }) {
@@ -55,14 +54,31 @@ export default function AddListingScreen({ navigation }) {
 
   const isValid = title && price && description && category && condition && size;
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!isValid) {
       Alert.alert('Missing info', 'Please fill in all required fields.');
       return;
     }
-    Alert.alert('Listing posted!', 'Your item is now live on the marketplace.', [
-      { text: 'OK', onPress: () => navigation.goBack() },
-    ]);
+  
+    try {
+      const token = await AsyncStorage.getItem('token'); 
+      await createListing(token, {
+        title,
+        price: parseFloat(price),
+        description,
+        brand,
+        location,
+        category,
+        condition,
+        size,
+      });
+  
+      Alert.alert('Listing posted!', 'Your item is now live on the marketplace.', [
+        { text: 'OK', onPress: () => navigation.goBack() },
+      ]);
+    } catch (err) {
+      Alert.alert('Error', err.message || 'Failed to post listing. Please try again.');
+    }
   };
 
   return (
@@ -72,7 +88,7 @@ export default function AddListingScreen({ navigation }) {
       {/* Top nav */}
       <View style={styles.topNav}>
         <TouchableOpacity style={styles.navBtn} onPress={() => navigation.goBack()} activeOpacity={0.8}>
-          <Ionicons name="arrow-back" size={20} color={COLORS.text} />
+          <Ionicons name="arrow-back" size={20} color={COLORS.accent} />
         </TouchableOpacity>
         <Text style={styles.navTitle}>New Listing</Text>
         <View style={{ width: 40 }} />
@@ -104,9 +120,9 @@ export default function AddListingScreen({ navigation }) {
             />
           </Field>
 
-          <Field label="Price (USD)" required>
+          <Field label="Price (EGP)" required>
             <View style={styles.priceInput}>
-              <Text style={styles.currencySign}>$</Text>
+              <Text style={styles.currencySign}>EGP</Text>
               <TextInput
                 style={[styles.input, { flex: 1, borderWidth: 0, paddingLeft: 4 }]}
                 placeholder="0.00"
@@ -129,20 +145,28 @@ export default function AddListingScreen({ navigation }) {
           </Field>
 
           <Field label="Category" required>
-            <SelectPill
-              options={CATEGORIES.filter(c => c !== 'All')}
-              value={category}
-              onChange={setCategory}
-            />
-          </Field>
+  <TagRow
+    options={CATEGORIES.filter(c => c !== 'All')}
+    selected={category}
+    onSelect={setCategory}
+  />
+</Field>
 
-          <Field label="Size" required>
-            <SelectPill options={SIZES} value={size} onChange={setSize} />
-          </Field>
+<Field label="Size" required>
+  <TagRow
+    options={SIZES}
+    selected={size}
+    onSelect={setSize}
+  />
+</Field>
 
-          <Field label="Condition" required>
-            <SelectPill options={CONDITIONS} value={condition} onChange={setCondition} />
-          </Field>
+<Field label="Condition" required>
+  <TagRow
+    options={CONDITIONS}
+    selected={condition}
+    onSelect={setCondition}
+  />
+</Field>
 
           <Field label="Description" required>
             <TextInput
@@ -162,7 +186,7 @@ export default function AddListingScreen({ navigation }) {
               <Ionicons name="location-outline" size={16} color={COLORS.accent} style={{ marginRight: 8 }} />
               <TextInput
                 style={[styles.input, { flex: 1, borderWidth: 0, paddingLeft: 0 }]}
-                placeholder="e.g. Dubai, UAE"
+                placeholder="e.g. Cairo, Egypt"
                 placeholderTextColor={COLORS.muted}
                 value={location}
                 onChangeText={setLocation}
@@ -199,20 +223,23 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 16,
     paddingVertical: 12,
+    marginTop: 50,
   },
+
   navBtn: {
     width: 40,
     height: 40,
     borderRadius: 12,
-    backgroundColor: COLORS.card,
     alignItems: 'center',
     justifyContent: 'center',
   },
+
   navTitle: { fontSize: 16, fontWeight: '700', color: COLORS.text },
 
   scrollContent: { paddingBottom: 20 },
 
   photoSection: { paddingHorizontal: 20, marginBottom: 8 },
+
   photoUpload: {
     backgroundColor: COLORS.card,
     borderRadius: 16,
@@ -223,6 +250,7 @@ const styles = StyleSheet.create({
     paddingVertical: 32,
     gap: 6,
   },
+
   photoIcon: {
     width: 60,
     height: 60,
@@ -232,25 +260,41 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginBottom: 4,
   },
+
   photoTitle: { fontSize: 15, fontWeight: '700', color: COLORS.text },
+
   photoSub: { fontSize: 12, color: COLORS.muted },
 
   form: { paddingHorizontal: 20 },
 
   field: { marginBottom: 20 },
-  fieldLabel: { fontSize: 12, fontWeight: '700', color: COLORS.text, marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.5 },
+
+  fieldLabel: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#C17C74',
+    marginBottom: 8,
+    textTransform: 'uppercase',
+    letterSpacing: 0.9,
+  },
+
   required: { color: COLORS.accent },
 
   input: {
-    backgroundColor: COLORS.white,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    borderRadius: 12,
-    paddingHorizontal: 14,
-    paddingVertical: 13,
-    fontSize: 14,
-    color: COLORS.text,
-  },
+  backgroundColor: '#fff',
+  borderWidth: 1,
+  borderColor: '#e0c8c5',
+  borderRadius: 12,
+  paddingHorizontal: 14,
+  paddingVertical: 11,
+  fontSize: 14,
+  color: '#2c2c2c',
+},
+
+inputFocused: {
+  borderColor: '#C17C74',
+},
+
   textArea: { height: 100, paddingTop: 13 },
 
   priceInput: {
@@ -262,6 +306,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     paddingHorizontal: 14,
   },
+  
   currencySign: { fontSize: 16, fontWeight: '700', color: COLORS.accent },
 
   locationInput: {
@@ -275,6 +320,7 @@ const styles = StyleSheet.create({
   },
 
   pillsRow: { gap: 8, paddingVertical: 2 },
+
   selectPill: {
     paddingHorizontal: 16,
     paddingVertical: 9,
@@ -284,8 +330,11 @@ const styles = StyleSheet.create({
     borderColor: COLORS.border,
     marginRight: 8,
   },
+
   selectPillActive: { backgroundColor: COLORS.accent, borderColor: COLORS.accent },
+
   selectPillText: { fontSize: 13, fontWeight: '600', color: COLORS.muted },
+
   selectPillTextActive: { color: COLORS.white },
 
   ctaBar: {
@@ -300,6 +349,7 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: COLORS.border,
   },
+
   submitBtn: {
     flexDirection: 'row',
     backgroundColor: COLORS.accent,
@@ -308,6 +358,50 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+
   submitBtnDisabled: { opacity: 0.45 },
+
   submitBtnText: { color: COLORS.white, fontSize: 15, fontWeight: '700' },
+
+  tagRow: { 
+    flexDirection: 'row', 
+    flexWrap: 'wrap',
+    gap: 8, 
+  },
+  
+  tag: {
+    paddingHorizontal: 14, 
+    paddingVertical: 7, 
+    borderRadius: 14,
+    backgroundColor: COLORS.card,
+    borderWidth: 1, 
+    borderColor: COLORS.border,
+  },
+  
+  tagActive: { 
+    backgroundColor: COLORS.accent, 
+    borderColor: COLORS.accent, 
+  },
+  
+  tagText: { 
+    fontSize: 12, 
+    color: COLORS.accent, 
+    fontWeight: '500' 
+  },
+  
+  tagTextActive: { 
+    color: COLORS.white,
+  },
+
+  divider: {
+    height: 0.5,
+    backgroundColor: 'rgba(193,124,116,0.18)',
+    marginHorizontal: 16,
+    marginVertical: 12,
+  },
+
+  form: {
+    paddingHorizontal: 16,
+  }
+
 });
