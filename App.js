@@ -46,8 +46,6 @@ import ContactSupportScreen from './screens/support-screens/contact';
 import FAQScreen from './screens/support-screens/faq';
 
 import AIStyling from "./screens/home-screen/AIStylingScreen";
-import BiddingHome from "./screens/home-screen/BiddingHome";
-import BidInput from "./screens/home-screen/BidInput";
 import ConfirmBid from "./screens/home-screen/ConfirmBid";
 
 import CartScreen from "./screens/home-screen/CartScreen";
@@ -57,13 +55,16 @@ import MarketplaceHome from "./screens/home-screen/MarketplaceHome";
 import ProductDetails from "./screens/home-screen/ProductDetails";
 import AddListingScreen from "./screens/home-screen/addlisting";
 
-
-
 import OutfitBuilderscreen from "./screens/home-screen/OutfitBuilderscreen";
 import OutfitPickerScreen from './screens/home-screen/Outfitpickerscreen';
 import OutfitDetailScreen from './screens/home-screen/Outfitdetailscreen';
 
+import DonationScreen from './screens/home-screen/DonationScreen';
+
 import FashCollectionScreen from './screens/home-screen/fashcollection';
+
+import AuctionListScreen from './screens/home-screen/AuctionListScreen';
+import AuctionRoomScreen from './screens/home-screen/AuctionRoomScreen';
 
 import { logout } from './services/authService';
 
@@ -197,8 +198,6 @@ export default function App() {
               <Stack.Screen name="FAQScreen" component={FAQScreen} options={{ headerShown: false }} />
 
               <Stack.Screen name="AIStylingScreen" component={AIStyling} />
-              <Stack.Screen name="BiddingHome" component={BiddingHome} />
-              <Stack.Screen name="BidInput" component={BidInput} />
               <Stack.Screen name="ConfirmBid" component={ConfirmBid} />
               <Stack.Screen name="Cart" component={CartScreen} />
               <Stack.Screen name="Payment" component={PaymentScreen} />
@@ -209,11 +208,16 @@ export default function App() {
               <Stack.Screen name="OutfitPicker" component={OutfitPickerScreen} />
               <Stack.Screen name="OutfitDetail" component={OutfitDetailScreen} options={{ animation: 'slide_from_right' }} />
 
+              <Stack.Screen name="DonationScreen" component={DonationScreen} />
+
+              
+
               <Stack.Screen name="AddListingScreen" component={AddListingScreen} />
 
-
-
               <Stack.Screen name="FashCollectionScreen" component={FashCollectionScreen} options={{ headerShown: false }} />
+
+              <Stack.Screen name="AuctionListScreen" component={AuctionListScreen} />
+              <Stack.Screen name="AuctionRoomScreen" component={AuctionRoomScreen} options={{ animation: 'slide_from_right' }}/>
 
 
 

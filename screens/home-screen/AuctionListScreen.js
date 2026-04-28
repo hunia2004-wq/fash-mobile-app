@@ -141,7 +141,7 @@ export default function AuctionListScreen({ navigation }) {
 
  
       <View style={styles.logoHeader}>
-        <Image source={require('./images/Blacklogo.png')} style={styles.logo} resizeMode="contain" />
+        <Image source={require('../../source/assets/images/Blacklogo.png')} style={styles.logo} resizeMode="contain" />
       </View>
 
   

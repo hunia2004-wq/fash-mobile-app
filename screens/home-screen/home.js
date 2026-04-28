@@ -127,7 +127,7 @@ function HomeContent() {
             <Text style={styles.bidTime}>2h left</Text>
           </TouchableOpacity>
         </View>
-        <TouchableOpacity style={styles.bidButton} onPress={() => navigation.navigate("BiddingHome")}>
+        <TouchableOpacity style={styles.bidButton} onPress={() => navigation.navigate("AuctionRoomScreen")}>
           <Text style={styles.bidButtonText}>Join the Auction</Text>
         </TouchableOpacity>
       </View>
@@ -136,7 +136,7 @@ function HomeContent() {
       <Text style={[styles.sectionTitle, { marginTop: 24 }]}>FASH Share</Text>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ paddingLeft: 20 }}>
         {sustainabilityItems.map((item) => (
-          <TouchableOpacity key={item.id} style={styles.sustainCard} onPress={() => navigation.navigate("OutfitBuilderscreen")}>
+          <TouchableOpacity key={item.id} style={styles.sustainCard} onPress={() => navigation.navigate("DonationScreen")}>
             <Image source={item.image} style={styles.sustainImage} resizeMode="cover" />
             <Text style={styles.sustainLabel}>{item.label}</Text>
           </TouchableOpacity>
