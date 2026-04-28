@@ -55,9 +55,9 @@ import MarketplaceHome from "./screens/home-screen/MarketplaceHome";
 import ProductDetails from "./screens/home-screen/ProductDetails";
 import AddListingScreen from "./screens/home-screen/addlisting";
 
-import OutfitBuilderscreen from "./screens/home-screen/OutfitBuilderscreen";
-import OutfitPickerScreen from './screens/home-screen/Outfitpickerscreen';
-import OutfitDetailScreen from './screens/home-screen/Outfitdetailscreen';
+import PackingBuilderscreen from "./screens/home-screen/PackingBuilderscreen";
+import PackingPickerScreen from './screens/home-screen/Packingpickerscreen';
+import PackingDetailScreen from './screens/home-screen/Packingdetailscreen';
 
 import DonationScreen from './screens/home-screen/DonationScreen';
 
@@ -204,9 +204,9 @@ export default function App() {
               <Stack.Screen name="MarketplaceHome" component={MarketplaceHome} />
               <Stack.Screen name="ProductDetails" component={ProductDetails} />
 
-              <Stack.Screen name="OutfitBuilderscreen" component={OutfitBuilderscreen} options={{ animation: 'slide_from_bottom' }} />              
-              <Stack.Screen name="OutfitPicker" component={OutfitPickerScreen} />
-              <Stack.Screen name="OutfitDetail" component={OutfitDetailScreen} options={{ animation: 'slide_from_right' }} />
+              <Stack.Screen name="PackingBuilderscreen" component={PackingBuilderscreen} options={{ animation: 'slide_from_bottom' }} />              
+              <Stack.Screen name="PackingPicker" component={PackingPickerScreen} />
+              <Stack.Screen name="PackingDetail" component={PackingDetailScreen} options={{ animation: 'slide_from_right' }} />
 
               <Stack.Screen name="DonationScreen" component={DonationScreen} />
 
@@ -217,7 +217,7 @@ export default function App() {
               <Stack.Screen name="FashCollectionScreen" component={FashCollectionScreen} options={{ headerShown: false }} />
 
               <Stack.Screen name="AuctionListScreen" component={AuctionListScreen} />
-              <Stack.Screen name="AuctionRoomScreen" component={AuctionRoomScreen} options={{ animation: 'slide_from_right' }}/>
+              <Stack.Screen name="AuctionRoomScreen" component={AuctionRoomScreen} />
 
 
 

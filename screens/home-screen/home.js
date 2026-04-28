@@ -18,13 +18,21 @@ function HomeContent() {
  
   const boutiqueItems = [
     { id: '1', label: 'Limited Editions', bid: true, image: require('../../source/assets/images/bidnow.png') },
-    { id: '2', label: 'Newborn\nAccessories', bid: false, image: require('../../source/assets/images/newborn.png') },
-    { id: '3', label: 'Exclusive\nFragrances', bid: false, image: require('../../source/assets/images/perfume.png') },
+    { id: '2', label: 'Newborn Accessories', bid: false, image: require('../../source/assets/images/newborn.png') },
+    { id: '3', label: 'Exclusive Fragrances', bid: false, image: require('../../source/assets/images/perfume.png') },
   ];
  
   const sustainabilityItems = [
-    { id: '1', image: require('../../source/assets/images/packing.png') },
-    { id: '2', image: require('../../source/assets/images/donations.png') },
+    { 
+      id: '1', 
+      image: require('../../source/assets/images/packing.png'),
+      screen: 'PackingBuilderscreen'
+    },
+    { 
+      id: '2', 
+      image: require('../../source/assets/images/donations.png'),
+      screen: 'DonationScreen'
+    },
   ];
  
   return (
@@ -63,7 +71,7 @@ function HomeContent() {
       {/* Digital Closet */}
       <Text style={styles.sectionTitle}>Your Digital Closet</Text>
       <View style={styles.closetRow}>
-      <TouchableOpacity
+        <TouchableOpacity
           style={[styles.closetCard, styles.closetCardActive]}
           onPress={() => navigation.navigate('FashCollectionScreen')}
           activeOpacity={0.85}
@@ -72,36 +80,38 @@ function HomeContent() {
             <Text style={styles.closetCardTitle}>FASH Collection</Text>
             <Text style={styles.closetCardSub}>Shop exclusive{'\n'}drops</Text>
           </View>
-          {/* shopping-bag icon as a styled box — replace with your image if you have one */}
           <View style={styles.collectionIconBox}>
             <Ionicons name="bag-handle-outline" size={28} color="black" />
           </View>
         </TouchableOpacity>
 
-
-        {/* AI Styling */}
+        {/* AI Styling — image constrained to stay inside card */}
         <TouchableOpacity style={styles.closetCard} onPress={() => navigation.navigate("AIStylingScreen")}>
           <View>
             <Text style={styles.closetCardTitle}>AI Styling</Text>
             <Text style={styles.closetCardSub}>Smart Outfit Picks</Text>
           </View>
-          <Image
-            source={require('../../source/assets/images/aistyling.png')}
-            style={styles.closetCardImage}
-            resizeMode="contain"
-          />
+          <View style={styles.aiImageWrapper}>
+            <Image
+              source={require('../../source/assets/images/aistyling.png')}
+              style={styles.aiStylingImage}
+              resizeMode="contain"
+            />
+          </View>
         </TouchableOpacity>
       </View>
  
       {/* Marketplace */}
       <Text style={styles.sectionTitle}>FASH Marketplace</Text>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ paddingLeft: 20 }}>
-        {boutiqueItems.map((item) => (
-          <TouchableOpacity key={item.id} style={styles.boutiqueCard} onPress={() => navigation.navigate("MarketplaceHome")}>
-            <Image source={item.image} style={styles.boutiqueImage} resizeMode="cover" />
-            <Text style={styles.boutiqueLabel}>{item.label}</Text>
-          </TouchableOpacity>
-        ))}
+      {boutiqueItems.map((item) => (
+  <TouchableOpacity key={item.id} style={styles.boutiqueCard} onPress={() => navigation.navigate("MarketplaceHome")}>
+    <Image source={item.image} style={styles.boutiqueImage} resizeMode="cover" />
+    <View style={styles.pillOverlay}>
+      <Text style={styles.pillText}>{item.label}</Text>
+    </View>
+  </TouchableOpacity>
+))}
       </ScrollView>
  
       {/* Live Bidding */}
@@ -119,7 +129,6 @@ function HomeContent() {
             <Text style={styles.bidTime}>1h left</Text>
           </TouchableOpacity>
 
-
           <TouchableOpacity style={styles.auctionCard}>
             <Image source={require('../../source/assets/images/bag.png')} style={styles.auctionImage} resizeMode="contain" />
             <Text style={styles.itemName}>Miu Miu Bag</Text>
@@ -136,7 +145,7 @@ function HomeContent() {
       <Text style={[styles.sectionTitle, { marginTop: 24 }]}>FASH Share</Text>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ paddingLeft: 20 }}>
         {sustainabilityItems.map((item) => (
-          <TouchableOpacity key={item.id} style={styles.sustainCard} onPress={() => navigation.navigate("DonationScreen")}>
+          <TouchableOpacity key={item.id} style={styles.sustainCard} onPress={() => navigation.navigate(item.screen)}>
             <Image source={item.image} style={styles.sustainImage} resizeMode="cover" />
             <Text style={styles.sustainLabel}>{item.label}</Text>
           </TouchableOpacity>
@@ -171,7 +180,7 @@ export default function HomeScreen() {
         }}
       />
  
-      {/* Tab 2 — Wardrobe (was placeholder) */}
+      {/* Tab 2 — Wardrobe */}
       <Tab.Screen
         name="WardrobeTab"
         component={WardrobeScreen}
@@ -182,7 +191,7 @@ export default function HomeScreen() {
         }}
       />
  
-      {/* Tab 3 — Upload (was SearchTab placeholder) */}
+      {/* Tab 3 — Upload */}
       <Tab.Screen
         name="UploadTab"
         component={UploadScreen}
@@ -193,7 +202,7 @@ export default function HomeScreen() {
         }}
       />
  
-      {/* Tab 4 — Saved / Wishlist (was WishList placeholder) */}
+      {/* Tab 4 — Saved / Wishlist */}
       <Tab.Screen
         name="SavedTab"
         component={SavedScreen}
@@ -287,40 +296,6 @@ const styles = StyleSheet.create({
     height:'100%',
   },
 
-  bannerAR:{
-    position:'absolute',
-    top:20,
-    right:20,
-    fontSize:32,
-    fontWeight:'bold',
-    color:'white'
-  },
-
-  bannerFASH:{
-    position:'absolute',
-    top:55,
-    right:20,
-    fontSize:18,
-    fontWeight:'600',
-    color:'white'
-  },
-
-  bannerTrialBadge:{
-    position:'absolute',
-    bottom:16,
-    left:16,
-    backgroundColor:'#333',
-    paddingHorizontal:12,
-    paddingVertical:6,
-    borderRadius:6
-  },
-
-  bannerTrialText:{
-    color:'white',
-    fontWeight:'bold',
-    fontSize:12
-  },
-
   sectionTitle:{
     fontSize:18,
     fontWeight:'600',
@@ -348,14 +323,12 @@ const styles = StyleSheet.create({
     shadowColor:'#000',
     shadowOpacity:0.05,
     shadowRadius:6,
-    elevation:3
+    elevation:3,
+    borderColor: '#F2E6E3',
+    borderWidth: 4,
+    overflow: 'hidden', // prevents image from bleeding outside card
   },
 
-  closetCardImage: {
-    width: width * 0.18,
-    height: width * 0.18,
-  },
-  
   closetCardTitle:{
     fontSize:15,
     fontWeight:'600',
@@ -369,89 +342,72 @@ const styles = StyleSheet.create({
     lineHeight:18
   },
 
-  boutiqueRow:{
-    flexDirection:'row',
-    paddingHorizontal:20,
+  // FIX: constrained wrapper so AI Styling image stays inside the card
+  aiImageWrapper: {
+    width: width * 0.13,
+    height: width * 0.13,
+    flexShrink: 0,
+    overflow: 'hidden',
   },
 
+  aiStylingImage: {
+    width: '100%',
+    height: '100%',
+  },
+
+  collectionIconBox: {
+    flexShrink: 0,
+  },
+
+  // FIX: boutique card now has a white bg and label rendered below the image
   boutiqueCard:{
     width: width * 0.35,
-    height:170,
-    borderRadius:16,
+    height: 170,
+    borderRadius: 16,
+    overflow: 'hidden',
+    marginRight: 12,
+    position: 'relative',
+  },
+  
+  boutiqueImage:{
+    position: 'absolute',
+    width: '100%',
+    height: '100%',
+  },
+  
+  pillOverlay: {
+    position: 'absolute',
+    top: 10,
+    left: 10,
+    backgroundColor: '#F2E6E3',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 20,
+  },
+  
+  pillText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: 'black',
+  },
+  
+  // remove boutiqueLabelBtn and boutiqueLabel entirely
+
+  sustainCard:{
+    width:140,
+    height:120,
+    borderRadius:18,
+    marginRight:12,
     overflow:'hidden',
-    justifyContent:'flex-end',
-    marginRight:12
+    justifyContent:'center',
+    alignItems:'center'
   },
 
-  boutiqueImage:{
+  sustainImage:{
     position:'absolute',
     width:'100%',
     height:'100%'
   },
-
-  heartIcon:{
-    position:'absolute',
-    top:8,
-    right:8
-  },
-
-  boutiqueLabel:{
-    color:'white',
-    fontWeight:'600',
-    fontSize:12,
-    padding:8,
-    textAlign: "center",
-  },
-
-  bidBadge:{
-    position:'absolute',
-    bottom:10,
-    left:10,
-    backgroundColor:'white',
-    paddingHorizontal:10,
-    paddingVertical:4,
-    borderRadius:20
-  },
-
-  bidText:{
-    fontSize:12,
-    fontWeight:'600',
-    color:'#333'
-  },
-
-  dots:{
-    flexDirection:'row',
-    justifyContent:'center',
-    marginTop:10
-  },
-
-  dot:{
-    width:6,
-    height:6,
-    borderRadius:3,
-    backgroundColor:'#ccc',
-    marginHorizontal:4
-  },
-
-  activeDot:{
-    backgroundColor:'#C17C74'
-  },
-
-  sustainCard:{
-  width:140,
-  height:120,
-  borderRadius:18,
-  marginRight:12,
-  overflow:'hidden',
-  justifyContent:'center',
-  alignItems:'center'
-},
-
-sustainImage:{
-  position:'absolute',
-  width:'100%',
-  height:'100%'
-},
 
   sustainLabel:{
     color:'white',
@@ -543,6 +499,12 @@ sustainImage:{
     marginBottom: 20,
     textAlign: "center",
   },
+  
+  bidButton: {
+    borderRadius: 10,
+    overflow: 'hidden',
+  },
+
   bidButtonText: {
     textAlign: "center",
     padding: 15,

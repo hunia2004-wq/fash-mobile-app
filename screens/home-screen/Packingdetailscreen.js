@@ -5,7 +5,7 @@ import {
 } from 'react-native';
 import { Ionicons, Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { COLORS, WARDROBE_ITEMS } from './Outfitdata';
+import { COLORS, WARDROBE_ITEMS } from './Packingdata';
 
 const { width } = Dimensions.get('window');
 

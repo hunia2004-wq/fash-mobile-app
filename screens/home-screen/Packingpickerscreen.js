@@ -5,7 +5,7 @@ import {
 } from 'react-native';
 import { Ionicons, Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { COLORS, COLLECTIONS, WARDROBE_ITEMS } from './Outfitdata';
+import { COLORS, COLLECTIONS, WARDROBE_ITEMS } from './Packingdata';
 
 const { width } = Dimensions.get('window');
 
@@ -129,8 +129,8 @@ export default function OutfitPickerScreen({ navigation }) {
           <Text style={styles.headerSub}>{totalOutfits} outfits · {COLLECTIONS.length} collections</Text>
         </View>
         <TouchableOpacity
-          style={styles.buildBtn}
-          onPress={() => navigation.navigate('OutfitBuilderscreen')}
+          style={styles.buildBtn}Outfit
+          onPress={() => navigation.navigate('PackingBuilderscreen')}
           activeOpacity={0.85}
         >
           <Feather name="plus" size={16} color={COLORS.white} style={{ marginRight: 6 }} />
@@ -158,7 +158,7 @@ export default function OutfitPickerScreen({ navigation }) {
 
         <TouchableOpacity
           style={styles.builderCta}
-          onPress={() => navigation.navigate('OutfitBuilderscreen')}
+          onPress={() => navigation.navigate('PackingBuilderscreen')}
           activeOpacity={0.88}
         >
           <View style={styles.builderCtaLeft}>
