@@ -4,24 +4,25 @@ import { FontAwesome, Ionicons, Feather } from '@expo/vector-icons';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import ProfileScreen from '../profile'; 
 import { useNavigation } from "@react-navigation/native";
+import CartScreen from '../home-screen/CartScreen';
 
 
 import WardrobeScreen from '../digital-wardrobe/wardrobe';
 import UploadScreen from '../uploading/upload';
-import SavedScreen from '../favorites/saved';
+import SavedScreen from '../favorites/wishlist';
  
 const { width } = Dimensions.get('window');
 const Tab = createBottomTabNavigator();
  
 function HomeContent() {
-    const navigation = useNavigation();
- 
+  const navigation = useNavigation();
+
   const boutiqueItems = [
     { id: '1', label: 'Limited Editions', bid: true, image: require('../../source/assets/images/bidnow.png') },
     { id: '2', label: 'Newborn Accessories', bid: false, image: require('../../source/assets/images/newborn.png') },
     { id: '3', label: 'Exclusive Fragrances', bid: false, image: require('../../source/assets/images/perfume.png') },
   ];
- 
+
   const sustainabilityItems = [
     { 
       id: '1', 
@@ -34,10 +35,10 @@ function HomeContent() {
       screen: 'DonationScreen'
     },
   ];
- 
+
   return (
     <ScrollView style={styles.screen} showsVerticalScrollIndicator={false}>
- 
+
       {/* Header */}
       <View style={styles.header}>
         <Image
@@ -46,7 +47,7 @@ function HomeContent() {
           resizeMode="contain"
         />
       </View>
- 
+
       {/* Search */}
       <View style={styles.searchRow}>
         <View style={styles.searchBar}>
@@ -54,11 +55,21 @@ function HomeContent() {
           <TextInput placeholder="Search" style={styles.searchInput} placeholderTextColor="gray" />
           <FontAwesome name="microphone" size={16} color="#C17C74" />
         </View>
+
+        {/* Filter */}
         <TouchableOpacity style={styles.filterBtn}>
           <Feather name="sliders" size={20} color="#C17C74" />
         </TouchableOpacity>
+
+        {/* 🛒 CART ICON ADDED */}
+        <TouchableOpacity
+          style={styles.filterBtn}
+          onPress={() => navigation.navigate('CartScreen')}
+        >
+          <Ionicons name="cart-outline" size={20} color="#C17C74" />
+        </TouchableOpacity>
       </View>
- 
+
       {/* Banner */}
       <View style={styles.banner}>
         <Image
@@ -67,7 +78,7 @@ function HomeContent() {
           resizeMode="cover"
         />
       </View>
- 
+
       {/* Digital Closet */}
       <Text style={styles.sectionTitle}>Your Digital Closet</Text>
       <View style={styles.closetRow}>
@@ -85,8 +96,10 @@ function HomeContent() {
           </View>
         </TouchableOpacity>
 
-        {/* AI Styling — image constrained to stay inside card */}
-        <TouchableOpacity style={styles.closetCard} onPress={() => navigation.navigate("AIStylingScreen")}>
+        <TouchableOpacity
+          style={styles.closetCard}
+          onPress={() => navigation.navigate("AIStylingScreen")}
+        >
           <View>
             <Text style={styles.closetCardTitle}>AI Styling</Text>
             <Text style={styles.closetCardSub}>Smart Outfit Picks</Text>
@@ -100,20 +113,24 @@ function HomeContent() {
           </View>
         </TouchableOpacity>
       </View>
- 
+
       {/* Marketplace */}
       <Text style={styles.sectionTitle}>FASH Marketplace</Text>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ paddingLeft: 20 }}>
       {boutiqueItems.map((item) => (
-  <TouchableOpacity key={item.id} style={styles.boutiqueCard} onPress={() => navigation.navigate("MarketplaceHome")}>
+  <TouchableOpacity
+    key={item.id}
+    style={styles.boutiqueCard}
+    onPress={() => navigation.navigate("MarketplaceHome")}
+  >
     <Image source={item.image} style={styles.boutiqueImage} resizeMode="cover" />
-    <View style={styles.pillOverlay}>
-      <Text style={styles.pillText}>{item.label}</Text>
+    <View style={styles.boutiqueLabelBtn}>
+      <Text style={styles.boutiqueLabel}>{item.label}</Text>
     </View>
   </TouchableOpacity>
 ))}
       </ScrollView>
- 
+
       {/* Live Bidding */}
       <View style={styles.biddingSection}>
         <View style={styles.biddingHeader}>
@@ -121,6 +138,7 @@ function HomeContent() {
           <Text style={styles.biddingTitle}>LIVE BIDDING</Text>
         </View>
         <Text style={styles.biddingSubtitle}>Bid on exclusive pieces before they're gone</Text>
+
         <View style={styles.auctionRow}>
           <TouchableOpacity style={styles.auctionCard}>
             <Image source={require('../../source/assets/images/shoes.png')} style={styles.auctionImage} resizeMode="contain" />
@@ -136,27 +154,34 @@ function HomeContent() {
             <Text style={styles.bidTime}>2h left</Text>
           </TouchableOpacity>
         </View>
-        <TouchableOpacity style={styles.bidButton} onPress={() => navigation.navigate("AuctionRoomScreen")}>
+
+        <TouchableOpacity
+          style={styles.bidButton}
+          onPress={() => navigation.navigate("AuctionRoomScreen")}
+        >
           <Text style={styles.bidButtonText}>Join the Auction</Text>
         </TouchableOpacity>
       </View>
- 
+
       {/* FASH Share */}
       <Text style={[styles.sectionTitle, { marginTop: 24 }]}>FASH Share</Text>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ paddingLeft: 20 }}>
         {sustainabilityItems.map((item) => (
-          <TouchableOpacity key={item.id} style={styles.sustainCard} onPress={() => navigation.navigate(item.screen)}>
+          <TouchableOpacity
+            key={item.id}
+            style={styles.sustainCard}
+            onPress={() => navigation.navigate(item.screen)}
+          >
             <Image source={item.image} style={styles.sustainImage} resizeMode="cover" />
             <Text style={styles.sustainLabel}>{item.label}</Text>
           </TouchableOpacity>
         ))}
       </ScrollView>
- 
+
       <View style={{ height: 30 }} />
     </ScrollView>
   );
 }
-
  
 export default function HomeScreen() {
   return (
@@ -212,8 +237,21 @@ export default function HomeScreen() {
           ),
         }}
       />
+
+      
+      {/* Tab 5 — Cart (NEW) */}
+      <Tab.Screen
+          name="CartTab"
+          component={CartScreen}
+          options={{
+          tabBarIcon: ({ color }) => (
+            <Ionicons name="cart-outline" size={24} color={color} />
+          ),
+        }}
+      />
+
  
-      {/* Tab 5 — Profile */}
+      {/* Tab 6 — Profile */}
       <Tab.Screen
         name="Profile"
         component={ProfileScreen}
@@ -360,35 +398,33 @@ const styles = StyleSheet.create({
   },
 
   // FIX: boutique card now has a white bg and label rendered below the image
-  boutiqueCard:{
+  boutiqueCard: {
     width: width * 0.35,
-    height: 170,
     borderRadius: 16,
     overflow: 'hidden',
     marginRight: 12,
-    position: 'relative',
+    backgroundColor: 'white',
   },
   
-  boutiqueImage:{
-    position: 'absolute',
+  boutiqueImage: {
     width: '100%',
-    height: '100%',
+    height: 155.5,
   },
   
-  pillOverlay: {
-    position: 'absolute',
-    top: 10,
-    left: 10,
-    backgroundColor: '#F2E6E3',
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 20,
+  boutiqueLabelBtn: {
+    backgroundColor: '#F6E9E6',
+    paddingVertical: 10,
+    paddingHorizontal: 8,
+    alignItems: 'center',      // centers horizontally
+    justifyContent: 'center',  // centers vertically
+    minHeight: 40,
   },
   
-  pillText: {
-    fontSize: 11,
-    fontWeight: '600',
+  boutiqueLabel: {
     color: 'black',
+    fontWeight: '400',
+    fontSize: 12,
+    textAlign: 'center',
   },
   
   // remove boutiqueLabelBtn and boutiqueLabel entirely

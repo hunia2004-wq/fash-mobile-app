@@ -21,7 +21,7 @@ import EditProfileScreen from './screens/editpersonal';
 
 import WardrobeScreen from './screens/digital-wardrobe/wardrobe';
 import UploadScreen from './screens/uploading/upload';
-import SavedScreen from './screens/favorites/saved';
+import SavedScreen from './screens/favorites/wishlist';
 
 import SettingsScreen from './screens/settings-screen/settings';
 import AddressScreen from './screens/settings-screen/address';
