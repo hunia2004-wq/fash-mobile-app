@@ -27,6 +27,9 @@
     },
     "plugins": [
       "expo-secure-store"
-    ]
+    ],
+    "extra": {
+      "anthropicApiKey": "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"
+    }
   }
 }

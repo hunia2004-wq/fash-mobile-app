@@ -6,7 +6,6 @@ import ProfileScreen from '../profile';
 import { useNavigation } from "@react-navigation/native";
 import CartScreen from '../home-screen/CartScreen';
 
-
 import WardrobeScreen from '../digital-wardrobe/wardrobe';
 import UploadScreen from '../uploading/upload';
 import SavedScreen from '../favorites/wishlist';
@@ -237,21 +236,8 @@ export default function HomeScreen() {
           ),
         }}
       />
-
-      
-      {/* Tab 5 — Cart (NEW) */}
-      <Tab.Screen
-          name="CartTab"
-          component={CartScreen}
-          options={{
-          tabBarIcon: ({ color }) => (
-            <Ionicons name="cart-outline" size={24} color={color} />
-          ),
-        }}
-      />
-
  
-      {/* Tab 6 — Profile */}
+      {/* Tab 5 — Profile */}
       <Tab.Screen
         name="Profile"
         component={ProfileScreen}

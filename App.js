@@ -7,6 +7,11 @@ import { AuthContext } from './context/AuthContext';
 import { Provider as PaperProvider } from 'react-native-paper'
 import { GalioProvider } from "galio-framework";
 
+import Constants from 'expo-constants';
+
+export const ANTHROPIC_API_KEY = Constants.expoConfig?.extra?.anthropicApiKey || '';
+console.log('KEY CHECK:', ANTHROPIC_API_KEY ? 'YES ✅' : 'NO ❌');
+console.log('Full extra config:', Constants.expoConfig?.extra);
 
 import LoginScreen from './screens/login';
 import SignupScreen from './screens/signup';

@@ -16,6 +16,7 @@ Dimensions,
 } from 'react-native';
 import { Ionicons, Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { ANTHROPIC_API_KEY } from '../../App';
 
 const { width } = Dimensions.get('window');
 
@@ -56,7 +57,6 @@ const SUGGESTIONS = [
 { icon: '✈️', label: 'Travel outfit' },
 ];
 
-
 const callAIStylist = async (userMessage, conversationHistory) => {
   const wardrobeList = WARDROBE_ITEMS.map(
     (item) => `- ${item.name} (${item.category}, ${item.color}, ${item.brand})`
@@ -67,9 +67,11 @@ const callAIStylist = async (userMessage, conversationHistory) => {
 Wardrobe:
 ${wardrobeList}
 
-Respond only with outfit JSON wrapped in <outfit> tags.`;
+When suggesting outfits, respond with your advice as text, and include outfit suggestions wrapped in <outfit> tags as JSON like:
+<outfit>{"title": "Casual Day Out", "items": ["White Linen Shirt", "High-Waist Beige Trousers"], "tip": "Add gold hoops to elevate the look"}</outfit>`;
 
   const messages = [
+    { role: 'system', content: systemPrompt },
     ...conversationHistory.map((m) => ({
       role: m.role,
       content: m.content,
@@ -77,25 +79,35 @@ Respond only with outfit JSON wrapped in <outfit> tags.`;
     { role: 'user', content: userMessage },
   ];
 
-  const response = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-api-key': process.env.ANTHROPIC_API_KEY,
-      'anthropic-version': '2023-06-01',
-    },
-    body: JSON.stringify({
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: 1000,
-      system: systemPrompt,
-      messages: messages,
-    }),
-  });
+  try {
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${OPENAI_API_KEY}`, // using local variable
+      },
+    
+      body: JSON.stringify({
+        model: 'gpt-4o-mini',
+        max_tokens: 1000,
+        messages: messages,
+      }),
+    });
 
-  const data = await response.json();
-  return data?.content?.[0]?.text || 'Sorry, error occurred.';
+    const data = await response.json();
+    console.log('Full API response:', JSON.stringify(data, null, 2));
+
+    if (!response.ok) {
+      console.error('API Error:', data.error);
+      return `API Error: ${data.error?.message || 'Unknown error'}`;
+    }
+
+    return data?.choices?.[0]?.message?.content || 'No response from stylist.';
+  } catch (err) {
+    console.error('Network/fetch error:', err);
+    return `Network error: ${err.message}`;
+  }
 };
-
 const parseAIResponse = (rawText) => {
 const outfitRegex = /<outfit>([\s\S]*?)<\/outfit>/g;
 const outfits = [];
