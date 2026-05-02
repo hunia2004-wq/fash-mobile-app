@@ -4,7 +4,7 @@ import { FontAwesome, Ionicons, Feather } from '@expo/vector-icons';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import ProfileScreen from '../profile'; 
 import { useNavigation } from "@react-navigation/native";
-import CartScreen from '../home-screen/CartScreen';
+
 
 import WardrobeScreen from '../digital-wardrobe/wardrobe';
 import UploadScreen from '../uploading/upload';
