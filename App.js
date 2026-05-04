@@ -212,17 +212,16 @@ export default function App() {
               <Stack.Screen name="PackingBuilderscreen" component={PackingBuilderscreen} options={{ animation: 'slide_from_bottom' }} />              
               <Stack.Screen name="PackingPicker" component={PackingPickerScreen} />
               <Stack.Screen name="PackingDetail" component={PackingDetailScreen} options={{ animation: 'slide_from_right' }} />
-
               <Stack.Screen name="DonationScreen" component={DonationScreen} />
-
-              
 
               <Stack.Screen name="AddListingScreen" component={AddListingScreen} />
 
               <Stack.Screen name="FashCollectionScreen" component={FashCollectionScreen} options={{ headerShown: false }} />
 
               <Stack.Screen name="AuctionListScreen" component={AuctionListScreen} />
-              <Stack.Screen name="AuctionRoomScreen" component={AuctionRoomScreen} />
+              <Stack.Screen name="AuctionRoomScreen" component={AuctionRoomScreen} 
+              initialParams={{ auctionId: null }}
+              options={{ animation: 'slide_from_right' }}/>
 
 
 

@@ -6,8 +6,7 @@ import {
 } from 'react-native';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { COLORS, MOCK_AUCTIONS, MOCK_BIDS } from './Biddingdata';
-
+import {COLORS, MOCK_AUCTIONS, MOCK_BIDS} from './Biddingdata';
 const { width } = Dimensions.get('window');
 const QUICK = [5, 10, 25, 50];
 
@@ -51,7 +50,12 @@ const BidRow = ({ bid, isTop, isMe }) => {
   }, []);
 
   return (
-    <Animated.View style={[styles.bidRow, isTop && styles.bidRowTop, isMe && styles.bidRowMe, { opacity: fade, transform: [{ translateY: slide }] }]}>
+    <Animated.View style={[
+      styles.bidRow,
+      isTop && styles.bidRowTop,
+      isMe && styles.bidRowMe,
+      { opacity: fade, transform: [{ translateY: slide }] },
+    ]}>
       <View style={[styles.bidAvatar, isTop && styles.bidAvatarTop]}>
         <Text style={[styles.bidAvatarText, isTop && { color: COLORS.white }]}>
           {bid.userName.charAt(0).toUpperCase()}
@@ -72,16 +76,21 @@ const BidRow = ({ bid, isTop, isMe }) => {
 };
 
 export default function AuctionRoomScreen({ navigation, route }) {
-  const { auctionId } = route.params;
-  const [auction, setAuction] = useState(MOCK_AUCTIONS.find((a) => a.id === auctionId) || null);
-  const [bids, setBids] = useState(MOCK_BIDS[auctionId] || []);
+  // Safe param extraction — won't crash if params is undefined
+  const auctionId = route && route.params && route.params.auctionId ? route.params.auctionId : null;
+
+  const foundAuction = auctionId ? MOCK_AUCTIONS.find((a) => a.id === auctionId) : MOCK_AUCTIONS[0];
+
+  const [auction, setAuction] = useState(foundAuction || null);
+  const [bids, setBids] = useState(auctionId && MOCK_BIDS[auctionId] ? MOCK_BIDS[auctionId] : (foundAuction && MOCK_BIDS[foundAuction.id] ? MOCK_BIDS[foundAuction.id] : []));
   const [myBids, setMyBids] = useState([]);
   const [bidInput, setBidInput] = useState('');
   const [placing, setPlacing] = useState(false);
   const successAnim = useRef(new Animated.Value(0)).current;
   const scrollRef = useRef(null);
-  const countdown = useCountdown(auction ? auction.endsAt : new Date().toISOString());
 
+  const endsAt = auction ? auction.endsAt : new Date().toISOString();
+  const countdown = useCountdown(endsAt);
   const isLeading = myBids.length > 0 && bids[0] && bids[0].userName === 'You';
   const isEnded = countdown.ended;
   const suggested = auction ? auction.currentBid + 5 : 0;
@@ -96,27 +105,53 @@ export default function AuctionRoomScreen({ navigation, route }) {
 
   const placeBid = (amount) => {
     const val = parseFloat(amount || bidInput);
-    if (!val || val <= 0) { Alert.alert('Invalid bid', 'Please enter a valid amount.'); return; }
-    if (val <= auction.currentBid) { Alert.alert('Bid too low', 'Must be higher than $' + auction.currentBid); return; }
-
+    if (!val || val <= 0) {
+      Alert.alert('Invalid bid', 'Please enter a valid amount.');
+      return;
+    }
+    if (val <= auction.currentBid) {
+      Alert.alert('Bid too low', 'Must be higher than $' + auction.currentBid);
+      return;
+    }
     setPlacing(true);
     setTimeout(() => {
-      const newBid = { id: 'new_' + Date.now(), userName: 'You', amount: val, createdAt: new Date().toISOString() };
+      const newBid = {
+        id: 'new_' + Date.now(),
+        userName: 'You',
+        amount: val,
+        createdAt: new Date().toISOString(),
+      };
       setBids((prev) => [newBid, ...prev]);
       setMyBids((prev) => [...prev, newBid]);
-      setAuction((prev) => ({ ...prev, currentBid: val, currentBidderName: 'You', bidCount: prev.bidCount + 1 }));
+      setAuction((prev) => ({
+        ...prev,
+        currentBid: val,
+        currentBidderName: 'You',
+        bidCount: prev.bidCount + 1,
+      }));
       setBidInput('');
       setPlacing(false);
       showSuccess();
-      setTimeout(() => scrollRef.current && scrollRef.current.scrollTo({ y: 0, animated: true }), 100);
+      if (scrollRef.current) scrollRef.current.scrollTo({ y: 0, animated: true });
     }, 600);
   };
 
   if (!auction) {
     return (
-      <SafeAreaView style={styles.safe}>
+      <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
+        <View style={styles.topNav}>
+          <TouchableOpacity style={styles.navBtn} onPress={() => navigation.goBack()} activeOpacity={0.8}>
+            <Ionicons name="arrow-back" size={20} color={COLORS.text} />
+          </TouchableOpacity>
+          <Text style={styles.navTitle}>Auction</Text>
+          <View style={{ width: 40 }} />
+        </View>
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-          <Text style={{ color: COLORS.muted }}>Auction not found.</Text>
+          <MaterialCommunityIcons name="hammer" size={48} color={COLORS.accent} />
+          <Text style={{ color: COLORS.muted, marginTop: 12, fontSize: 15 }}>Auction not found</Text>
+          <TouchableOpacity onPress={() => navigation.goBack()} style={{ marginTop: 20 }}>
+            <Text style={{ color: COLORS.accent, fontWeight: '700' }}>Go Back</Text>
+          </TouchableOpacity>
         </View>
       </SafeAreaView>
     );
@@ -156,8 +191,14 @@ export default function AuctionRoomScreen({ navigation, route }) {
                 <Text style={styles.imagePlaceholderBrand}>{auction.brand}</Text>
               </View>
             )}
-            <View style={[styles.condOverlay, { backgroundColor: auction.condition === 'Like New' ? '#e8f5e9' : '#fff8e1' }]}>
-              <Text style={[styles.condOverlayText, { color: auction.condition === 'Like New' ? '#388e3c' : '#f9a825' }]}>
+            <View style={[
+              styles.condOverlay,
+              { backgroundColor: auction.condition === 'Like New' ? '#e8f5e9' : '#fff8e1' },
+            ]}>
+              <Text style={[
+                styles.condOverlayText,
+                { color: auction.condition === 'Like New' ? '#388e3c' : '#f9a825' },
+              ]}>
                 {auction.condition}
               </Text>
             </View>
@@ -177,7 +218,9 @@ export default function AuctionRoomScreen({ navigation, route }) {
               <View>
                 <Text style={styles.bidInfoLabel}>Current bid</Text>
                 <Text style={styles.currentBid}>${auction.currentBid}</Text>
-                <Text style={styles.currentBidder}>{isLeading ? 'You are leading!' : 'by ' + auction.currentBidderName}</Text>
+                <Text style={styles.currentBidder}>
+                  {isLeading ? 'You are leading!' : 'by ' + auction.currentBidderName}
+                </Text>
               </View>
               <View style={styles.statsBox}>
                 <Text style={styles.statsNumber}>{auction.bidCount}</Text>
@@ -196,7 +239,9 @@ export default function AuctionRoomScreen({ navigation, route }) {
             ) : (
               <View style={styles.endedBanner}>
                 <Ionicons name="checkmark-circle" size={18} color={COLORS.success} />
-                <Text style={styles.endedText}>{isLeading ? 'You won this auction!' : 'Auction has ended'}</Text>
+                <Text style={styles.endedText}>
+                  {isLeading ? 'You won this auction!' : 'Auction has ended'}
+                </Text>
               </View>
             )}
           </View>
@@ -228,7 +273,9 @@ export default function AuctionRoomScreen({ navigation, route }) {
           pointerEvents="none"
           style={[styles.toast, {
             opacity: successAnim,
-            transform: [{ translateY: successAnim.interpolate({ inputRange: [0, 1], outputRange: [20, 0] }) }],
+            transform: [{
+              translateY: successAnim.interpolate({ inputRange: [0, 1], outputRange: [20, 0] }),
+            }],
           }]}
         >
           <Ionicons name="checkmark-circle" size={16} color={COLORS.white} />
@@ -239,7 +286,13 @@ export default function AuctionRoomScreen({ navigation, route }) {
           <View style={styles.bidBar}>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.quickRow}>
               {QUICK.map((inc) => (
-                <TouchableOpacity key={inc} style={styles.quickBtn} onPress={() => placeBid(auction.currentBid + inc)} disabled={placing} activeOpacity={0.8}>
+                <TouchableOpacity
+                  key={inc}
+                  style={styles.quickBtn}
+                  onPress={() => placeBid(auction.currentBid + inc)}
+                  disabled={placing}
+                  activeOpacity={0.8}
+                >
                   <Text style={styles.quickText}>+${inc}</Text>
                 </TouchableOpacity>
               ))}
