@@ -211,8 +211,8 @@ const styles = StyleSheet.create({
     paddingVertical: 7, 
     borderRadius: 20, 
     borderWidth: 1, 
-    borderColor: '#C17C74', 
-    backgroundColor: 'white',
+    borderColor: 'rgba(193,124,116,0.18)', 
+    backgroundColor: '#F2E6E3',
   },
 
   chipActive: { 

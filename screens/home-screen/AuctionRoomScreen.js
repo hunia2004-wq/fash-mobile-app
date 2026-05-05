@@ -165,6 +165,7 @@ export default function AuctionRoomScreen({ navigation, route }) {
         <TouchableOpacity style={styles.navBtn} onPress={() => navigation.goBack()} activeOpacity={0.8}>
           <Ionicons name="arrow-back" size={20} color={COLORS.text} />
         </TouchableOpacity>
+        
         <View style={styles.navCenter}>
           {!isEnded && (
             <View style={styles.livePill}>

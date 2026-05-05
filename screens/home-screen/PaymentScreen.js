@@ -5,6 +5,7 @@ import {
 } from 'react-native';
 import { Ionicons, Feather } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useCart } from '../../context/CartContext';
 
 const COLORS = {
   bg: '#F5F5F5',
@@ -56,6 +57,7 @@ const formatCardNumber = (text) => {
 
 export default function PaymentScreen({ navigation, route }) {
   const { items = [], total = 0 } = route.params || {};
+  const safeTotal = parseFloat(total) || 0;
   const [paymentMethod, setPaymentMethod] = useState('card');
   const [placing, setPlacing] = useState(false);
   const [orderSuccess, setOrderSuccess] = useState(false);
@@ -68,6 +70,8 @@ export default function PaymentScreen({ navigation, route }) {
   const [address, setAddress] = useState('');
   const [city, setCity] = useState('');
   const [phone, setPhone] = useState('');
+
+  const { clearCart } = useCart();
 
   const formatExpiry = (text) => {
     const cleaned = text.replace(/\D/g, '');
@@ -86,6 +90,12 @@ export default function PaymentScreen({ navigation, route }) {
       Alert.alert('Missing info', 'Please fill in all required fields.');
       return;
     }
+
+    setTimeout(() => {
+      setPlacing(false);
+      clearCart();        // ← add this
+      setOrderSuccess(true);
+    }, 1500);
 
     setPlacing(true);
 
@@ -114,6 +124,7 @@ export default function PaymentScreen({ navigation, route }) {
     }, 1500);
   };
 
+  //Order Placed Success Screen
   if (orderSuccess) {
     return (
       <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
@@ -130,7 +141,7 @@ export default function PaymentScreen({ navigation, route }) {
           <View style={styles.successDetails}>
             <View style={styles.successRow}>
               <Text style={styles.successLabel}>Total paid</Text>
-              <Text style={styles.successValue}>EGP {total.toFixed(2)}</Text>
+              <Text style={styles.successValue}>EGP {safeTotal.toFixed(2)}</Text>
             </View>
             <View style={styles.successRow}>
               <Text style={styles.successLabel}>Payment</Text>
@@ -144,10 +155,10 @@ export default function PaymentScreen({ navigation, route }) {
 
           <TouchableOpacity
             style={styles.backToShopBtn}
-            onPress={() => navigation.navigate('MarketplaceHome')}
+            onPress={() => navigation.reset({ index: 0, routes: [{ name: 'Home' }] })}
             activeOpacity={0.85}
           >
-            <Text style={styles.backToShopBtnText}>Back to Marketplace</Text>
+            <Text style={styles.backToShopBtnText}>Back to Home</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
@@ -182,7 +193,7 @@ export default function PaymentScreen({ navigation, route }) {
             <View style={styles.orderDivider} />
             <View style={styles.orderItem}>
               <Text style={styles.orderTotalLabel}>Total</Text>
-              <Text style={styles.orderTotalValue}>EGP {total.toFixed(2)}</Text>
+              <Text style={styles.orderTotalValue}>EGP {safeTotal.toFixed(2)}</Text>
             </View>
           </View>
 
@@ -304,7 +315,7 @@ export default function PaymentScreen({ navigation, route }) {
               <>
                 <Ionicons name="checkmark-circle-outline" size={18} color={COLORS.white} style={{ marginRight: 8 }} />
                 <Text style={styles.placeOrderText}>
-                  Place Order · EGP {total.toFixed(2)}
+                  Place Order · EGP {safeTotal.toFixed(2)}
                 </Text>
               </>
             )}

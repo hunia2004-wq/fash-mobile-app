@@ -114,6 +114,11 @@ export default function AuctionListScreen({ navigation }) {
       <View style={styles.header}>
         <View>
           <View style={styles.titleRow}>
+          <View style={styles.topNav}>
+        <TouchableOpacity style={styles.navBtn} onPress={() => navigation.goBack()} activeOpacity={0.8}>
+          <Ionicons name="arrow-back" size={20} color={COLORS.text} />
+        </TouchableOpacity>
+        </View>
             <View style={styles.liveIndicator}>
               <View style={styles.livePulse} />
             </View>
@@ -183,6 +188,9 @@ const styles = StyleSheet.create({
   logoWrap: { paddingBottom: 10, alignItems: 'center' },
   logo: { width: 120, height: 50 },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, marginBottom: 14 },
+  topNav: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 12,  borderBottomWidth: 1, borderBottomColor: COLORS.border },
+  navBtn: { width: 40, height: 40, borderRadius: 12, backgroundColor: COLORS.card, alignItems: 'center', justifyContent: 'center' },
+  navCenter: { flex: 1, alignItems: 'center', gap: 3 },
   titleRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 3 },
   liveIndicator: { width: 12, height: 12, borderRadius: 6, backgroundColor: COLORS.liveLight, alignItems: 'center', justifyContent: 'center' },
   livePulse: { width: 7, height: 7, borderRadius: 3.5, backgroundColor: COLORS.live },

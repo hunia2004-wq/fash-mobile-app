@@ -4,30 +4,20 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import * as SecureStore from 'expo-secure-store';
 import { AuthContext } from './context/AuthContext';
-import { Provider as PaperProvider } from 'react-native-paper'
-import { GalioProvider } from "galio-framework";
-
+import { Provider as PaperProvider } from 'react-native-paper';
+import { GalioProvider } from 'galio-framework';
+import { CartProvider } from './context/CartContext';
 import Constants from 'expo-constants';
 
 export const ANTHROPIC_API_KEY = Constants.expoConfig?.extra?.anthropicApiKey || '';
-console.log('KEY CHECK:', ANTHROPIC_API_KEY ? 'YES ✅' : 'NO ❌');
-console.log('Full extra config:', Constants.expoConfig?.extra);
 
 import LoginScreen from './screens/login';
 import SignupScreen from './screens/signup';
 import ForgotPasswordScreen from './screens/forgotpassword';
 import VerificationScreen from './screens/verification';
 import WelcomeScreen from './screens/welcome';
-
 import HomeScreen from './screens/home-screen/home';
-import ProfileScreen from './screens/profile';
-
 import EditProfileScreen from './screens/editpersonal';
-
-import WardrobeScreen from './screens/digital-wardrobe/wardrobe';
-import UploadScreen from './screens/uploading/upload';
-import SavedScreen from './screens/favorites/wishlist';
-
 import SettingsScreen from './screens/settings-screen/settings';
 import AddressScreen from './screens/settings-screen/address';
 import CardsScreen from './screens/settings-screen/cards';
@@ -37,45 +27,33 @@ import NotificationsScreen from './screens/settings-screen/notifications';
 import PrivacyScreen from './screens/settings-screen/privacy';
 import ChangePasswordScreen from './screens/settings-screen/password';
 import VerifyEmailScreen from './screens/settings-screen/verifyemail';
-
 import OrdersScreen from './screens/orders-screen/orders';
 import OrderDetailScreen from './screens/orders-screen/orderdteails';
-
 import SecurityScreen from './screens/security-screens/securitymain';
 import TwoFactorAuthScreen from './screens/security-screens/twofa';
 import LoginDevicesScreen from './screens/security-screens/devices';
 import ConnectedAccountsScreen from './screens/security-screens/accounts';
-
 import SupportScreen from './screens/support-screens/supportmain';
 import ContactSupportScreen from './screens/support-screens/contact';
 import FAQScreen from './screens/support-screens/faq';
-
-import AIStyling from "./screens/home-screen/AIStylingScreen";
-import ConfirmBid from "./screens/home-screen/ConfirmBid";
-
-import CartScreen from "./screens/home-screen/CartScreen";
-import PaymentScreen from "./screens/home-screen/PaymentScreen";
-
-import MarketplaceHome from "./screens/home-screen/MarketplaceHome";
-import ProductDetails from "./screens/home-screen/ProductDetails";
-import AddListingScreen from "./screens/home-screen/addlisting";
-
-import PackingBuilderscreen from "./screens/home-screen/PackingBuilderscreen";
+import AIStyling from './screens/home-screen/AIStylingScreen';
+import ConfirmBid from './screens/home-screen/ConfirmBid';
+import CartScreen from './screens/home-screen/CartScreen';
+import PaymentScreen from './screens/home-screen/PaymentScreen';
+import MarketplaceHome from './screens/home-screen/MarketplaceHome';
+import ProductDetails from './screens/home-screen/ProductDetails';
+import AddListingScreen from './screens/home-screen/addlisting';
+import PackingBuilderscreen from './screens/home-screen/PackingBuilderscreen';
 import PackingPickerScreen from './screens/home-screen/Packingpickerscreen';
 import PackingDetailScreen from './screens/home-screen/Packingdetailscreen';
-
 import DonationScreen from './screens/home-screen/DonationScreen';
-
 import FashCollectionScreen from './screens/home-screen/fashcollection';
-
 import AuctionListScreen from './screens/home-screen/AuctionListScreen';
 import AuctionRoomScreen from './screens/home-screen/AuctionRoomScreen';
-
+import MainCart from './screens/home-screen/MainCart';
 import { logout } from './services/authService';
 
-
 const Stack = createNativeStackNavigator();
-
 
 function SplashScreen() {
   return (
@@ -109,7 +87,7 @@ export default function App() {
       try {
         userToken = await SecureStore.getItemAsync('userToken');
       } catch (e) {
-        console.warn("Failed to restore token:", e);
+        console.warn('Failed to restore token:', e);
       }
       dispatch({ type: 'RESTORE_TOKEN', token: userToken });
     };
@@ -119,14 +97,12 @@ export default function App() {
   const authContext = React.useMemo(() => ({
     logIn: async (token) => {
       try {
-        await SecureStore.setItemAsync("userToken", token);
+        await SecureStore.setItemAsync('userToken', token);
+      } catch (e) {
+        console.warn('Failed to save token:', e);
       }
-      catch (e) {
-        console.warn("Failed to save token:", e);
-      }
-       dispatch({ type: 'LOG_IN', token});
+      dispatch({ type: 'LOG_IN', token });
     },
-
     logOut: async () => {
       try {
         const token = await SecureStore.getItemAsync('userToken');
@@ -138,100 +114,80 @@ export default function App() {
         dispatch({ type: 'LOG_OUT' });
       }
     },
-
-    getToken: async() =>{
+    getToken: async () => {
       try {
-        return await SecureStore.getItemAsync("userToken");
-      }
-      catch {
+        return await SecureStore.getItemAsync('userToken');
+      } catch {
         return null;
       }
     },
   }), []);
 
-  if (state.isLoading) 
-    return <SplashScreen />;
-  
+  if (state.isLoading) return <SplashScreen />;
+
   return (
     <GalioProvider>
-    <PaperProvider>
-      <AuthContext.Provider value={authContext}>
-        <NavigationContainer>
-        <Stack.Navigator screenOptions={{ headerShown: false }}>
-          {state.userToken == null ? (
-            <>
-              <Stack.Screen name="Welcome" component={WelcomeScreen} />
-              <Stack.Screen name="Login" component={LoginScreen}
-                options={{
-                  animationTypeForReplace: state.isLogOut ? 'pop' : 'push',
-                }}
-              />
-
-              <Stack.Screen name="Signup" component={SignupScreen} />
-              <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
-              <Stack.Screen name="Verification" component={VerificationScreen} />
-
-              </>
-          ) : (
-            <>
-              <Stack.Screen name="Home" component={HomeScreen} />
-
-
-              <Stack.Screen name="EditProfileScreen" component={EditProfileScreen} />
-
-              <Stack.Screen name="SettingsScreen" component={SettingsScreen} options={{ headerShown: false }} />
-              <Stack.Screen name="AddressScreen" component={AddressScreen} options={{ headerShown: false }} />
-              <Stack.Screen name="CardsScreen" component={CardsScreen} options={{ headerShown: false }} />
-              <Stack.Screen name="EmailScreen" component={EmailScreen} options={{ headerShown: false }} />
-              <Stack.Screen name="LanguagesScreen" component={LanguagesScreen} options={{ headerShown: false }} />
-              <Stack.Screen name="NotificationsScreen" component={NotificationsScreen} options={{ headerShown: false }} />
-              <Stack.Screen name="PrivacyScreen" component={PrivacyScreen} options={{ headerShown: false }} />
-              <Stack.Screen name="ChangePasswordScreen" component={ChangePasswordScreen} />
-              <Stack.Screen name="VerifyEmailScreen" component={VerifyEmailScreen} options={{ headerShown: false }} />
-
-             
-              <Stack.Screen name="OrdersScreen" component={OrdersScreen} />
-              <Stack.Screen name="OrderDetailScreen" component={OrderDetailScreen} />
-
-              <Stack.Screen name="SecurityScreen" component={SecurityScreen} options={{ headerShown: false }} />
-              <Stack.Screen name="TwoFactorAuthScreen" component={TwoFactorAuthScreen} options={{ headerShown: false }} />
-              <Stack.Screen name="LoginDevicesScreen" component={LoginDevicesScreen} options={{ headerShown: false }} />
-              <Stack.Screen name="ConnectedAccountsScreen" component={ConnectedAccountsScreen} options={{ headerShown: false }} />
-
-              <Stack.Screen name="SupportScreen" component={SupportScreen} options={{ headerShown: false }} />
-              <Stack.Screen name="ContactSupportScreen" component={ContactSupportScreen} options={{ headerShown: false }} />
-              <Stack.Screen name="FAQScreen" component={FAQScreen} options={{ headerShown: false }} />
-
-              <Stack.Screen name="AIStylingScreen" component={AIStyling} />
-              <Stack.Screen name="ConfirmBid" component={ConfirmBid} />
-              <Stack.Screen name="Cart" component={CartScreen} />
-              <Stack.Screen name="Payment" component={PaymentScreen} />
-              <Stack.Screen name="MarketplaceHome" component={MarketplaceHome} />
-              <Stack.Screen name="ProductDetails" component={ProductDetails} />
-
-              <Stack.Screen name="PackingBuilderscreen" component={PackingBuilderscreen} options={{ animation: 'slide_from_bottom' }} />              
-              <Stack.Screen name="PackingPicker" component={PackingPickerScreen} />
-              <Stack.Screen name="PackingDetail" component={PackingDetailScreen} options={{ animation: 'slide_from_right' }} />
-              <Stack.Screen name="DonationScreen" component={DonationScreen} />
-
-              <Stack.Screen name="AddListingScreen" component={AddListingScreen} />
-
-              <Stack.Screen name="FashCollectionScreen" component={FashCollectionScreen} options={{ headerShown: false }} />
-
-              <Stack.Screen name="AuctionListScreen" component={AuctionListScreen} />
-              <Stack.Screen name="AuctionRoomScreen" component={AuctionRoomScreen} 
-              initialParams={{ auctionId: null }}
-              options={{ animation: 'slide_from_right' }}/>
-
-
-
-              </>
-)}
-        </Stack.Navigator>
-      </NavigationContainer>
-    </AuthContext.Provider>
-  </PaperProvider>
-</GalioProvider>
-  
+      <PaperProvider>
+        <AuthContext.Provider value={authContext}>
+          <CartProvider>
+            <NavigationContainer>
+              <Stack.Navigator screenOptions={{ headerShown: false }}>
+                {state.userToken == null ? (
+                  <>
+                    <Stack.Screen name="Welcome" component={WelcomeScreen} />
+                    <Stack.Screen
+                      name="Login"
+                      component={LoginScreen}
+                      options={{ animationTypeForReplace: state.isLogOut ? 'pop' : 'push' }}
+                    />
+                    <Stack.Screen name="Signup" component={SignupScreen} />
+                    <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
+                    <Stack.Screen name="Verification" component={VerificationScreen} />
+                  </>
+                ) : (
+                  <>
+                    <Stack.Screen name="Home" component={HomeScreen} />
+                    <Stack.Screen name="EditProfileScreen" component={EditProfileScreen} />
+                    <Stack.Screen name="SettingsScreen" component={SettingsScreen} />
+                    <Stack.Screen name="AddressScreen" component={AddressScreen} />
+                    <Stack.Screen name="CardsScreen" component={CardsScreen} />
+                    <Stack.Screen name="EmailScreen" component={EmailScreen} />
+                    <Stack.Screen name="LanguagesScreen" component={LanguagesScreen} />
+                    <Stack.Screen name="NotificationsScreen" component={NotificationsScreen} />
+                    <Stack.Screen name="PrivacyScreen" component={PrivacyScreen} />
+                    <Stack.Screen name="ChangePasswordScreen" component={ChangePasswordScreen} />
+                    <Stack.Screen name="VerifyEmailScreen" component={VerifyEmailScreen} />
+                    <Stack.Screen name="OrdersScreen" component={OrdersScreen} />
+                    <Stack.Screen name="OrderDetailScreen" component={OrderDetailScreen} />
+                    <Stack.Screen name="SecurityScreen" component={SecurityScreen} />
+                    <Stack.Screen name="TwoFactorAuthScreen" component={TwoFactorAuthScreen} />
+                    <Stack.Screen name="LoginDevicesScreen" component={LoginDevicesScreen} />
+                    <Stack.Screen name="ConnectedAccountsScreen" component={ConnectedAccountsScreen} />
+                    <Stack.Screen name="SupportScreen" component={SupportScreen} />
+                    <Stack.Screen name="ContactSupportScreen" component={ContactSupportScreen} />
+                    <Stack.Screen name="FAQScreen" component={FAQScreen} />
+                    <Stack.Screen name="AIStylingScreen" component={AIStyling} />
+                    <Stack.Screen name="ConfirmBid" component={ConfirmBid} />
+                    <Stack.Screen name="Cart" component={CartScreen} />
+                    <Stack.Screen name="Payment" component={PaymentScreen} />
+                    <Stack.Screen name="MarketplaceHome" component={MarketplaceHome} />
+                    <Stack.Screen name="ProductDetails" component={ProductDetails} />
+                    <Stack.Screen name="AddListingScreen" component={AddListingScreen} />
+                    <Stack.Screen name="PackingBuilderscreen" component={PackingBuilderscreen} options={{ animation: 'slide_from_bottom' }} />
+                    <Stack.Screen name="PackingPicker" component={PackingPickerScreen} />
+                    <Stack.Screen name="PackingDetail" component={PackingDetailScreen} options={{ animation: 'slide_from_right' }} />
+                    <Stack.Screen name="DonationScreen" component={DonationScreen} />
+                    <Stack.Screen name="FashCollectionScreen" component={FashCollectionScreen} />
+                    <Stack.Screen name="AuctionListScreen" component={AuctionListScreen} />
+                    <Stack.Screen name="AuctionRoomScreen" component={AuctionRoomScreen} initialParams={{ auctionId: null }} options={{ animation: 'slide_from_right' }} />
+                    <Stack.Screen name="MainCart" component={MainCart} />
+                  </>
+                )}
+              </Stack.Navigator>
+            </NavigationContainer>
+          </CartProvider>
+        </AuthContext.Provider>
+      </PaperProvider>
+    </GalioProvider>
   );
 }

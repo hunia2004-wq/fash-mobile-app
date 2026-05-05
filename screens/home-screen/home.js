@@ -60,10 +60,10 @@ function HomeContent() {
           <Feather name="sliders" size={20} color="#C17C74" />
         </TouchableOpacity>
 
-        {/* 🛒 CART ICON ADDED */}
+        {/* CART ICON ADDED */}
         <TouchableOpacity
           style={styles.filterBtn}
-          onPress={() => navigation.navigate('CartScreen')}
+          onPress={() => navigation.navigate('MainCart')}
         >
           <Ionicons name="cart-outline" size={20} color="#C17C74" />
         </TouchableOpacity>
@@ -139,9 +139,9 @@ function HomeContent() {
         <Text style={styles.biddingSubtitle}>Bid on exclusive pieces before they're gone</Text>
 
         <View style={styles.auctionRow}>
-          <TouchableOpacity style={styles.auctionCard}>
+          <TouchableOpacity style={styles.auctionCard} onPress={() => navigation.navigate('AuctionRoomScreen')}>
             <Image source={require('../../source/assets/images/shoes.png')} style={styles.auctionImage} resizeMode="contain" />
-            <Text style={styles.itemName}>YSL Heels</Text>
+            <Text style={styles.itemName}>YSL Tribute Heels</Text>
             <Text style={styles.bidPrice}>Current bid: $400</Text>
             <Text style={styles.bidTime}>1h left</Text>
           </TouchableOpacity>
@@ -156,7 +156,7 @@ function HomeContent() {
 
         <TouchableOpacity
           style={styles.bidButton}
-          onPress={() => navigation.navigate("AuctionRoomScreen")}
+          onPress={() => navigation.navigate("AuctionListScreen")}
         >
           <Text style={styles.bidButtonText}>Join the Auction</Text>
         </TouchableOpacity>

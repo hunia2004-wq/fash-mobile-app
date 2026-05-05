@@ -19,23 +19,26 @@ const { width } = Dimensions.get('window');
 const InfoPill = ({ label, value }) => (
   <View style={styles.infoPill}>
     <Text style={styles.infoPillLabel}>{label}</Text>
-    <Text style={styles.infoPillValue}>{value}</Text>
+    <Text style={styles.infoPillValue}>{value ?? '—'}</Text>
   </View>
 );
 
-const StarRating = ({ rating }) => (
-  <View style={styles.starRow}>
-    {[1, 2, 3, 4, 5].map((s) => (
-      <Ionicons
-        key={s}
-        name={rating >= s ? 'star' : rating >= s - 0.5 ? 'star-half' : 'star-outline'}
-        size={12}
-        color="#f9a825"
-      />
-    ))}
-    <Text style={styles.ratingText}>{rating}</Text>
-  </View>
-);
+const StarRating = ({ rating }) => {
+  const safeRating = typeof rating === 'number' ? rating : 0;
+  return (
+    <View style={styles.starRow}>
+      {[1, 2, 3, 4, 5].map((s) => (
+        <Ionicons
+          key={s}
+          name={safeRating >= s ? 'star' : safeRating >= s - 0.5 ? 'star-half' : 'star-outline'}
+          size={12}
+          color="#f9a825"
+        />
+      ))}
+      <Text style={styles.ratingText}>{safeRating}</Text>
+    </View>
+  );
+};
 
 export default function ProductDetailScreen({ navigation, route }) {
   const { item } = route.params;
@@ -43,8 +46,28 @@ export default function ProductDetailScreen({ navigation, route }) {
   const [activeImage, setActiveImage] = useState(0);
   const imageCount = item.images?.length || 1;
 
+  // Destructure nested seller object
+  const seller = item.seller ?? {};
+  const sellerName = seller.name ?? '';
+  const sellerHandle = seller.handle ?? '';
+  const sellerAvatar = seller.avatarUrl ?? null;
+  const sellerRating = seller.rating ?? 0;
+  const sellerSales = seller.totalSales ?? 0;
+
+  const getInitial = () => {
+    const trimmed = sellerName.trim();
+    return trimmed.length > 0 ? trimmed.charAt(0).toUpperCase() : '?';
+  };
+
+  const getSavingsPercent = () => {
+    const price = parseFloat(String(item.price).replace(/[^0-9.]/g, ''));
+    const original = parseFloat(String(item.originalPrice).replace(/[^0-9.]/g, ''));
+    if (!original || original <= 0 || isNaN(price) || isNaN(original)) return 0;
+    return Math.round((1 - price / original) * 100);
+  };
+
   const handleMessage = () => {
-    Alert.alert('Message Seller', `Start a conversation with ${item.seller}?`, [
+    Alert.alert('Message Seller', `Start a conversation with ${sellerName || 'this seller'}?`, [
       { text: 'Cancel', style: 'cancel' },
       { text: 'Message', onPress: () => {} },
     ]);
@@ -60,9 +83,9 @@ export default function ProductDetailScreen({ navigation, route }) {
 
       {/* Sticky top nav */}
       <View style={styles.topNav}>
-        <TouchableOpacity style={styles.navBtn} onPress={() => navigation.goBack()} activeOpacity={0.8}>
-          <Ionicons name="arrow-back" size={20} color={COLORS.text} />
-        </TouchableOpacity>
+      <TouchableOpacity style={styles.navBtn} onPress={() => navigation.goBack()} activeOpacity={0.8}>
+              <Ionicons name="arrow-back" size={20} color={COLORS.text} />
+            </TouchableOpacity>
         <Text style={styles.navTitle}>Item Details</Text>
         <TouchableOpacity
           style={styles.navBtn}
@@ -104,45 +127,45 @@ export default function ProductDetailScreen({ navigation, route }) {
             )}
 
             {/* Condition badge */}
-            <View style={styles.conditionBadge}>
-              <View style={[
-                styles.conditionInner,
-                { backgroundColor: item.condition === 'Like New' ? '#e8f5e9' : '#fff8e1' }
-              ]}>
-                <Text style={[
-                  styles.conditionText,
-                  { color: item.condition === 'Like New' ? '#388e3c' : '#f9a825' }
+            {item.condition ? (
+              <View style={styles.conditionBadge}>
+                <View style={[
+                  styles.conditionInner,
+                  { backgroundColor: item.condition === 'Like New' ? '#e8f5e9' : '#fff8e1' }
                 ]}>
-                  ✦ {item.condition}
-                </Text>
+                  <Text style={[
+                    styles.conditionText,
+                    { color: item.condition === 'Like New' ? '#388e3c' : '#f9a825' }
+                  ]}>
+                    ✦ {item.condition}
+                  </Text>
+                </View>
               </View>
-            </View>
+            ) : null}
           </View>
         </View>
 
         {/* Main info */}
         <View style={styles.section}>
           <View style={styles.titleRow}>
-            <Text style={styles.itemTitle}>{item.title}</Text>
-            <Text style={styles.itemPrice}>{item.price}</Text>
+            <Text style={styles.itemTitle}>{item.title ?? 'Untitled'}</Text>
+            <Text style={styles.itemPrice}>{item.price ?? ''}</Text>
           </View>
 
-          {item.originalPrice && (
+          {item.originalPrice ? (
             <View style={styles.savingsRow}>
               <Text style={styles.originalPrice}>{item.originalPrice}</Text>
               <View style={styles.savingsBadge}>
-                <Text style={styles.savingsText}>
-                  Save {Math.round((1 - parseInt(item.price.replace('$','')) / parseInt(item.originalPrice.replace('$',''))) * 100)}%
-                </Text>
+                <Text style={styles.savingsText}>Save {getSavingsPercent()}%</Text>
               </View>
             </View>
-          )}
+          ) : null}
 
           {/* Location */}
           <View style={styles.locationRow}>
             <Ionicons name="location-outline" size={14} color={COLORS.accent} />
-            <Text style={styles.locationText}>{item.location}</Text>
-            <Text style={styles.postedAt}>· {item.postedAt}</Text>
+            <Text style={styles.locationText}>{item.location ?? ''}</Text>
+            {item.postedAt ? <Text style={styles.postedAt}>· {item.postedAt}</Text> : null}
           </View>
         </View>
 
@@ -164,7 +187,7 @@ export default function ProductDetailScreen({ navigation, route }) {
         {/* Description */}
         <View style={styles.section}>
           <Text style={styles.sectionLabel}>Description</Text>
-          <Text style={styles.description}>{item.description}</Text>
+          <Text style={styles.description}>{item.description ?? 'No description provided.'}</Text>
         </View>
 
         <View style={styles.divider} />
@@ -175,27 +198,25 @@ export default function ProductDetailScreen({ navigation, route }) {
           <TouchableOpacity
             style={styles.sellerCard}
             activeOpacity={0.88}
-            onPress={() => navigation.navigate('SellerProfile', { seller: item })}
+            onPress={() => navigation.navigate('SellerProfile', { seller })}
           >
             {/* Avatar */}
             <View style={styles.avatar}>
-              {item.sellerAvatar ? (
-                <Image source={item.sellerAvatar} style={styles.avatarImg} />
+              {sellerAvatar ? (
+                <Image source={{ uri: sellerAvatar }} style={styles.avatarImg} />
               ) : (
-                <Text style={styles.avatarInitial}>
-                  {item.seller.charAt(0).toUpperCase()}
-                </Text>
+                <Text style={styles.avatarInitial}>{getInitial()}</Text>
               )}
             </View>
 
             <View style={styles.sellerInfo}>
-              <Text style={styles.sellerName}>{item.seller}</Text>
-              <Text style={styles.sellerHandle}>{item.sellerHandle}</Text>
-              <StarRating rating={item.sellerRating} />
+              <Text style={styles.sellerName}>{sellerName || 'Unknown Seller'}</Text>
+              <Text style={styles.sellerHandle}>{sellerHandle}</Text>
+              <StarRating rating={sellerRating} />
             </View>
 
             <View style={styles.sellerMeta}>
-              <Text style={styles.sellerSalesCount}>{item.sellerSales}</Text>
+              <Text style={styles.sellerSalesCount}>{sellerSales}</Text>
               <Text style={styles.sellerSalesLabel}>sales</Text>
             </View>
 
@@ -211,7 +232,6 @@ export default function ProductDetailScreen({ navigation, route }) {
           </Text>
         </View>
 
-        {/* Bottom padding for sticky CTA */}
         <View style={{ height: 100 }} />
       </ScrollView>
 
@@ -230,29 +250,52 @@ export default function ProductDetailScreen({ navigation, route }) {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: COLORS.bg },
+  safe: { 
+    flex: 1, 
+    backgroundColor: COLORS.bg 
+  },
 
   topNav: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: 'row', 
+    alignItems: 'center', 
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
+    paddingHorizontal: 16, 
     paddingVertical: 12,
-    backgroundColor: COLORS.bg,
+    backgroundColor: COLORS.white, 
+    borderBottomWidth: 1, 
+    borderBottomColor: COLORS.border,
+    marginTop: 55,
   },
+
   navBtn: {
-    width: 40,
-    height: 40,
+    width: 40, 
+    height: 40, 
     borderRadius: 12,
-    backgroundColor: COLORS.card,
-    alignItems: 'center',
+    backgroundColor: COLORS.card, 
+    alignItems: 'center', 
     justifyContent: 'center',
   },
-  navTitle: { fontSize: 16, fontWeight: '700', color: COLORS.text },
 
-  scrollContent: { paddingBottom: 20 },
+  navTitle: { 
+    fontSize: 16, 
+    fontWeight: '700', 
+    color: '#C17C74' 
+  },
 
-  imageGallery: { marginBottom: 4 },
+  navTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#C17C74',
+  },
+
+  scrollContent: { 
+    paddingBottom: 20 
+  },
+
+  imageGallery: { 
+    marginBottom: 4 
+  },
+
   mainImage: {
     width: width,
     height: width * 1.05,
@@ -260,9 +303,21 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  mainImageImg: { width: '100%', height: '100%' },
-  imagePlaceholder: { alignItems: 'center', gap: 8 },
-  imagePlaceholderText: { fontSize: 13, color: COLORS.muted },
+
+  mainImageImg: { 
+    width: '100%', 
+    height: '100%' 
+  },
+
+  imagePlaceholder: { 
+    alignItems: 'center', 
+    gap: 8 
+  },
+
+  imagePlaceholderText: { 
+    fontSize: 13, 
+    color: COLORS.muted 
+  },
 
   dotsRow: {
     position: 'absolute',
@@ -271,20 +326,31 @@ const styles = StyleSheet.create({
     gap: 6,
     alignSelf: 'center',
   },
-  dot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: 'rgba(255,255,255,0.5)',
-  },
-  dotActive: { backgroundColor: COLORS.white, width: 18 },
 
-  conditionBadge: { position: 'absolute', top: 14, left: 14 },
-  conditionInner: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 10,
+  dot: { 
+    width: 6, 
+    height: 6, 
+    borderRadius: 3, 
+    backgroundColor: 'rgba(255,255,255,0.5)' 
   },
+
+  dotActive: { 
+    backgroundColor: COLORS.white, 
+    width: 18 
+  },
+
+  conditionBadge: { 
+    position: 'absolute', 
+    top: 14, 
+    left: 14 
+  },
+
+  conditionInner: { 
+    paddingHorizontal: 10, 
+    paddingVertical: 4, 
+    borderRadius: 10 
+  },
+
   conditionText: { fontSize: 11, fontWeight: '700' },
 
   section: { paddingHorizontal: 20, paddingVertical: 18 },
@@ -295,27 +361,24 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     marginBottom: 6,
   },
-  itemTitle: {
-    fontSize: 20,
-    fontWeight: '800',
-    color: COLORS.text,
-    flex: 1,
-    marginRight: 12,
+
+  itemTitle: { 
+    fontSize: 20, 
+    fontWeight: '800', 
+    color: COLORS.text, 
+    flex: 1, 
+    marginRight: 12 
   },
-  itemPrice: { fontSize: 22, fontWeight: '800', color: COLORS.accent },
+
+  itemPrice: { 
+    fontSize: 22, 
+    fontWeight: '800', 
+    color: COLORS.accent 
+  },
 
   savingsRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 10 },
-  originalPrice: {
-    fontSize: 13,
-    color: COLORS.muted,
-    textDecorationLine: 'line-through',
-  },
-  savingsBadge: {
-    backgroundColor: '#fce4ec',
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 8,
-  },
+  originalPrice: { fontSize: 13, color: COLORS.muted, textDecorationLine: 'line-through' },
+  savingsBadge: { backgroundColor: '#fce4ec', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8 },
   savingsText: { fontSize: 11, fontWeight: '700', color: '#c2185b' },
 
   locationRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
@@ -334,6 +397,7 @@ const styles = StyleSheet.create({
   },
 
   pillsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
+
   infoPill: {
     backgroundColor: COLORS.card,
     borderRadius: 12,

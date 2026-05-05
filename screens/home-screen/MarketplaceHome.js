@@ -1,21 +1,13 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import {
-  View,
-  Text,
-  ScrollView,
-  StyleSheet,
-  TouchableOpacity,
-  StatusBar,
-  Image,
-  TextInput,
-  Dimensions,
-  ActivityIndicator,
-  Modal,
+  View, Text, ScrollView, StyleSheet, TouchableOpacity,
+  StatusBar, Image, TextInput, Dimensions, ActivityIndicator, Modal,
 } from 'react-native';
 import { Ionicons, Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { COLORS, CATEGORIES } from './marketplacedata';
 import { getAllListings } from '../../services/authService';
+import { useCart } from '../../context/CartContext';
 
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = (width - 48) / 2;
@@ -35,6 +27,9 @@ const ConditionBadge = ({ condition }) => (
 );
 
 export default function MarketplaceScreen({ navigation }) {
+  // ✅ useCart called inside the component, not outside
+  const { addToCart, isInCart, cartCount: contextCartCount } = useCart();
+
   const [listings, setListings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -42,15 +37,15 @@ export default function MarketplaceScreen({ navigation }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [showSearch, setShowSearch] = useState(false);
   const [savedItems, setSavedItems] = useState({});
-  const [cartItems, setCartItems] = useState({});
   const [wishlistItems, setWishlistItems] = useState({});
   const [showCart, setShowCart] = useState(false);
   const [showWishlist, setShowWishlist] = useState(false);
 
-  const cartCount = Object.keys(cartItems).length;
   const wishlistCount = Object.keys(wishlistItems).length;
-  const cartList = listings.filter((item) => cartItems[item._id]);
   const wishlistList = listings.filter((item) => wishlistItems[item._id]);
+
+  // Cart data comes from context now
+  const cartList = listings.filter((item) => isInCart(item._id));
   const cartTotal = cartList.reduce((sum, item) => sum + parseFloat(item.price || 0), 0);
 
   const toggleHeart = (id, e) => {
@@ -63,26 +58,14 @@ export default function MarketplaceScreen({ navigation }) {
     });
   };
 
-  const toggleCart = (id, e) => {
-    e && e.stopPropagation();
-    setCartItems((prev) => {
-      const updated = { ...prev };
-      if (updated[id]) { delete updated[id]; } else { updated[id] = true; }
-      return updated;
-    });
-  };
-
-  const removeFromCart = (id) => {
-    setCartItems((prev) => { const u = { ...prev }; delete u[id]; return u; });
-  };
-
   const removeFromWishlist = (id) => {
     setWishlistItems((prev) => { const u = { ...prev }; delete u[id]; return u; });
     setSavedItems((prev) => ({ ...prev, [id]: false }));
   };
 
   const moveToCart = (id) => {
-    setCartItems((prev) => ({ ...prev, [id]: true }));
+    const item = listings.find((i) => i._id === id);
+    if (item) addToCart(item);
     removeFromWishlist(id);
   };
 
@@ -106,6 +89,7 @@ export default function MarketplaceScreen({ navigation }) {
     }
   }, [activeCategory, searchQuery]);
 
+  // ✅ Fixed: useEffect (not useEffects)
   useEffect(() => {
     const delay = setTimeout(() => fetchListings(), searchQuery ? 400 : 0);
     return () => clearTimeout(delay);
@@ -144,10 +128,9 @@ export default function MarketplaceScreen({ navigation }) {
         ) : (
           <>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-            <TouchableOpacity style={styles.navBtn} onPress={() => navigation.goBack()} activeOpacity={0.8}>
-              <Ionicons name="arrow-back" size={20} color={COLORS.text} />
-            </TouchableOpacity>
-
+              <TouchableOpacity style={styles.navBtn} onPress={() => navigation.goBack()} activeOpacity={0.8}>
+                <Ionicons name="arrow-back" size={20} color={COLORS.text} />
+              </TouchableOpacity>
               <View>
                 <Text style={styles.headerTitle}>Marketplace</Text>
                 <Text style={styles.headerSub}>
@@ -171,12 +154,12 @@ export default function MarketplaceScreen({ navigation }) {
                 )}
               </TouchableOpacity>
 
-              {/* Cart */}
+              {/* Cart — uses context count */}
               <TouchableOpacity style={styles.iconBtn} onPress={() => setShowCart(true)} activeOpacity={0.8}>
                 <Ionicons name="cart-outline" size={20} color={COLORS.accent} />
-                {cartCount > 0 && (
+                {contextCartCount > 0 && (
                   <View style={styles.badgeCount}>
-                    <Text style={styles.badgeCountText}>{cartCount}</Text>
+                    <Text style={styles.badgeCountText}>{contextCartCount}</Text>
                   </View>
                 )}
               </TouchableOpacity>
@@ -230,7 +213,7 @@ export default function MarketplaceScreen({ navigation }) {
                 key={item._id}
                 style={styles.itemCard}
                 activeOpacity={0.88}
-                onPress={() => navigation.navigate('ProductDetail', { item })}
+                onPress={() => navigation.navigate('ProductDetails', { item })}
               >
                 <View style={styles.itemImageBox}>
                   {item.image ? (
@@ -273,20 +256,20 @@ export default function MarketplaceScreen({ navigation }) {
                     )}
                   </View>
 
-                  {/* Cart button */}
+                  {/* Cart button — uses context */}
                   <TouchableOpacity
-                    style={[styles.cartBtn, cartItems[item._id] && styles.cartBtnActive]}
-                    onPress={(e) => toggleCart(item._id, e)}
+                    style={[styles.cartBtn, isInCart(item._id) && styles.cartBtnActive]}
+                    onPress={() => addToCart(item)}
                     activeOpacity={0.85}
                   >
                     <Ionicons
-                      name={cartItems[item._id] ? 'cart' : 'cart-outline'}
+                      name={isInCart(item._id) ? 'cart' : 'cart-outline'}
                       size={13}
-                      color={cartItems[item._id] ? COLORS.white : COLORS.accent}
+                      color={isInCart(item._id) ? COLORS.white : COLORS.accent}
                       style={{ marginRight: 5 }}
                     />
-                    <Text style={[styles.cartBtnText, cartItems[item._id] && styles.cartBtnTextActive]}>
-                      {cartItems[item._id] ? 'Added' : 'Add to Cart'}
+                    <Text style={[styles.cartBtnText, isInCart(item._id) && styles.cartBtnTextActive]}>
+                      {isInCart(item._id) ? 'In Cart' : 'Add to Cart'}
                     </Text>
                   </TouchableOpacity>
                 </View>
@@ -329,7 +312,10 @@ export default function MarketplaceScreen({ navigation }) {
                       <Text style={styles.modalItemBrand}>{item.brand || 'No brand'} · {item.size || 'N/A'}</Text>
                       <Text style={styles.modalItemPrice}>EGP {item.price}</Text>
                     </View>
-                    <TouchableOpacity onPress={() => removeFromCart(item._id)} style={styles.modalRemoveBtn}>
+                    <TouchableOpacity
+                      onPress={() => { const { removeFromCart } = require('../../context/CartContext'); }}
+                      style={styles.modalRemoveBtn}
+                    >
                       <Ionicons name="trash-outline" size={18} color="#E05C5C" />
                     </TouchableOpacity>
                   </View>
@@ -340,7 +326,11 @@ export default function MarketplaceScreen({ navigation }) {
                   <Text style={styles.modalTotalLabel}>Total</Text>
                   <Text style={styles.modalTotalValue}>EGP {cartTotal.toFixed(2)}</Text>
                 </View>
-                <TouchableOpacity style={styles.checkoutBtn} activeOpacity={0.85}>
+                <TouchableOpacity
+                  style={styles.checkoutBtn}
+                  onPress={() => { setShowCart(false); navigation.navigate('MainCart'); }}
+                  activeOpacity={0.85}
+                >
                   <Ionicons name="card-outline" size={16} color={COLORS.white} style={{ marginRight: 8 }} />
                   <Text style={styles.checkoutBtnText}>Checkout · EGP {cartTotal.toFixed(2)}</Text>
                 </TouchableOpacity>
@@ -396,7 +386,6 @@ export default function MarketplaceScreen({ navigation }) {
           )}
         </SafeAreaView>
       </Modal>
-
     </SafeAreaView>
   );
 }
@@ -409,7 +398,7 @@ const styles = StyleSheet.create({
   headerTitle: { fontSize: 20, fontWeight: '700', color: COLORS.accent },
   headerSub: { fontSize: 13, color: COLORS.muted },
   headerActions: { flexDirection: 'row', gap: 8, alignItems: 'center' },
-  backBtn: { fontSize: 28, color: COLORS.accent, lineHeight: 32 },
+  navBtn: { width: 40, height: 40, borderRadius: 12, backgroundColor: COLORS.card, alignItems: 'center', justifyContent: 'center' },
   iconBtn: { width: 40, height: 40, borderRadius: 12, backgroundColor: COLORS.card, alignItems: 'center', justifyContent: 'center' },
   addBtn: { width: 40, height: 40, borderRadius: 12, backgroundColor: COLORS.accent, alignItems: 'center', justifyContent: 'center' },
   badgeCount: { position: 'absolute', top: 4, right: 4, width: 16, height: 16, borderRadius: 8, backgroundColor: '#E05C5C', alignItems: 'center', justifyContent: 'center' },
@@ -470,8 +459,4 @@ const styles = StyleSheet.create({
   modalTotalValue: { fontSize: 22, fontWeight: '900', color: COLORS.accent },
   checkoutBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: COLORS.accent, borderRadius: 16, paddingVertical: 16 },
   checkoutBtnText: { fontSize: 15, fontWeight: '700', color: COLORS.white },
-  navBtn: {
-    width: 40, height: 40, borderRadius: 12,
-    backgroundColor: COLORS.card, alignItems: 'center', justifyContent: 'center',
-  },
 });
