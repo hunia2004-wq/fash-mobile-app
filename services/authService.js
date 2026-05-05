@@ -101,6 +101,8 @@ export async function logout(token) {
   });
 }
 
+
+// PROFILE
 export async function getProfile(token) {
   return request("/auth/profile", {
     headers: {
@@ -108,8 +110,6 @@ export async function getProfile(token) {
     },
   });
 }
-
-// PROFILE
 
 export async function updateProfile(token, payload) {
   return request("/user/profile", {

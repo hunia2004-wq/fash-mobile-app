@@ -144,9 +144,10 @@ export default function FashCollectionScreen({ navigation }) {
 
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} activeOpacity={0.7}>
-          <Text style={styles.backBtn}>‹</Text>
+        <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()} activeOpacity={0.7}>
+          <Ionicons name="arrow-back" size={20} color="#2c2c2c" />
         </TouchableOpacity>
+
         <Text style={styles.headerTitle}>FASH Collection</Text>
 
         <View style={{ width: 40 }} />
@@ -256,9 +257,30 @@ const styles = StyleSheet.create({
   },
 
   backBtn: {
-    fontSize: 28,
+    width: 40, 
+    height: 40, 
+    borderRadius: 12,
+    backgroundColor: '#F2E6E3', 
+    alignItems: 'center', 
+    justifyContent: 'center',
+    
+  },
+
+  topNav: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: '#ffffff',
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(193,124,116,0.18)',
+  },
+
+  navTitle: {
+    fontSize: 16,
+    fontWeight: '700',
     color: '#C17C74',
-    lineHeight: 32,
   },
 
   headerTitle: {

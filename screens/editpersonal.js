@@ -3,6 +3,9 @@ import {View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Image, 
 import * as ImagePicker from 'expo-image-picker';
 import { AuthContext } from '../context/AuthContext';
 import { updateProfile, uploadAvatar } from '../services/authService';
+import { useFocusEffect } from "@react-navigation/native";
+import { getProfile } from "../services/authService";
+import { useCallback } from "react";
 
 const { width } = Dimensions.get('window');
 const avatarSize = width * 0.25;
@@ -11,14 +14,37 @@ export default function EditProfileScreen({ navigation, route }) {
   const { getToken } = useContext(AuthContext);
   const { user } = route.params;
 
-  // editable fields — backend supports these via PATCH /user/profile
   const [firstName, setFirstName] = useState(user.firstName || '');
   const [lastName, setLastName] = useState(user.lastName || '');
   const [username, setUsername] = useState(user.username || '');
   const [bio, setBio] = useState(user.bio || '');
-  const [phone, setPhone] = useState(user.phone || '');
+  const [phone, setPhone] = useState(user.phoneNumber || '');
   const [avatar, setAvatar] = useState(user.avatar || null);
   const [saving, setSaving] = useState(false);
+  const [userData, setUserData] = useState(null);
+
+  useFocusEffect(
+    useCallback(() => {
+      const fetchData = async () => {
+        const token = await getToken();
+        const profile = await getProfile(token);
+        const data = profile?.data || profile;
+  
+        setUserData(data);
+  
+        // update fields with fresh data
+        setFirstName(data.firstName || '');
+        setLastName(data.lastName || '');
+        setUsername(data.username || '');
+        setBio(data.bio || '');
+        setPhone(data.phoneNumber || '');
+        setAvatar(data.avatar || null);
+      };
+  
+      fetchData();
+    }, [])
+  );
+  
 
   const pickImage = async () => {
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -44,7 +70,6 @@ export default function EditProfileScreen({ navigation, route }) {
     }
   };
 
-
   const handleSave = async () => {
     setSaving(true);
   
@@ -56,7 +81,7 @@ export default function EditProfileScreen({ navigation, route }) {
         lastName: lastName.trim(),
         username: username.trim(),
         bio: bio.trim(),
-        phoneNumber: phone.trim(), // 
+        phoneNumber: phone.trim(), 
       };
   
       console.log(payload);
@@ -87,6 +112,7 @@ export default function EditProfileScreen({ navigation, route }) {
 
     return (
       <View style={styles.container}>
+
         {/* header */}
         <View style={styles.header}>
           <TouchableOpacity onPress={() => navigation.goBack()}>
@@ -183,8 +209,6 @@ export default function EditProfileScreen({ navigation, route }) {
           </View>
 
         </View>
-
-
 
         {/* read-only account info */}
         <View style={styles.card}>

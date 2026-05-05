@@ -144,9 +144,10 @@ export default function MarketplaceScreen({ navigation }) {
         ) : (
           <>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-              <TouchableOpacity onPress={() => navigation.goBack()}>
-                <Text style={styles.backBtn}>‹</Text>
-              </TouchableOpacity>
+            <TouchableOpacity style={styles.navBtn} onPress={() => navigation.goBack()} activeOpacity={0.8}>
+              <Ionicons name="arrow-back" size={20} color={COLORS.text} />
+            </TouchableOpacity>
+
               <View>
                 <Text style={styles.headerTitle}>Marketplace</Text>
                 <Text style={styles.headerSub}>
@@ -469,4 +470,8 @@ const styles = StyleSheet.create({
   modalTotalValue: { fontSize: 22, fontWeight: '900', color: COLORS.accent },
   checkoutBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: COLORS.accent, borderRadius: 16, paddingVertical: 16 },
   checkoutBtnText: { fontSize: 15, fontWeight: '700', color: COLORS.white },
+  navBtn: {
+    width: 40, height: 40, borderRadius: 12,
+    backgroundColor: COLORS.card, alignItems: 'center', justifyContent: 'center',
+  },
 });

@@ -299,17 +299,7 @@ export default function DonationScreen({ navigation }) {
       </SafeAreaView>
     );
   }
- <View style={styles.topNav}>
-        <TouchableOpacity style={styles.navBtn} onPress={() => navigation.goBack()} activeOpacity={0.8}>
-          <Ionicons name="arrow-back" size={20} color={COLORS.text} />
-        </TouchableOpacity>
-        <Text style={styles.navTitle}>Donation</Text>
-        <View style={[styles.pointsBadge]}>
-          <Text style={styles.pointsStar}>⭐</Text>
-          <Text style={styles.pointsValue}>{USER_CURRENT_POINTS}</Text>
-          <Text style={styles.pointsLabel}>pts</Text>
-        </View>
-      </View>
+  
   return (
     <SafeAreaView style={styles.safe}>
       <StatusBar barStyle="dark-content" />
@@ -317,7 +307,6 @@ export default function DonationScreen({ navigation }) {
       <View style={styles.logoHeader}>
         <Image source={require('../../source/assets/images/Blacklogo.png')} style={styles.logo} resizeMode="contain" />
       </View>
-
  
       <View style={styles.header}>
         <View>

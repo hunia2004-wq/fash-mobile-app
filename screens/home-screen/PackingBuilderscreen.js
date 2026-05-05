@@ -72,7 +72,7 @@ export default function OutfitBuilderScreen({ navigation }) {
 
       <View style={styles.topNav}>
         <TouchableOpacity style={styles.navBtn} onPress={() => navigation.goBack()} activeOpacity={0.8}>
-          <Ionicons name="arrow-back" size={20} color= '#C17C74' />
+          <Ionicons name="arrow-back" size={20} color= {COLORS.text} />
         </TouchableOpacity>
         <Text style={styles.navTitle}>Build Outfit</Text>
         <TouchableOpacity
@@ -214,7 +214,7 @@ const styles = StyleSheet.create({
   },
   navBtn: {
     width: 40, height: 40, borderRadius: 12,
-    backgroundColor: 'white', alignItems: 'center', justifyContent: 'center',
+    backgroundColor: COLORS.card, alignItems: 'center', justifyContent: 'center',
   },
   navTitle: { fontSize: 16, fontWeight: '700', color: '#C17C74' },
   navSaveBtn: {

@@ -169,7 +169,7 @@ return (
 );
 };
 
-export default function AIStylingScreen() {
+export default function AIStylingScreen({navigation}) {
 const [messages, setMessages] = useState([
 {
 id: '1',
@@ -199,6 +199,14 @@ setLoading(false);
 return (
 <SafeAreaView style={styles.safe}>
 <StatusBar barStyle="dark-content" />
+
+<View style={styles.topNav}>
+    <TouchableOpacity style={styles.navBtn} onPress={() => navigation.goBack()} activeOpacity={0.8}>
+      <Ionicons name="arrow-back" size={20} color={COLORS.text} />
+    </TouchableOpacity>
+    <Text style={styles.navTitle}>AI Stylist</Text>
+    <View style={{ width: 40 }} />
+</View>
 
 <ScrollView ref={scrollRef} contentContainerStyle={{ padding: 16 }}>
 {messages.map((m) => (
@@ -259,4 +267,30 @@ backgroundColor: '#fff',
 alignItems: 'center',
 },
 input: { flex: 1 },
+
+navBtn: {
+  width: 40, height: 40, 
+  borderRadius: 12,
+  backgroundColor: COLORS.card, 
+  alignItems: 'center', 
+  justifyContent: 'center',
+},
+
+topNav: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  paddingHorizontal: 16,
+  paddingVertical: 12,
+  backgroundColor: COLORS.white,
+  borderBottomWidth: 1,
+  borderBottomColor: COLORS.border,
+},
+
+navTitle: {
+  fontSize: 16,
+  fontWeight: '700',
+  color: COLORS.accent,
+},
+
 });

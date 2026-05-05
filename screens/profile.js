@@ -135,7 +135,7 @@ export default function ProfileScreen({ navigation }) {
           style={styles.editButton}
           onPress={() =>
             navigation.navigate("EditProfileScreen", {
-              user,
+              user, 
               refresh: fetchUser,
             })
           }
@@ -152,7 +152,7 @@ export default function ProfileScreen({ navigation }) {
         <InfoRow label="Last Name" value={user.lastName} />
         <InfoRow label="Username" value={user.username} />
         <InfoRow label="Bio" value={user.bio} />
-        <InfoRow label="Phone" value={user.phone} />
+        <InfoRow label="Phone" value={user.phoneNumber} />
 
         <View style={styles.cardDivider} />
 
