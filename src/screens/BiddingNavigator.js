@@ -2,6 +2,7 @@ import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import AuctionListScreen from './AuctionListScreen';
 import AuctionRoomScreen from './AuctionRoomScreen';
+import CreateAuctionScreen from './CreateAuctionScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -17,6 +18,11 @@ export default function BiddingNavigator() {
         component={AuctionRoomScreen}
         initialParams={{ auctionId: null }}
         options={{ animation: 'slide_from_right' }}
+      />
+      <Stack.Screen
+        name="CreateAuction"
+        component={CreateAuctionScreen}
+        options={{ animation: 'slide_from_bottom' }}
       />
     </Stack.Navigator>
   );
