@@ -1,13 +1,18 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity,
   StatusBar, Image, TextInput, KeyboardAvoidingView,
-  Platform, Animated, Alert, Dimensions,
+  Platform, Animated, Alert, Dimensions, ActivityIndicator
 } from 'react-native';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import {COLORS, MOCK_AUCTIONS, MOCK_BIDS} from './Biddingdata';
+import {COLORS } from './Biddingdata';
+import { getAllAuctions, getAuctionById, placeBid as placeBidApi } from '../../services/authService';
+import { useAuth } from '../../context/AuthContext';
+import { useFocusEffect } from '@react-navigation/native';
+
 const { width } = Dimensions.get('window');
+
 const QUICK = [5, 10, 25, 50];
 
 const useCountdown = (endsAt) => {
@@ -76,83 +81,94 @@ const BidRow = ({ bid, isTop, isMe }) => {
 };
 
 export default function AuctionRoomScreen({ navigation, route }) {
-  // Safe param extraction — won't crash if params is undefined
-  const auctionId = route && route.params && route.params.auctionId ? route.params.auctionId : null;
+  const { getToken } = useAuth();
+  const auctionId = route?.params?.auctionId ?? null;
 
-  const foundAuction = auctionId ? MOCK_AUCTIONS.find((a) => a.id === auctionId) : MOCK_AUCTIONS[0];
-
-  const [auction, setAuction] = useState(foundAuction || null);
-  const [bids, setBids] = useState(auctionId && MOCK_BIDS[auctionId] ? MOCK_BIDS[auctionId] : (foundAuction && MOCK_BIDS[foundAuction.id] ? MOCK_BIDS[foundAuction.id] : []));
+  const [auction, setAuction] = useState(null);
+  const [bids, setBids] = useState([]);
   const [myBids, setMyBids] = useState([]);
   const [bidInput, setBidInput] = useState('');
   const [placing, setPlacing] = useState(false);
+  const [loading, setLoading] = useState(true);
   const successAnim = useRef(new Animated.Value(0)).current;
   const scrollRef = useRef(null);
 
-  const endsAt = auction ? auction.endsAt : new Date().toISOString();
-  const countdown = useCountdown(endsAt);
-  const isLeading = myBids.length > 0 && bids[0] && bids[0].userName === 'You';
-  const isEnded = countdown.ended;
-  const suggested = auction ? auction.currentBid + 5 : 0;
+  const fetchAuction = useCallback(async () => {
+    try {
+      if (!auctionId) return;
+      const data = await getAuctionById(auctionId);
+      const a = data.auction ?? data;
+      setAuction({
+        id: a._id,
+        title: a.title,
+        brand: a.brand,
+        description: a.description,
+        category: a.category,
+        condition: a.condition,
+        size: a.size,
+        image: a.images?.[0] ?? null,
+        currentBid: a.currentBid,
+        currentBidderName: a.currentBidder?.name ?? '—',
+        bidCount: a.bids?.length ?? 0,
+        endsAt: a.endTime,
+      });
+      setBids(
+        (a.bids ?? []).map((b) => ({
+          id: b._id,
+          userName: b.name,
+          amount: b.amount,
+          createdAt: b.createdAt,
+        }))
+      );
+    } catch (err) {
+      console.error('Failed to fetch auction:', err.message);
+    } finally {
+      setLoading(false);
+    }
+  }, [auctionId]);
 
-  const showSuccess = () => {
-    Animated.sequence([
-      Animated.timing(successAnim, { toValue: 1, duration: 200, useNativeDriver: true }),
-      Animated.delay(1800),
-      Animated.timing(successAnim, { toValue: 0, duration: 200, useNativeDriver: true }),
-    ]).start();
-  };
+  useFocusEffect(
+    useCallback(() => {
+      fetchAuction();
+    }, [fetchAuction])
+  );
 
-  const placeBid = (amount) => {
+  // Replace the mock placeBid with:
+  const placeBid = async (amount) => {
     const val = parseFloat(amount || bidInput);
-    if (!val || val <= 0) {
-      Alert.alert('Invalid bid', 'Please enter a valid amount.');
-      return;
-    }
-    if (val <= auction.currentBid) {
-      Alert.alert('Bid too low', 'Must be higher than $' + auction.currentBid);
-      return;
-    }
+    if (!val || val <= 0) { Alert.alert('Invalid bid', 'Please enter a valid amount.'); return; }
+    if (val <= auction.currentBid) { Alert.alert('Bid too low', 'Must be higher than $' + auction.currentBid); return; }
+
     setPlacing(true);
-    setTimeout(() => {
-      const newBid = {
-        id: 'new_' + Date.now(),
+    try {
+      const token = await getToken();
+      const data = await placeBidApi(token, auction.id, val);
+      const updated = data.auction ?? data;
+      const newBid = updated.bids?.[0];
+
+      setBids((prev) => [{
+        id: newBid?._id ?? Date.now(),
         userName: 'You',
         amount: val,
         createdAt: new Date().toISOString(),
-      };
-      setBids((prev) => [newBid, ...prev]);
-      setMyBids((prev) => [...prev, newBid]);
-      setAuction((prev) => ({
-        ...prev,
-        currentBid: val,
-        currentBidderName: 'You',
-        bidCount: prev.bidCount + 1,
-      }));
+      }, ...prev]);
+      setMyBids((prev) => [...prev, { amount: val }]);
+      setAuction((prev) => ({ ...prev, currentBid: val, bidCount: prev.bidCount + 1 }));
       setBidInput('');
-      setPlacing(false);
       showSuccess();
-      if (scrollRef.current) scrollRef.current.scrollTo({ y: 0, animated: true });
-    }, 600);
+      scrollRef.current?.scrollTo({ y: 0, animated: true });
+    } catch (err) {
+      Alert.alert('Bid failed', err.message);
+    } finally {
+      setPlacing(false);
+    }
   };
 
-  if (!auction) {
+  // Add loading guard before the existing null check:
+  if (loading) {
     return (
-      <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
-        <View style={styles.topNav}>
-          <TouchableOpacity style={styles.navBtn} onPress={() => navigation.goBack()} activeOpacity={0.8}>
-            <Ionicons name="arrow-back" size={20} color={COLORS.text} />
-          </TouchableOpacity>
-          <Text style={styles.navTitle}>Auction</Text>
-          <View style={{ width: 40 }} />
-        </View>
-        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-          <MaterialCommunityIcons name="hammer" size={48} color={COLORS.accent} />
-          <Text style={{ color: COLORS.muted, marginTop: 12, fontSize: 15 }}>Auction not found</Text>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={{ marginTop: 20 }}>
-            <Text style={{ color: COLORS.accent, fontWeight: '700' }}>Go Back</Text>
-          </TouchableOpacity>
-        </View>
+      <SafeAreaView style={styles.safe}>
+        <ActivityIndicator size="large" color={COLORS.accent} style={{ flex: 1 }} />
       </SafeAreaView>
     );
   }

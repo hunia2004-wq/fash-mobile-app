@@ -568,3 +568,63 @@ export async function deleteListing(token, id) {
     headers: { Authorization: `Bearer ${token}` },
   });
 }
+
+// WARDROBE
+
+export async function getWardrobeItems(token, category) {
+  const query = category && category !== 'All' ? `?category=${category}` : '';
+  console.log('getWardrobeItems URL:', `/wardrobe${query}`);
+  return request(`/wardrobe${query}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+}
+
+export async function getWardrobeStats(token) {
+  return request('/wardrobe/stats', {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+}
+
+export async function toggleWardrobeFavorite(token, id) {
+  return request(`/wardrobe/${id}/favorite`, {
+    method: 'PATCH',
+    headers: { Authorization: `Bearer ${token}` },
+  });
+}
+
+export async function createWardrobeItem(token, formData) {
+  return request('/wardrobe', {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${token}` },
+    body: formData, // FormData — request() already skips Content-Type for FormData
+  });
+}
+
+export async function deleteWardrobeItem(token, id) {
+  return request(`/wardrobe/${id}`, {
+    method: 'DELETE',
+    headers: { Authorization: `Bearer ${token}` },
+  });
+}
+
+// AUCTION
+export async function getAllAuctions(query = {}) {
+  const params = new URLSearchParams();
+  if (query.category && query.category !== 'All') params.append('category', query.category);
+  if (query.endingSoon) params.append('endingSoon', 'true');
+  const queryString = params.toString();
+  return request(`/auctions${queryString ? `?${queryString}` : ''}`)
+}
+
+export async function getAuctionById(id) {
+  return request(`/auctions/${id}`);
+}
+
+export async function placeBid(token, auctionId, amount) {
+  return request(`/auctions/${auctionId}/bid`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${token}` },
+    body: JSON.stringify({ amount }),
+  });
+}
+

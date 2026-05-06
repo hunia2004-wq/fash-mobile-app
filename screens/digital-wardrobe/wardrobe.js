@@ -1,91 +1,150 @@
-import React, { useState } from 'react';
-import {View, Text, ScrollView, StyleSheet, TouchableOpacity, StatusBar, Dimensions, Image} from 'react-native';
+import React, { useState, useCallback } from 'react';
+import {View, Text, ScrollView, StyleSheet, TouchableOpacity, StatusBar, Dimensions, Image, ActivityIndicator} from 'react-native';
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useFocusEffect } from '@react-navigation/native';
+import { useAuth } from '../../context/AuthContext';
+import { getWardrobeItems, getWardrobeStats,toggleWardrobeFavorite } from '../../services/authService';
 
 const { width } = Dimensions.get('window');
 
 const CATEGORIES = ['All', 'Tops', 'Bottoms', 'Dresses', 'Shoes', 'Bags', 'Accessories'];
 
-// const COLORS = {
-//   bg: '#F5F5F5',
-//   card: '#F2E6E3',
-//   accent: '#C17C74',
-//   accentDark: '#a5635b',
-//   text: '#2c2c2c',
-//   muted: '#888888',
-//   white: '#ffffff',
-//   border: 'rgba(193,124,116,0.18)',
-// };
-
-const WARDROBE_ITEMS = [
-  { id: '1', name: 'Floral Midi Dress', detail: 'Zara · Size S',    image: require('./images/floralmididress.png'),  badge: 'New', category: 'Dresses'} ,
-  { id: '2', name: 'Tan Leather Tote',  detail: 'Polene · own',     image: require('./images/tanleathertote.png'),   badge: null,  category: 'Bags'},
-  { id: '3', name: 'White Sneakers',    detail: 'Adidas · Size 38', image: require('./images/whitesneakers.png'),    badge: null,  category: 'Shoes'},
-  { id: '4', name: 'Beige Trench',      detail: 'Mango · Size M',   image: require('./images/beigetrench.png'),      badge: 'Fav', category: 'Tops'},
-  { id: '5', name: 'High-Waist Jeans',  detail: "Levi's · W26",     image: require('./images/lightdenimpants.png'),  badge: null,  category: 'Bottoms'},
-];
-
-const WardrobeCard = ({ item }) => (
+const WardrobeCard = ({ item, onToggleFavorite }) => (
   <TouchableOpacity style={styles.wCard} activeOpacity={0.85}>
     <View style={styles.wCardImg}>
-    {item.image ? (
-  <Image 
-    source={item.image} 
-    style={{ width: '90%', height: '90%', resizeMode: 'cover' }}
-  />
-) : (
-  <MaterialCommunityIcons name={item.icon} size={48} color='#C17C74' />
-)}
-      {item.badge && (
+      {item.image ? (
+        <Image
+          source={{ uri: item.image }}
+          style={{ width: '100%', height: '100%', resizeMode: 'cover' }}
+        />
+      ) : (
+        <MaterialCommunityIcons name="hanger" size={48} color="#C17C74" />
+      )}
+
+      {item.isFavorite && (
         <View style={styles.wCardBadge}>
-          <Text style={styles.wCardBadgeText}>{item.badge}</Text>
+          <Text style={styles.wCardBadgeText}>Fav</Text>
         </View>
       )}
 
+      <TouchableOpacity
+        style={styles.favBtn}
+        onPress={() => onToggleFavorite(item._id)}
+        activeOpacity={0.8}
+      >
+        <Feather name="heart" size={14} color={item.isFavorite ? '#C17C74' : '#aaa'} />
+      </TouchableOpacity>
     </View>
+
     <View style={styles.wCardInfo}>
       <Text style={styles.wCardName}>{item.name}</Text>
-      <Text style={styles.wCardDetail}>{item.detail}</Text>
+      <Text style={styles.wCardDetail}>
+        {[item.brand, item.size].filter(Boolean).join(' · ')}
+      </Text>
     </View>
   </TouchableOpacity>
 );
 
 export default function WardrobeScreen() {
+  const { getToken } = useAuth();
   const [activeCategory, setActiveCategory] = useState('All');
+  const [items, setItems] = useState([]);
+  const [stats, setStats] = useState({ total: 0, favorites: 0, listed: 0 });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const filteredItems = activeCategory === 'All'
-  ? WARDROBE_ITEMS
-  : WARDROBE_ITEMS.filter(item => item.category === activeCategory);
+  const fetchWardrobe = useCallback(async (category = 'All') => {
+    try {
+      setLoading(true);
+      setError(null);
+  
+      const token = await getToken();
+      console.log('TOKEN VALUE:', token);
+      console.log('TOKEN TYPE:', typeof token);
+      if (!token) return;
+
+      // Raw test — add this temporarily
+const testRes = await fetch('https://fash-backend-cp3n.vercel.app/api/v1/wardrobe', {
+  headers: { Authorization: `Bearer ${token}` }
+});
+const testJson = await testRes.json();
+console.log('RAW RESPONSE STATUS:', testRes.status);
+console.log('RAW RESPONSE BODY:', JSON.stringify(testJson));
+  
+      const [itemsData, statsData] = await Promise.all([
+        getWardrobeItems(token, category),
+        getWardrobeStats(token),
+      ]);
+  
+      setItems(itemsData.items ?? itemsData ?? []);
+      setStats(statsData.stats ?? statsData ?? { total: 0, favorites: 0, listed: 0 });
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  }, [getToken]);
+
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchWardrobe(activeCategory);
+    }, [activeCategory, fetchWardrobe])
+  );
+
+  const handleCategoryChange = (cat) => {
+    setActiveCategory(cat);
+    fetchWardrobe(cat);
+  };
+
+  const handleToggleFavorite = async (id) => {
+    try {
+      const token = await getToken();
+      const data = await toggleWardrobeFavorite(token, id);
+      const updated = data.item;
+      setItems(prev => prev.map(item => item._id === id ? updated : item));
+      setStats(prev => ({
+        ...prev,
+        favorites: updated.isFavorite ? prev.favorites + 1 : prev.favorites - 1,
+      }));
+    } catch (err) {
+      console.error('Toggle favorite failed:', err.message);
+    }
+  };
+
 
   return (
     <SafeAreaView style={styles.safe}>
-      <StatusBar barStyle="dark-content" backgroundColor='white' />
+      <StatusBar barStyle="dark-content" backgroundColor="white" />
 
-      {/* logo */}
+      {/* Logo */}
       <View style={styles.logoHeader}>
         <Image
           source={require('./images/Blacklogo.png')}
           style={styles.logo}
           resizeMode="contain"
         />
-        </View>
-
-        {/* title */}
-        <View style={styles.titleHeader}>
-        <Text style={styles.headerTitle}>My Wardrobe</Text>
-        <Text style={styles.headerSub}>5 items</Text>
       </View>
 
-      <ScrollView 
-  style={{ flex: 1 }} 
-  showsVerticalScrollIndicator={false} 
-  contentContainerStyle={styles.scrollContent}
->
+      {/* Title */}
+      <View style={styles.titleHeader}>
+        <Text style={styles.headerTitle}>My Wardrobe</Text>
+        <Text style={styles.headerSub}>{stats.total} items</Text>
+      </View>
 
+      <ScrollView
+        style={{ flex: 1 }}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
+      >
         {/* Stats */}
         <View style={styles.statsBar}>
-          {[['5', 'Items']].map(([num, lbl]) => (
+          {[
+            [String(stats.total),     'Items'],
+            [String(stats.favorites), 'Favorites'],
+            [String(stats.listed),    'Listed'],
+          ].map(([num, lbl]) => (
             <View key={lbl} style={styles.statBox}>
               <Text style={styles.statNum}>{num}</Text>
               <Text style={styles.statLbl}>{lbl}</Text>
@@ -103,7 +162,7 @@ export default function WardrobeScreen() {
             <TouchableOpacity
               key={cat}
               style={[styles.chip, activeCategory === cat && styles.chipActive]}
-              onPress={() => setActiveCategory(cat)}
+              onPress={() => handleCategoryChange(cat)}
               activeOpacity={0.8}
             >
               <Text style={[styles.chipText, activeCategory === cat && styles.chipTextActive]}>
@@ -113,25 +172,42 @@ export default function WardrobeScreen() {
           ))}
         </ScrollView>
 
-        {/* Grid */}
-        <View style={styles.grid}>
-        {filteredItems.map(item => (
-            <View key={item.id} style={styles.gridItem}>
-              <WardrobeCard item={item} />
-            </View>
-          ))}
-        </View>
+        {/* Content */}
+        {loading ? (
+          <ActivityIndicator size="large" color="#C17C74" style={{ marginTop: 40 }} />
+        ) : error ? (
+          <View style={styles.emptyState}>
+            <MaterialCommunityIcons name="wifi-off" size={40} color="#C17C74" />
+            <Text style={styles.emptyText}>{error}</Text>
+            <TouchableOpacity onPress={() => fetchWardrobe(activeCategory)} style={styles.retryBtn}>
+              <Text style={styles.retryText}>Try again</Text>
+            </TouchableOpacity>
+          </View>
+        ) : items.length === 0 ? (
+          <View style={styles.emptyState}>
+            <MaterialCommunityIcons name="hanger" size={48} color="#C17C74" />
+            <Text style={styles.emptyText}>No items yet</Text>
+          </View>
+        ) : (
+          <View style={styles.grid}>
+            {items.map(item => (
+              <View key={item._id} style={styles.gridItem}>
+                <WardrobeCard item={item} onToggleFavorite={handleToggleFavorite} />
+              </View>
+            ))}
+          </View>
+        )}
 
         {/* Add button */}
         <TouchableOpacity style={styles.btnAccent} activeOpacity={0.85}>
-          <Feather name="plus" size={16} color='white' style={{ marginRight: 6 }} />
+          <Feather name="plus" size={16} color="white" style={{ marginRight: 6 }} />
           <Text style={styles.btnAccentText}>Add Item</Text>
         </TouchableOpacity>
-
       </ScrollView>
     </SafeAreaView>
   );
 }
+
 
 const CARD_WIDTH = (width - 44) / 2;
 
@@ -302,5 +378,11 @@ const styles = StyleSheet.create({
     fontSize: 15, 
     fontWeight: '600' 
   },
+
+  favBtn:         { position: 'absolute', bottom: 8, right: 8, backgroundColor: 'white', borderRadius: 20, padding: 5, shadowColor: '#000', shadowOpacity: 0.08, shadowRadius: 4, elevation: 2 },
+  emptyState:     { alignItems: 'center', marginTop: 60, gap: 10 },
+  emptyText:      { color: '#888', fontSize: 14, textAlign: 'center', paddingHorizontal: 20 },
+  retryBtn:       { marginTop: 6, paddingHorizontal: 20, paddingVertical: 8, backgroundColor: '#C17C74', borderRadius: 12 },
+  retryText:      { color: 'white', fontSize: 13, fontWeight: '600' },
 
 });
