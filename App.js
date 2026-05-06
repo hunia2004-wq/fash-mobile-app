@@ -52,6 +52,7 @@ import AuctionListScreen from './screens/home-screen/AuctionListScreen';
 import AuctionRoomScreen from './screens/home-screen/AuctionRoomScreen';
 import MainCart from './screens/home-screen/MainCart';
 import { logout } from './services/authService';
+import SellerProfileScreen from './screens/home-screen/SellerProfile';
 
 const Stack = createNativeStackNavigator();
 
@@ -181,6 +182,7 @@ export default function App() {
                     <Stack.Screen name="AuctionListScreen" component={AuctionListScreen} />
                     <Stack.Screen name="AuctionRoomScreen" component={AuctionRoomScreen} initialParams={{ auctionId: null }} options={{ animation: 'slide_from_right' }} />
                     <Stack.Screen name="MainCart" component={MainCart} />
+                    <Stack.Screen name="SellerProfileScreen" component={SellerProfileScreen} />
                   </>
                 )}
               </Stack.Navigator>

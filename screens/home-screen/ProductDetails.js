@@ -198,7 +198,7 @@ export default function ProductDetailScreen({ navigation, route }) {
           <TouchableOpacity
             style={styles.sellerCard}
             activeOpacity={0.88}
-            onPress={() => navigation.navigate('SellerProfile', { seller })}
+            onPress={() => navigation.navigate('SellerProfileScreen', { seller })}
           >
             {/* Avatar */}
             <View style={styles.avatar}>
