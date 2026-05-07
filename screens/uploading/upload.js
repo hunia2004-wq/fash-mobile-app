@@ -1,25 +1,15 @@
 import React, { useState } from 'react';
-import {View, Text, ScrollView, StyleSheet,TouchableOpacity, TextInput, StatusBar, Dimensions, Image} from 'react-native';
+import {View, Text, ScrollView, StyleSheet,TouchableOpacity, TextInput, StatusBar, Dimensions, Image, Alert, ActivityIndicator} from 'react-native';
 import { Feather, Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import * as ImagePicker from 'expo-image-picker';
+import { useAuth } from '../../context/AuthContext';
+import { createWardrobeItem } from '../../services/authService';
 
 
 const { width } = Dimensions.get('window');
 
-// const COLORS = {
-//   bg: '#F5F5F5',
-//   card: '#F2E6E3',
-//   accent: '#C17C74',
-//   accentDark: '#a5635b',
-//   text: '#2c2c2c',
-//   muted: '#888888',
-//   white: '#ffffff',
-//   border: 'rgba(193,124,116,0.18)',
-//   borderInput: '#e0c8c5',
-// };
-
 const SEASONS   = ['Spring', 'Summer', 'Autumn', 'Winter', 'All-season'];
-const ITEM_COLORS = ['Beige', 'Blue', 'Black', 'White', 'Green', 'Pink', 'Red', 'Brown'];
 const OCCASIONS = ['Casual', 'Work', 'Evening', 'Sport', 'Formal'];
 const CATEGORIES = ['Tops', 'Bottoms', 'Dresses', 'Outerwear', 'Shoes', 'Bags', 'Accessories'];
 
@@ -40,7 +30,9 @@ const TagRow = ({ options, selected, onToggle }) => (
   </View>
 );
 
-export default function UploadScreen() {
+export default function UploadScreen({navigation}) {
+  const { getToken } = useAuth();
+
   const [itemName, setItemName] = useState('');
   const [size, setSize] = useState('');
   const [brand, setBrand] = useState('');
@@ -48,10 +40,76 @@ export default function UploadScreen() {
   const [seasons, setSeasons] = useState(['Spring']);
   const [occasions, setOccasions] = useState(['Casual']);
   const [category, setCategory] = useState('Dresses');
+  const [imageUri, setImageUri]   = useState(null);
+  const [saving, setSaving]       = useState(false);
+  const [listOnMarketplace, setListOnMarketplace] = useState(false);
   
 
   const toggle = (setter, current, val) =>
     setter(current.includes(val) ? current.filter(v => v !== val) : [...current, val]);
+
+  const pickImage = async (fromCamera = false) => {
+    const permission = fromCamera
+      ? await ImagePicker.requestCameraPermissionsAsync()
+      : await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+    if (!permission.granted) {
+      Alert.alert('Permission required', 'Please allow access to continue.');
+      return;
+    }
+
+    const result = fromCamera
+      ? await ImagePicker.launchCameraAsync({ quality: 0.8 })
+      : await ImagePicker.launchImageLibraryAsync({ quality: 0.8 });
+
+    if (!result.canceled) {
+      setImageUri(result.assets[0].uri);
+    }
+  };
+
+  const handleSave = async () => {
+    if (!itemName.trim()) {
+      Alert.alert('Missing info', 'Please enter an item name.');
+      return;
+    }
+    if (!category) {
+      Alert.alert('Missing info', 'Please select a category.');
+      return;
+    }
+
+    try {
+      setSaving(true);
+      const token = await getToken();
+
+      const formData = new FormData();
+      formData.append('name', itemName.trim());
+      formData.append('category', category);
+      if (size)    formData.append('size', size);
+      if (brand)   formData.append('brand', brand);
+      if (price)   formData.append('price', price);
+      if (seasons.length)  formData.append('season', seasons[0]);
+      if (occasions.length) formData.append('occasion', occasions[0]);
+      if (listOnMarketplace) formData.append('listOnMarketplace', 'true');
+
+      if (imageUri) {
+        formData.append('image', {
+          uri: imageUri,
+          type: 'image/jpeg',
+          name: 'item.jpg',
+        });
+      }
+
+      await createWardrobeItem(token, formData);
+
+      Alert.alert('Saved!', 'Item added to your wardrobe.', [
+        { text: 'OK', onPress: () => navigation.navigate('WardrobeTab') },
+      ]);
+    } catch (err) {
+      Alert.alert('Error', err.message);
+    } finally {
+      setSaving(false);
+    }
+  };
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -77,20 +135,26 @@ export default function UploadScreen() {
         keyboardShouldPersistTaps="handled"
       >
         {/* Upload zone */}
-        <TouchableOpacity style={styles.uploadZone} activeOpacity={0.8}>
+        <TouchableOpacity style={styles.uploadZone} activeOpacity={0.8} onPress={() => pickImage(false)}>
+        {imageUri ? (
+            <Image source={{ uri: imageUri }} style={styles.previewImage} />
+          ) : (
+            <>
           <View style={styles.uploadIconCircle}>
             <Feather name="camera" size={28} color='#C17C74' />
           </View>
           <Text style={styles.uploadText}>Tap to upload photo</Text>
           <Text style={styles.uploadSub}>JPG, PNG, HEIC supported</Text>
+            </>
+          )}
         </TouchableOpacity>
 
         <View style={styles.photoRow}>
-          <TouchableOpacity style={styles.btnOutlineHalf} activeOpacity={0.8}>
+          <TouchableOpacity style={styles.btnOutlineHalf} activeOpacity={0.8} onPress={() => pickImage(true)}>
             <Ionicons name="camera-outline" size={15} color='#C17C74' style={{ marginRight: 5 }} />
             <Text style={styles.btnOutlineText}>Take Photo</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.btnOutlineHalf} activeOpacity={0.8}>
+          <TouchableOpacity style={styles.btnOutlineHalf} activeOpacity={0.8} onPress={() => pickImage(false)}>
             <Ionicons name="images-outline" size={15} color='#C17C74' style={{ marginRight: 5 }} />
             <Text style={styles.btnOutlineText}>From Gallery</Text>
           </TouchableOpacity>
@@ -127,7 +191,7 @@ export default function UploadScreen() {
             <Text style={styles.formLabel}>Price (optional)</Text>
             <TextInput
               style={styles.formInput}
-              placeholder="$ 0.00"
+              placeholder="EGP 0.00"
               placeholderTextColor='#888888'
               keyboardType="decimal-pad"
               value={price}
@@ -150,7 +214,7 @@ export default function UploadScreen() {
         <View style={styles.divider} />
 
         {/* Category */}
-        <Text style={styles.sectionLabel}>Category</Text>
+        <Text style={styles.sectionLabel}>Category *</Text>
         <TagRow
           options={CATEGORIES}
           selected={[category]}
@@ -181,14 +245,23 @@ export default function UploadScreen() {
         <View style={styles.divider} />
 
         {/* CTAs */}
-        <TouchableOpacity style={styles.btnAccent} activeOpacity={0.85}>
-          <Feather name="check" size={16} color='white' style={{ marginRight: 6 }} />
+        <TouchableOpacity style={[styles.btnAccent, saving && { opacity: 0.6 }]} 
+        onPress={handleSave}
+        disabled={saving}
+        activeOpacity={0.85}>
+          {saving ? (
+            <ActivityIndicator size="small" color="white" style={{ marginRight: 8 }} />
+          ) : (
+            <Feather name="check" size={16} color="white" style={{ marginRight: 6 }} />
+          )}
           <Text style={styles.btnAccentText}>Save to Wardrobe</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.btnOutlineFull} activeOpacity={0.8}>
+        <TouchableOpacity style={[styles.btnOutlineFull, listOnMarketplace && { backgroundColor: '#F2E6E3' }]}
+        onPress={() => setListOnMarketplace(prev => !prev)}
+        activeOpacity={0.8}>
           <Feather name="shopping-bag" size={15} color='#C17C74' style={{ marginRight: 6 }} />
-          <Text style={styles.btnOutlineText}>List on Marketplace</Text>
+          <Text style={styles.btnOutlineText}>{listOnMarketplace ? '✓ Will list on Marketplace' : 'List on Marketplace'}</Text>
         </TouchableOpacity>
 
       </ScrollView>
@@ -244,6 +317,12 @@ const styles = StyleSheet.create({
     paddingVertical: 32,
     alignItems: 'center',
     gap: 10,
+  },
+
+  previewImage:   { 
+    width: '100%', 
+    height: 220, 
+    borderRadius: 18 
   },
 
   uploadIconCircle: {
