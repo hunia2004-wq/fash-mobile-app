@@ -663,3 +663,12 @@ export async function cancelRental(token, rentalId) {
     headers: { Authorization: `Bearer ${token}` },
   });
 }
+
+// CREATE AUCTION
+export async function createAuction(token, formData) {
+  return request('/auctions', {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${token}` },
+    body: formData,
+  });
+}

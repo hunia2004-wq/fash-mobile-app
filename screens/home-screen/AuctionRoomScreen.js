@@ -2,17 +2,16 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity,
   StatusBar, Image, TextInput, KeyboardAvoidingView,
-  Platform, Animated, Alert, Dimensions, ActivityIndicator
+  Platform, Animated, Alert, Dimensions, ActivityIndicator,
 } from 'react-native';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import {COLORS } from './Biddingdata';
-import { getAllAuctions, getAuctionById, placeBid as placeBidApi } from '../../services/authService';
+import { COLORS } from './Biddingdata';
+import { getAuctionById, placeBid as placeBidApi } from '../../services/authService';
 import { useAuth } from '../../context/AuthContext';
 import { useFocusEffect } from '@react-navigation/native';
 
 const { width } = Dimensions.get('window');
-
 const QUICK = [5, 10, 25, 50];
 
 const useCountdown = (endsAt) => {
@@ -46,11 +45,11 @@ const CountBlock = ({ value, label, urgent }) => (
 
 const BidRow = ({ bid, isTop, isMe }) => {
   const slide = useRef(new Animated.Value(-20)).current;
-  const fade = useRef(new Animated.Value(0)).current;
+  const fade  = useRef(new Animated.Value(0)).current;
   useEffect(() => {
     Animated.parallel([
       Animated.timing(slide, { toValue: 0, duration: 300, useNativeDriver: true }),
-      Animated.timing(fade, { toValue: 1, duration: 300, useNativeDriver: true }),
+      Animated.timing(fade,  { toValue: 1, duration: 300, useNativeDriver: true }),
     ]).start();
   }, []);
 
@@ -58,7 +57,7 @@ const BidRow = ({ bid, isTop, isMe }) => {
     <Animated.View style={[
       styles.bidRow,
       isTop && styles.bidRowTop,
-      isMe && styles.bidRowMe,
+      isMe  && styles.bidRowMe,
       { opacity: fade, transform: [{ translateY: slide }] },
     ]}>
       <View style={[styles.bidAvatar, isTop && styles.bidAvatarTop]}>
@@ -84,39 +83,47 @@ export default function AuctionRoomScreen({ navigation, route }) {
   const { getToken } = useAuth();
   const auctionId = route?.params?.auctionId ?? null;
 
-  const [auction, setAuction] = useState(null);
-  const [bids, setBids] = useState([]);
-  const [myBids, setMyBids] = useState([]);
+  const [auction,  setAuction]  = useState(null);
+  const [bids,     setBids]     = useState([]);
+  const [myBids,   setMyBids]   = useState([]);
   const [bidInput, setBidInput] = useState('');
-  const [placing, setPlacing] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const successAnim = useRef(new Animated.Value(0)).current;
-  const scrollRef = useRef(null);
+  const [placing,  setPlacing]  = useState(false);
+  const [loading,  setLoading]  = useState(true);
 
+  const successAnim = useRef(new Animated.Value(0)).current;
+  const scrollRef   = useRef(null);
+
+  // derived values 
+  const countdown  = useCountdown(auction?.endsAt ?? new Date().toISOString());
+  const isEnded    = countdown.ended;
+  const isLeading  = myBids.length > 0 && bids[0]?.userName === 'You';
+  const suggested  = auction ? auction.currentBid + 5 : 0;
+
+  // fetch 
   const fetchAuction = useCallback(async () => {
     try {
       if (!auctionId) return;
       const data = await getAuctionById(auctionId);
       const a = data.auction ?? data;
       setAuction({
-        id: a._id,
-        title: a.title,
-        brand: a.brand,
-        description: a.description,
-        category: a.category,
-        condition: a.condition,
-        size: a.size,
-        image: a.images?.[0] ?? null,
-        currentBid: a.currentBid,
+        id:                a._id,
+        title:             a.title,
+        brand:             a.brand,
+        description:       a.description,
+        category:          a.category,
+        condition:         a.condition,
+        size:              a.size,
+        image:             a.images?.[0] ?? null,
+        currentBid:        a.currentBid,
         currentBidderName: a.currentBidder?.name ?? '—',
-        bidCount: a.bids?.length ?? 0,
-        endsAt: a.endTime,
+        bidCount:          a.bids?.length ?? 0,
+        endsAt:            a.endTime,
       });
       setBids(
-        (a.bids ?? []).map((b) => ({
-          id: b._id,
-          userName: b.name,
-          amount: b.amount,
+        (a.bids ?? []).map(b => ({
+          id:        b._id,
+          userName:  b.name,
+          amount:    b.amount,
           createdAt: b.createdAt,
         }))
       );
@@ -128,32 +135,44 @@ export default function AuctionRoomScreen({ navigation, route }) {
   }, [auctionId]);
 
   useFocusEffect(
-    useCallback(() => {
-      fetchAuction();
-    }, [fetchAuction])
+    useCallback(() => { fetchAuction(); }, [fetchAuction])
   );
 
-  // Replace the mock placeBid with:
+  //  showSuccess toast 
+  const showSuccess = () => {
+    Animated.sequence([
+      Animated.timing(successAnim, { toValue: 1, duration: 200, useNativeDriver: true }),
+      Animated.delay(1800),
+      Animated.timing(successAnim, { toValue: 0, duration: 200, useNativeDriver: true }),
+    ]).start();
+  };
+
+  //  place bid 
   const placeBid = async (amount) => {
     const val = parseFloat(amount || bidInput);
     if (!val || val <= 0) { Alert.alert('Invalid bid', 'Please enter a valid amount.'); return; }
-    if (val <= auction.currentBid) { Alert.alert('Bid too low', 'Must be higher than $' + auction.currentBid); return; }
+    if (val <= auction.currentBid) { Alert.alert('Bid too low', `Must be higher than $${auction.currentBid}`); return; }
+    navigation.navigate('ConfirmBid', {
+      bid: val,
+      auctionTitle: auction.title,
+      auctionId: auction.id,
+    });
 
     setPlacing(true);
     try {
       const token = await getToken();
-      const data = await placeBidApi(token, auction.id, val);
+      const data  = await placeBidApi(token, auction.id, val);
       const updated = data.auction ?? data;
-      const newBid = updated.bids?.[0];
+      const newBid  = updated.bids?.[0];
 
-      setBids((prev) => [{
-        id: newBid?._id ?? Date.now(),
-        userName: 'You',
-        amount: val,
+      setBids(prev => [{
+        id:        newBid?._id ?? Date.now(),
+        userName:  'You',
+        amount:    val,
         createdAt: new Date().toISOString(),
       }, ...prev]);
-      setMyBids((prev) => [...prev, { amount: val }]);
-      setAuction((prev) => ({ ...prev, currentBid: val, bidCount: prev.bidCount + 1 }));
+      setMyBids(prev => [...prev, { amount: val }]);
+      setAuction(prev => ({ ...prev, currentBid: val, bidCount: prev.bidCount + 1 }));
       setBidInput('');
       showSuccess();
       scrollRef.current?.scrollTo({ y: 0, animated: true });
@@ -164,7 +183,7 @@ export default function AuctionRoomScreen({ navigation, route }) {
     }
   };
 
-  // Add loading guard before the existing null check:
+  // loading / not found guards 
   if (loading) {
     return (
       <SafeAreaView style={styles.safe}>
@@ -173,6 +192,28 @@ export default function AuctionRoomScreen({ navigation, route }) {
     );
   }
 
+  if (!auction) {
+    return (
+      <SafeAreaView style={styles.safe}>
+        <View style={styles.topNav}>
+          <TouchableOpacity style={styles.navBtn} onPress={() => navigation.goBack()}>
+            <Ionicons name="arrow-back" size={20} color={COLORS.text} />
+          </TouchableOpacity>
+          <Text style={styles.navTitle}>Auction</Text>
+          <View style={{ width: 40 }} />
+        </View>
+        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+          <MaterialCommunityIcons name="hammer" size={48} color={COLORS.accent} />
+          <Text style={{ color: COLORS.muted, marginTop: 12, fontSize: 15 }}>Auction not found</Text>
+          <TouchableOpacity onPress={() => navigation.goBack()} style={{ marginTop: 20 }}>
+            <Text style={{ color: COLORS.accent, fontWeight: '700' }}>Go Back</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  //  main render 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
       <StatusBar barStyle="dark-content" />
@@ -181,7 +222,6 @@ export default function AuctionRoomScreen({ navigation, route }) {
         <TouchableOpacity style={styles.navBtn} onPress={() => navigation.goBack()} activeOpacity={0.8}>
           <Ionicons name="arrow-back" size={20} color={COLORS.text} />
         </TouchableOpacity>
-        
         <View style={styles.navCenter}>
           {!isEnded && (
             <View style={styles.livePill}>
@@ -199,6 +239,7 @@ export default function AuctionRoomScreen({ navigation, route }) {
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <ScrollView ref={scrollRef} showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
 
+          {/* Image */}
           <View style={styles.imageBox}>
             {auction.image ? (
               <Image source={{ uri: auction.image }} style={StyleSheet.absoluteFill} resizeMode="cover" />
@@ -208,19 +249,14 @@ export default function AuctionRoomScreen({ navigation, route }) {
                 <Text style={styles.imagePlaceholderBrand}>{auction.brand}</Text>
               </View>
             )}
-            <View style={[
-              styles.condOverlay,
-              { backgroundColor: auction.condition === 'Like New' ? '#e8f5e9' : '#fff8e1' },
-            ]}>
-              <Text style={[
-                styles.condOverlayText,
-                { color: auction.condition === 'Like New' ? '#388e3c' : '#f9a825' },
-              ]}>
+            <View style={[styles.condOverlay, { backgroundColor: auction.condition === 'Like New' ? '#e8f5e9' : '#fff8e1' }]}>
+              <Text style={[styles.condOverlayText, { color: auction.condition === 'Like New' ? '#388e3c' : '#f9a825' }]}>
                 {auction.condition}
               </Text>
             </View>
           </View>
 
+          {/* Item info */}
           <View style={styles.section}>
             <Text style={styles.itemBrand}>{auction.brand}</Text>
             <Text style={styles.itemTitle}>{auction.title}</Text>
@@ -230,13 +266,14 @@ export default function AuctionRoomScreen({ navigation, route }) {
 
           <View style={styles.divider} />
 
+          {/* Bid info */}
           <View style={styles.section}>
             <View style={styles.bidInfoRow}>
               <View>
                 <Text style={styles.bidInfoLabel}>Current bid</Text>
                 <Text style={styles.currentBid}>${auction.currentBid}</Text>
                 <Text style={styles.currentBidder}>
-                  {isLeading ? 'You are leading!' : 'by ' + auction.currentBidderName}
+                  {isLeading ? 'You are leading!' : `by ${auction.currentBidderName}`}
                 </Text>
               </View>
               <View style={styles.statsBox}>
@@ -272,6 +309,7 @@ export default function AuctionRoomScreen({ navigation, route }) {
 
           <View style={styles.divider} />
 
+          {/* Bid history */}
           <View style={styles.section}>
             <Text style={styles.sectionLabel}>Bid History · {bids.length}</Text>
             {bids.length === 0 ? (
@@ -286,23 +324,23 @@ export default function AuctionRoomScreen({ navigation, route }) {
           <View style={{ height: 160 }} />
         </ScrollView>
 
+        {/* Toast */}
         <Animated.View
           pointerEvents="none"
           style={[styles.toast, {
             opacity: successAnim,
-            transform: [{
-              translateY: successAnim.interpolate({ inputRange: [0, 1], outputRange: [20, 0] }),
-            }],
+            transform: [{ translateY: successAnim.interpolate({ inputRange: [0, 1], outputRange: [20, 0] }) }],
           }]}
         >
           <Ionicons name="checkmark-circle" size={16} color={COLORS.white} />
           <Text style={styles.toastText}>Bid placed!</Text>
         </Animated.View>
 
+        {/* Bid bar */}
         {!isEnded && (
           <View style={styles.bidBar}>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.quickRow}>
-              {QUICK.map((inc) => (
+              {QUICK.map(inc => (
                 <TouchableOpacity
                   key={inc}
                   style={styles.quickBtn}
@@ -322,7 +360,7 @@ export default function AuctionRoomScreen({ navigation, route }) {
                 <Text style={styles.dollar}>$</Text>
                 <TextInput
                   style={styles.bidInput}
-                  placeholder={suggested + ' or more'}
+                  placeholder={`${suggested} or more`}
                   placeholderTextColor={COLORS.muted}
                   value={bidInput}
                   onChangeText={setBidInput}
@@ -347,67 +385,67 @@ export default function AuctionRoomScreen({ navigation, route }) {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: COLORS.bg },
-  topNav: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 12, backgroundColor: COLORS.white, borderBottomWidth: 1, borderBottomColor: COLORS.border },
-  navBtn: { width: 40, height: 40, borderRadius: 12, backgroundColor: COLORS.card, alignItems: 'center', justifyContent: 'center' },
-  navCenter: { flex: 1, alignItems: 'center', gap: 3 },
-  livePill: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: COLORS.live, borderRadius: 8, paddingHorizontal: 8, paddingVertical: 2 },
-  liveDot: { width: 5, height: 5, borderRadius: 2.5, backgroundColor: COLORS.white },
-  livePillText: { fontSize: 9, fontWeight: '800', color: COLORS.white, letterSpacing: 0.5 },
-  navTitle: { fontSize: 14, fontWeight: '700', color: COLORS.text, maxWidth: 200 },
-  scrollContent: { paddingBottom: 20 },
-  imageBox: { width, height: width * 0.85, backgroundColor: COLORS.card, alignItems: 'center', justifyContent: 'center' },
-  imagePlaceholder: { alignItems: 'center', gap: 8 },
-  imagePlaceholderBrand: { fontSize: 14, fontWeight: '700', color: COLORS.accent },
-  condOverlay: { position: 'absolute', top: 14, left: 14, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 10 },
-  condOverlayText: { fontSize: 11, fontWeight: '700' },
-  section: { paddingHorizontal: 20, paddingVertical: 18 },
-  divider: { height: 1, backgroundColor: COLORS.border, marginHorizontal: 20 },
-  itemBrand: { fontSize: 11, fontWeight: '700', color: COLORS.accent, textTransform: 'uppercase', letterSpacing: 0.5 },
-  itemTitle: { fontSize: 22, fontWeight: '800', color: COLORS.text, marginTop: 3 },
-  itemSize: { fontSize: 12, color: COLORS.muted, marginTop: 4 },
-  itemDesc: { fontSize: 13, color: COLORS.muted, lineHeight: 20, marginTop: 8 },
-  bidInfoRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20 },
-  bidInfoLabel: { fontSize: 11, color: COLORS.muted, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.4 },
-  currentBid: { fontSize: 34, fontWeight: '900', color: COLORS.accent, marginTop: 2 },
-  currentBidder: { fontSize: 12, color: COLORS.muted, marginTop: 3 },
-  statsBox: { alignItems: 'center', backgroundColor: COLORS.card, borderRadius: 12, padding: 12 },
-  statsNumber: { fontSize: 20, fontWeight: '800', color: COLORS.accent },
-  statsLabel: { fontSize: 10, color: COLORS.muted, marginTop: 2 },
-  countRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6 },
-  countBlock: { backgroundColor: COLORS.card, borderRadius: 12, paddingHorizontal: 18, paddingVertical: 10, alignItems: 'center', minWidth: 68 },
-  countValue: { fontSize: 26, fontWeight: '800', color: COLORS.text },
-  countLabel: { fontSize: 10, color: COLORS.muted, fontWeight: '600', letterSpacing: 0.5 },
-  countSep: { fontSize: 24, fontWeight: '800', color: COLORS.accent },
-  endedBanner: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, backgroundColor: '#e8f5e9', borderRadius: 12, paddingVertical: 14 },
-  endedText: { fontSize: 15, fontWeight: '700', color: '#388e3c' },
-  leadingBanner: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: '#e8f5e9', marginHorizontal: 20, marginBottom: 4, borderRadius: 12, paddingHorizontal: 16, paddingVertical: 12 },
-  leadingText: { fontSize: 13, fontWeight: '700', color: '#388e3c' },
-  sectionLabel: { fontSize: 11, fontWeight: '700', color: COLORS.accent, textTransform: 'uppercase', letterSpacing: 0.9, marginBottom: 14 },
-  noBids: { fontSize: 14, color: COLORS.muted, textAlign: 'center', paddingVertical: 20 },
-  bidRow: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: COLORS.white, borderRadius: 14, padding: 12, marginBottom: 8, borderWidth: 1, borderColor: COLORS.border },
-  bidRowTop: { borderColor: COLORS.accent, backgroundColor: COLORS.accentLight },
-  bidRowMe: { borderColor: COLORS.accent },
-  bidAvatar: { width: 38, height: 38, borderRadius: 19, backgroundColor: COLORS.card, alignItems: 'center', justifyContent: 'center' },
-  bidAvatarTop: { backgroundColor: COLORS.accent },
-  bidAvatarText: { fontSize: 16, fontWeight: '700', color: COLORS.accent },
-  bidInfo: { flex: 1 },
-  bidName: { fontSize: 13, fontWeight: '700', color: COLORS.text },
-  topLabel: { fontSize: 11, color: COLORS.accent, fontWeight: '600' },
-  bidTime: { fontSize: 11, color: COLORS.muted, marginTop: 2 },
-  bidAmt: { fontSize: 16, fontWeight: '800', color: COLORS.text },
-  toast: { position: 'absolute', bottom: 160, alignSelf: 'center', flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: COLORS.success, borderRadius: 20, paddingHorizontal: 18, paddingVertical: 10 },
-  toastText: { fontSize: 13, fontWeight: '700', color: COLORS.white },
-  bidBar: { position: 'absolute', bottom: 0, left: 0, right: 0, backgroundColor: COLORS.white, borderTopWidth: 1, borderTopColor: COLORS.border, paddingBottom: Platform.OS === 'ios' ? 28 : 16 },
-  quickRow: { paddingHorizontal: 16, paddingTop: 12, paddingBottom: 8, alignItems: 'center', gap: 8 },
-  quickBtn: { paddingHorizontal: 16, paddingVertical: 7, borderRadius: 20, backgroundColor: COLORS.card, borderWidth: 1, borderColor: COLORS.border, marginRight: 4 },
-  quickText: { fontSize: 13, fontWeight: '700', color: COLORS.accent },
-  suggestedTag: { paddingHorizontal: 12, paddingVertical: 7, borderRadius: 20, backgroundColor: COLORS.accentLight },
-  suggestedText: { fontSize: 11, fontWeight: '600', color: COLORS.accent },
-  inputRow: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 16 },
-  inputWrap: { flex: 1, flexDirection: 'row', alignItems: 'center', backgroundColor: COLORS.card, borderRadius: 14, paddingHorizontal: 14, paddingVertical: 12, borderWidth: 1, borderColor: COLORS.border },
-  dollar: { fontSize: 16, fontWeight: '700', color: COLORS.accent, marginRight: 4 },
-  bidInput: { flex: 1, fontSize: 16, fontWeight: '700', color: COLORS.text },
-  placeBidBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: COLORS.accent, borderRadius: 14, paddingHorizontal: 20, paddingVertical: 14 },
-  placeBidText: { fontSize: 14, fontWeight: '700', color: COLORS.white },
+  safe:                 { flex: 1, backgroundColor: COLORS.bg },
+  topNav:               { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 12, backgroundColor: COLORS.white, borderBottomWidth: 1, borderBottomColor: COLORS.border },
+  navBtn:               { width: 40, height: 40, borderRadius: 12, backgroundColor: COLORS.card, alignItems: 'center', justifyContent: 'center' },
+  navCenter:            { flex: 1, alignItems: 'center', gap: 3 },
+  livePill:             { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: COLORS.live, borderRadius: 8, paddingHorizontal: 8, paddingVertical: 2 },
+  liveDot:              { width: 5, height: 5, borderRadius: 2.5, backgroundColor: COLORS.white },
+  livePillText:         { fontSize: 9, fontWeight: '800', color: COLORS.white, letterSpacing: 0.5 },
+  navTitle:             { fontSize: 14, fontWeight: '700', color: COLORS.text, maxWidth: 200 },
+  scrollContent:        { paddingBottom: 20 },
+  imageBox:             { width, height: width * 0.85, backgroundColor: COLORS.card, alignItems: 'center', justifyContent: 'center' },
+  imagePlaceholder:     { alignItems: 'center', gap: 8 },
+  imagePlaceholderBrand:{ fontSize: 14, fontWeight: '700', color: COLORS.accent },
+  condOverlay:          { position: 'absolute', top: 14, left: 14, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 10 },
+  condOverlayText:      { fontSize: 11, fontWeight: '700' },
+  section:              { paddingHorizontal: 20, paddingVertical: 18 },
+  divider:              { height: 1, backgroundColor: COLORS.border, marginHorizontal: 20 },
+  itemBrand:            { fontSize: 11, fontWeight: '700', color: COLORS.accent, textTransform: 'uppercase', letterSpacing: 0.5 },
+  itemTitle:            { fontSize: 22, fontWeight: '800', color: COLORS.text, marginTop: 3 },
+  itemSize:             { fontSize: 12, color: COLORS.muted, marginTop: 4 },
+  itemDesc:             { fontSize: 13, color: COLORS.muted, lineHeight: 20, marginTop: 8 },
+  bidInfoRow:           { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20 },
+  bidInfoLabel:         { fontSize: 11, color: COLORS.muted, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.4 },
+  currentBid:           { fontSize: 34, fontWeight: '900', color: COLORS.accent, marginTop: 2 },
+  currentBidder:        { fontSize: 12, color: COLORS.muted, marginTop: 3 },
+  statsBox:             { alignItems: 'center', backgroundColor: COLORS.card, borderRadius: 12, padding: 12 },
+  statsNumber:          { fontSize: 20, fontWeight: '800', color: COLORS.accent },
+  statsLabel:           { fontSize: 10, color: COLORS.muted, marginTop: 2 },
+  countRow:             { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6 },
+  countBlock:           { backgroundColor: COLORS.card, borderRadius: 12, paddingHorizontal: 18, paddingVertical: 10, alignItems: 'center', minWidth: 68 },
+  countValue:           { fontSize: 26, fontWeight: '800', color: COLORS.text },
+  countLabel:           { fontSize: 10, color: COLORS.muted, fontWeight: '600', letterSpacing: 0.5 },
+  countSep:             { fontSize: 24, fontWeight: '800', color: COLORS.accent },
+  endedBanner:          { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, backgroundColor: '#e8f5e9', borderRadius: 12, paddingVertical: 14 },
+  endedText:            { fontSize: 15, fontWeight: '700', color: '#388e3c' },
+  leadingBanner:        { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: '#e8f5e9', marginHorizontal: 20, marginBottom: 4, borderRadius: 12, paddingHorizontal: 16, paddingVertical: 12 },
+  leadingText:          { fontSize: 13, fontWeight: '700', color: '#388e3c' },
+  sectionLabel:         { fontSize: 11, fontWeight: '700', color: COLORS.accent, textTransform: 'uppercase', letterSpacing: 0.9, marginBottom: 14 },
+  noBids:               { fontSize: 14, color: COLORS.muted, textAlign: 'center', paddingVertical: 20 },
+  bidRow:               { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: COLORS.white, borderRadius: 14, padding: 12, marginBottom: 8, borderWidth: 1, borderColor: COLORS.border },
+  bidRowTop:            { borderColor: COLORS.accent, backgroundColor: COLORS.accentLight },
+  bidRowMe:             { borderColor: COLORS.accent },
+  bidAvatar:            { width: 38, height: 38, borderRadius: 19, backgroundColor: COLORS.card, alignItems: 'center', justifyContent: 'center' },
+  bidAvatarTop:         { backgroundColor: COLORS.accent },
+  bidAvatarText:        { fontSize: 16, fontWeight: '700', color: COLORS.accent },
+  bidInfo:              { flex: 1 },
+  bidName:              { fontSize: 13, fontWeight: '700', color: COLORS.text },
+  topLabel:             { fontSize: 11, color: COLORS.accent, fontWeight: '600' },
+  bidTime:              { fontSize: 11, color: COLORS.muted, marginTop: 2 },
+  bidAmt:               { fontSize: 16, fontWeight: '800', color: COLORS.text },
+  toast:                { position: 'absolute', bottom: 160, alignSelf: 'center', flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: COLORS.success, borderRadius: 20, paddingHorizontal: 18, paddingVertical: 10 },
+  toastText:            { fontSize: 13, fontWeight: '700', color: COLORS.white },
+  bidBar:               { position: 'absolute', bottom: 0, left: 0, right: 0, backgroundColor: COLORS.white, borderTopWidth: 1, borderTopColor: COLORS.border, paddingBottom: Platform.OS === 'ios' ? 28 : 16 },
+  quickRow:             { paddingHorizontal: 16, paddingTop: 12, paddingBottom: 8, alignItems: 'center', gap: 8 },
+  quickBtn:             { paddingHorizontal: 16, paddingVertical: 7, borderRadius: 20, backgroundColor: COLORS.card, borderWidth: 1, borderColor: COLORS.border, marginRight: 4 },
+  quickText:            { fontSize: 13, fontWeight: '700', color: COLORS.accent },
+  suggestedTag:         { paddingHorizontal: 12, paddingVertical: 7, borderRadius: 20, backgroundColor: COLORS.accentLight },
+  suggestedText:        { fontSize: 11, fontWeight: '600', color: COLORS.accent },
+  inputRow:             { flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 16 },
+  inputWrap:            { flex: 1, flexDirection: 'row', alignItems: 'center', backgroundColor: COLORS.card, borderRadius: 14, paddingHorizontal: 14, paddingVertical: 12, borderWidth: 1, borderColor: COLORS.border },
+  dollar:               { fontSize: 16, fontWeight: '700', color: COLORS.accent, marginRight: 4 },
+  bidInput:             { flex: 1, fontSize: 16, fontWeight: '700', color: COLORS.text },
+  placeBidBtn:          { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: COLORS.accent, borderRadius: 14, paddingHorizontal: 20, paddingVertical: 14 },
+  placeBidText:         { fontSize: 14, fontWeight: '700', color: COLORS.white },
 });
