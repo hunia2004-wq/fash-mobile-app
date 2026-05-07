@@ -628,3 +628,38 @@ export async function checkIsSaved(token, itemId) {
     headers: { Authorization: `Bearer ${token}` },
   });
 }
+
+// FASH COLLECTION
+export async function getCollectionItems(query = {}) {
+  const params = new URLSearchParams();
+  if (query.category && query.category !== 'All') params.append('category', query.category);
+  if (query.search) params.append('search', query.search);
+  if (query.brand) params.append('brand', query.brand);
+  const queryString = params.toString();
+  return request(`/collection${queryString ? `?${queryString}` : ''}`);
+}
+
+export async function getCollectionItemById(id) {
+  return request(`/collection/${id}`);
+}
+
+export async function rentCollectionItem(token, id, rentalData) {
+  return request(`/collection/${id}/rent`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${token}` },
+    body: JSON.stringify(rentalData),
+  });
+}
+
+export async function getMyRentals(token) {
+  return request('/collection/my-rentals', {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+}
+
+export async function cancelRental(token, rentalId) {
+  return request(`/collection/my-rentals/${rentalId}/cancel`, {
+    method: 'PATCH',
+    headers: { Authorization: `Bearer ${token}` },
+  });
+}

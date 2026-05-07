@@ -164,7 +164,7 @@ export default function SavedScreen() {
             <Ionicons name="heart-outline" size={52} color="#F2E6E3" />
             <Text style={styles.emptyTitle}>Nothing saved yet</Text>
             <Text style={styles.emptySub}>
-              Browse the marketplace and tap{' '}
+              Browse the marketplace or FASH collection and tap{' '}
               <Ionicons name="heart-outline" size={13} color="#888888" />{' '}
               to save items here.
             </Text>

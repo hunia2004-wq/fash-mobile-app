@@ -1,111 +1,69 @@
-import React, { useState } from 'react';
-import {View, Text, ScrollView, StyleSheet, TouchableOpacity, StatusBar, Dimensions, Image, TextInput,} from 'react-native';
+import React, { useState, useCallback, useEffect } from 'react';
+import {View, Text, ScrollView, StyleSheet, TouchableOpacity, StatusBar, Dimensions, Image, TextInput, ActivityIndicator} from 'react-native';
 import { Feather, Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useFocusEffect } from '@react-navigation/native';
+import { useAuth } from '../../context/AuthContext';
+import { getSaved, saveNewItem, removeSaved, getCollectionItems } from '../../services/authService';
 
 const { width } = Dimensions.get('window');
 
+const CARD_WIDTH = (width - 44) / 2;
+
 const CATEGORIES = ['All', 'Soirée', 'Suits', 'Umrah & Hajj', 'Kids'];
 
-const ALL_PRODUCTS = [
-  {
-    id: '1',
-    name: 'White Abaya',
-    brand: 'FASH Originals',
-    price: 'EGP 1000',
-    category: 'Umrah & Hajj',
-    image: require('./images/whiteabaya.png'),
-    badge: null,
-  },
-
-  {
-    id: '2',
-    name: 'Burgundy Soirée Dress',
-    brand: 'FASH Exclusive',
-    price: 'EGP 5000',
-    category: 'Soirée',
-    image: require('./images/reddress.png'),
-    badge: 'New',
-  },
-
-  {
-    id: '3',
-    name: 'TinkerBell Kids Costume',
-    brand: 'FASH Originals',
-    price: 'EGP 450',
-    category: 'Kids',
-    image: require('./images/tinkerbell.png'),
-    badge: 'Sale',
-  },
-
-  {
-    id: '4',
-    name: 'Navy Blue Suit',
-    brand: 'FASH Originals',
-    price: 'EGP 2500',
-    category: 'Suits',
-    image: require('./images/navybluesuit.png'),
-    badge: 'Sale',
-  },
-];
 
 // Product card 
-const ProductCard = ({ item }) => {
-  const [saved, setSaved] = useState(false);
-
-  return (
-    <TouchableOpacity style={styles.wCard} activeOpacity={0.85}>
-      <View style={styles.wCardImg}>
+const ProductCard = ({ item, saved, onToggleSave }) => (
+  <TouchableOpacity style={styles.wCard} activeOpacity={0.85}>
+    <View style={styles.wCardImg}>
+      {item.image ? (
         <Image
-          source={item.image}
+          source={{ uri: item.image }}
           style={{ width: '100%', height: '100%' }}
           resizeMode="cover"
         />
+      ) : (
+        <Feather name="image" size={36} color="#C17C74" />
+      )}
 
-         {/* FASH badge */}
-        <View style={styles.fashBadge}>
-          <Text style={styles.fashBadgeText}>FASH</Text>
+      <View style={styles.fashBadge}>
+        <Text style={styles.fashBadgeText}>FASH</Text>
+      </View>
+
+      {item.isNew && (
+        <View style={styles.wCardBadge}>
+          <Text style={styles.wCardBadgeText}>New</Text>
         </View>
+      )}
 
+      <TouchableOpacity
+        style={styles.heartOverlay}
+        onPress={() => onToggleSave(item._id)}
+        activeOpacity={0.8}
+      >
+        <Ionicons
+          name={saved ? 'heart' : 'heart-outline'}
+          size={14}
+          color={saved ? '#C17C74' : '#fff'}
+        />
+      </TouchableOpacity>
+    </View>
 
-        {/* New / Sale badge */}
-        {item.badge && (
-          <View style={styles.wCardBadge}>
-            <Text style={styles.wCardBadgeText}>{item.badge}</Text>
-          </View>
-        )}
-
-
-        {/* Heart save  */}
-        <TouchableOpacity
-          style={styles.heartOverlay}
-          onPress={() => setSaved(s => !s)}
-          activeOpacity={0.8}
-        >
-          <Ionicons
-            name={saved ? 'heart' : 'heart-outline'}
-            size={14}
-            color={saved ? '#C17C74' : '#fff'}
-          />
+    <View style={styles.wCardInfo}>
+      <Text style={styles.wCardBrand}>{item.brand}</Text>
+      <Text style={styles.wCardName}>{item.title}</Text>
+      <View style={styles.wCardBottom}>
+        <Text style={styles.wCardPrice}>EGP {item.price}</Text>
+        <TouchableOpacity style={styles.bagBtn} activeOpacity={0.85}>
+          <Ionicons name="bag-handle-outline" size={13} color="#fff" />
         </TouchableOpacity>
       </View>
-      
+    </View>
+  </TouchableOpacity>
+);
 
-      <View style={styles.wCardInfo}>
-        <Text style={styles.wCardBrand}>{item.brand}</Text>
-        <Text style={styles.wCardName}>{item.name}</Text>
-        <View style={styles.wCardBottom}>
-          <Text style={styles.wCardPrice}>{item.price}</Text>
-          <TouchableOpacity style={styles.bagBtn} activeOpacity={0.85}>
-            <Ionicons name="bag-handle-outline" size={13} color="#fff" />
-          </TouchableOpacity>
-        </View>
-      </View>
-    </TouchableOpacity>
-  );
-};
-
-// ── Coming-soon placeholder — for Suits ──────────────────────────
+//Coming-soon placeholder — for Suits 
 const ComingSoonCard = () => (
   <View style={[styles.wCard, { opacity: 0.6 }]}>
     <View style={[styles.wCardImg, { backgroundColor: '#e8ecf5' }]}>
@@ -121,39 +79,95 @@ const ComingSoonCard = () => (
 
 // main screen
 export default function FashCollectionScreen({ navigation }) {
+  const { getToken } = useAuth();
   const [activeCategory, setActiveCategory] = useState('All');
   const [search, setSearch] = useState('');
+  const [items, setItems] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [savedMap, setSavedMap] = useState({});
 
-  const filtered = ALL_PRODUCTS.filter(p => {
-    const matchCat    = activeCategory === 'All' || p.category === activeCategory;
-    const matchSearch = p.name.toLowerCase().includes(search.toLowerCase()) ||
-                        p.brand.toLowerCase().includes(search.toLowerCase());
-    return matchCat && matchSearch;
-  });
+  const fetchItems = useCallback(async () => {
+    try {
+      setLoading(true);
+      const data = await getCollectionItems({
+        category: activeCategory,
+        search,
+      });
+      setItems(data.items ?? data ?? []);
+    } catch (err) {
+      console.error('Failed to fetch collection:', err.message);
+    } finally {
+      setLoading(false);
+    }
+  }, [activeCategory, search]);
+
+  const loadSaved = useCallback(async () => {
+    try {
+      const token = await getToken();
+      if (!token) return;
+      const data = await getSaved(token);
+      const map = {};
+      (data.savedItems ?? data ?? [])
+        .filter(s => s.itemType === 'collection')
+        .forEach(s => { map[s.itemId] = true; });
+      setSavedMap(map);
+    } catch (err) {
+      console.error('Failed to load saved:', err.message);
+    }
+  }, [getToken]);
+
+  useEffect(() => {
+    const delay = setTimeout(() => fetchItems(), search ? 400 : 0);
+    return () => clearTimeout(delay);
+  }, [fetchItems]);
+
+  useEffect(() => {
+    loadSaved();
+  }, []);
+
+  const handleToggleSave = async (id) => {
+    const alreadySaved = savedMap[id];
+    setSavedMap(prev => ({ ...prev, [id]: !alreadySaved }));
+    try {
+      const token = await getToken();
+      if (alreadySaved) {
+        await removeSaved(token, id);
+      } else {
+        await saveNewItem(token, id, 'collection');
+      }
+    } catch (err) {
+      setSavedMap(prev => ({ ...prev, [id]: alreadySaved }));
+      console.error('Save failed:', err.message);
+    }
+  };
 
   // Show suits placeholder only when searching nothing & category allows it
   const showSuits =
     search.length === 0 &&
-    (activeCategory === 'All' || activeCategory === 'Suits');
-
-  const totalVisible = filtered.length + (showSuits ? 1 : 0);
+    (activeCategory === 'All' || activeCategory === 'Suits') &&
+    !items.some(i => i.category === 'Suits');
 
   return (
     <SafeAreaView style={styles.safe}>
       <StatusBar barStyle="dark-content" backgroundColor="#F5F5F5" />
 
-      {/* Header */}
+      {/* Logo */}
+<View style={styles.logoHeader}>
+  <Image
+    source={require('../../source/assets/images/Blacklogo.png')}
+    style={styles.logo}
+    resizeMode="contain"
+  />
+</View>
+
       <View style={styles.header}>
         <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()} activeOpacity={0.7}>
           <Ionicons name="arrow-back" size={20} color="#2c2c2c" />
         </TouchableOpacity>
-
         <Text style={styles.headerTitle}>FASH Collection</Text>
-
         <View style={{ width: 40 }} />
       </View>
 
-      {/* Search bar */}
       <View style={styles.searchRow}>
         <View style={styles.searchBar}>
           <Feather name="search" size={14} color="#C17C74" style={{ marginRight: 8 }} />
@@ -177,7 +191,6 @@ export default function FashCollectionScreen({ navigation }) {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
-        {/*  Category chips */}
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
@@ -197,21 +210,23 @@ export default function FashCollectionScreen({ navigation }) {
           ))}
         </ScrollView>
 
-        {/* No search results */}
-        {filtered.length === 0 && !showSuits && (
+        {loading ? (
+          <ActivityIndicator size="large" color="#C17C74" style={{ marginTop: 40 }} />
+        ) : items.length === 0 && !showSuits ? (
           <View style={styles.emptyState}>
             <Feather name="search" size={42} color="#F2E6E3" />
             <Text style={styles.emptyTitle}>No items found</Text>
             <Text style={styles.emptySub}>Try a different keyword or category</Text>
           </View>
-        )}
-
-        {/* Product grid  */}
-        {(filtered.length > 0 || showSuits) && (
+        ) : (
           <View style={styles.grid}>
-            {filtered.map(item => (
-              <View key={item.id} style={styles.gridItem}>
-                <ProductCard item={item} />
+            {items.map(item => (
+              <View key={item._id} style={styles.gridItem}>
+                <ProductCard
+                  item={item}
+                  saved={!!savedMap[item._id]}
+                  onToggleSave={handleToggleSave}
+                />
               </View>
             ))}
             {showSuits && (
@@ -222,7 +237,6 @@ export default function FashCollectionScreen({ navigation }) {
           </View>
         )}
 
-        {/*  Promo strip */}
         {search.length === 0 && (
           <View style={styles.promoBanner}>
             <Ionicons name="sparkles-outline" size={16} color="#C17C74" style={{ marginRight: 10 }} />
@@ -240,8 +254,6 @@ export default function FashCollectionScreen({ navigation }) {
 }
 
 
-const CARD_WIDTH = (width - 44) / 2;
-
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
@@ -256,6 +268,17 @@ const styles = StyleSheet.create({
     paddingBottom: 12,
   },
 
+  logoHeader: { 
+    paddingBottom: 10, 
+    alignItems: 'center', 
+    backgroundColor: '#F5F5F5' 
+  },
+
+  logo: { 
+    width: 120,
+    height: 50 
+  },
+
   backBtn: {
     width: 40, 
     height: 40, 
@@ -264,23 +287,6 @@ const styles = StyleSheet.create({
     alignItems: 'center', 
     justifyContent: 'center',
     
-  },
-
-  topNav: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    backgroundColor: '#ffffff',
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(193,124,116,0.18)',
-  },
-
-  navTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#C17C74',
   },
 
   headerTitle: {
