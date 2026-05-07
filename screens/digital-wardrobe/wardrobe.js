@@ -46,7 +46,7 @@ const WardrobeCard = ({ item, onToggleFavorite }) => (
   </TouchableOpacity>
 );
 
-export default function WardrobeScreen() {
+export default function WardrobeScreen({navigation}) {
   const { getToken } = useAuth();
   const [activeCategory, setActiveCategory] = useState('All');
   const [items, setItems] = useState([]);
@@ -63,14 +63,6 @@ export default function WardrobeScreen() {
       console.log('TOKEN VALUE:', token);
       console.log('TOKEN TYPE:', typeof token);
       if (!token) return;
-
-      // Raw test — add this temporarily
-const testRes = await fetch('https://fash-backend-cp3n.vercel.app/api/v1/wardrobe', {
-  headers: { Authorization: `Bearer ${token}` }
-});
-const testJson = await testRes.json();
-console.log('RAW RESPONSE STATUS:', testRes.status);
-console.log('RAW RESPONSE BODY:', JSON.stringify(testJson));
   
       const [itemsData, statsData] = await Promise.all([
         getWardrobeItems(token, category),
@@ -199,7 +191,7 @@ console.log('RAW RESPONSE BODY:', JSON.stringify(testJson));
         )}
 
         {/* Add button */}
-        <TouchableOpacity style={styles.btnAccent} activeOpacity={0.85}>
+        <TouchableOpacity style={styles.btnAccent} activeOpacity={0.85} onPress={() => navigation.navigate('UploadTab')}>
           <Feather name="plus" size={16} color="white" style={{ marginRight: 6 }} />
           <Text style={styles.btnAccentText}>Add Item</Text>
         </TouchableOpacity>
