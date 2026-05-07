@@ -9,13 +9,16 @@ import { COLORS, WARDROBE_ITEMS } from './Packingdata';
 
 const { width } = Dimensions.get('window');
 
+const CATEGORY_EMOJIS = {
+  Tops: '👕', Bottoms: '👖', Dresses: '👗', Shoes: '👟',
+  Bags: '👜', Accessories: '✨', Outerwear: '🧥',
+};
+
 export default function OutfitDetailScreen({ navigation, route }) {
   const { outfit, collection } = route.params;
   const [saved, setSaved] = useState(false);
 
-  const items = outfit.items
-    .map((id) => WARDROBE_ITEMS.find((w) => w.id === id))
-    .filter(Boolean);
+  const items = outfit.items ?? [];
 
   const handleStyleWithAI = () => {
     const itemNames = items.map((i) => i.name).join(', ');

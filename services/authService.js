@@ -695,3 +695,50 @@ export async function getMyDonations(token) {
 export async function getPointsGuide() {
   return request('/donations/points-guide');
 }
+
+// PACKING
+export async function getBuilderItems(token, query = {}) {
+  const params = new URLSearchParams();
+  if (query.category && query.category !== 'All') params.append('category', query.category);
+  if (query.source) params.append('source', query.source);
+  if (query.search) params.append('search', query.search);
+  const queryString = params.toString();
+  return request(`/outfits/builder${queryString ? `?${queryString}` : ''}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+}
+
+export async function getOutfits(token) {
+  return request('/outfits', {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+}
+
+export async function getOutfitById(token, id) {
+  return request(`/outfits/${id}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+}
+
+export async function createOutfit(token, outfitData) {
+  return request('/outfits', {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${token}` },
+    body: JSON.stringify(outfitData),
+  });
+}
+
+export async function updateOutfit(token, id, outfitData) {
+  return request(`/outfits/${id}`, {
+    method: 'PUT',
+    headers: { Authorization: `Bearer ${token}` },
+    body: JSON.stringify(outfitData),
+  });
+}
+
+export async function deleteOutfit(token, id) {
+  return request(`/outfits/${id}`, {
+    method: 'DELETE',
+    headers: { Authorization: `Bearer ${token}` },
+  });
+}
