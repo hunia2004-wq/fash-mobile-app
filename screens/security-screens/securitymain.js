@@ -17,12 +17,6 @@ const SecurityScreen = ({ navigation }) => {
       subtitle: 'Active sessions',
       screen: 'LoginDevicesScreen',
     },
-    {
-      id: 'connected',
-      title: 'Connected Accounts',
-      subtitle: 'Google, Facebook, X, Apple',
-      screen: 'ConnectedAccountsScreen',
-    },
   ];
 
   return (

@@ -36,7 +36,6 @@ import OrderDetailScreen from './screens/orders-screen/orderdteails';
 import SecurityScreen from './screens/security-screens/securitymain';
 import TwoFactorAuthScreen from './screens/security-screens/twofa';
 import LoginDevicesScreen from './screens/security-screens/devices';
-import ConnectedAccountsScreen from './screens/security-screens/accounts';
 
 import SupportScreen from './screens/support-screens/supportmain';
 import ContactSupportScreen from './screens/support-screens/contact';
@@ -166,7 +165,9 @@ export default function App() {
                 ) : (
                   <>
                     <Stack.Screen name="Home" component={HomeScreen} />
+
                     <Stack.Screen name="EditProfileScreen" component={EditProfileScreen} />
+
                     <Stack.Screen name="SettingsScreen" component={SettingsScreen} />
                     <Stack.Screen name="AddressScreen" component={AddressScreen} />
                     <Stack.Screen name="CardsScreen" component={CardsScreen} />
@@ -178,29 +179,40 @@ export default function App() {
                     <Stack.Screen name="VerifyEmailScreen" component={VerifyEmailScreen} />
                     <Stack.Screen name="OrdersScreen" component={OrdersScreen} />
                     <Stack.Screen name="OrderDetailScreen" component={OrderDetailScreen} />
+
                     <Stack.Screen name="SecurityScreen" component={SecurityScreen} />
                     <Stack.Screen name="TwoFactorAuthScreen" component={TwoFactorAuthScreen} />
                     <Stack.Screen name="LoginDevicesScreen" component={LoginDevicesScreen} />
-                    <Stack.Screen name="ConnectedAccountsScreen" component={ConnectedAccountsScreen} />
+
                     <Stack.Screen name="SupportScreen" component={SupportScreen} />
                     <Stack.Screen name="ContactSupportScreen" component={ContactSupportScreen} />
                     <Stack.Screen name="FAQScreen" component={FAQScreen} />
+
                     <Stack.Screen name="AIStylingScreen" component={AIStyling} />
+
                     <Stack.Screen name="ConfirmBid" component={ConfirmBid} />
+
                     <Stack.Screen name="Cart" component={CartScreen} />
                     <Stack.Screen name="Payment" component={PaymentScreen} />
+
                     <Stack.Screen name="MarketplaceHome" component={MarketplaceHome} />
                     <Stack.Screen name="ProductDetails" component={ProductDetails} />
                     <Stack.Screen name="AddListingScreen" component={AddListingScreen} />
+
                     <Stack.Screen name="PackingBuilderscreen" component={PackingBuilderscreen} options={{ animation: 'slide_from_bottom' }} />
                     <Stack.Screen name="PackingPicker" component={PackingPickerScreen} />
                     <Stack.Screen name="PackingDetail" component={PackingDetailScreen} options={{ animation: 'slide_from_right' }} />
+
                     <Stack.Screen name="DonationScreen" component={DonationScreen} />
+
                     <Stack.Screen name="FashCollectionScreen" component={FashCollectionScreen} />
+
                     <Stack.Screen name="AuctionListScreen" component={AuctionListScreen} />
                     <Stack.Screen name="AuctionRoomScreen" component={AuctionRoomScreen} initialParams={{ auctionId: null }} options={{ animation: 'slide_from_right' }} />
                     <Stack.Screen name="CreateAuction" component={CreateAuction} options={{ animation: 'slide_from_bottom' }} />
+
                     <Stack.Screen name="MainCart" component={MainCart} />
+                    
                     <Stack.Screen name="SellerProfileScreen" component={SellerProfileScreen} />
                   </>
                 )}
