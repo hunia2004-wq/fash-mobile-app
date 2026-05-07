@@ -323,34 +323,6 @@ export async function removeFavorite(token, itemId) {
   });
 }
 
-// SAVED ITEMS
-
-export async function getSavedItems(token) {
-  return request("/user/saved", {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
-}
-
-export async function saveItem(token, itemId) {
-  return request(`/user/saved/${itemId}`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
-}
-
-export async function removeSavedItem(token, itemId) {
-  return request(`/user/saved/${itemId}`, {
-    method: "DELETE",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
-}
-
 // ADDRESSES
 
 export async function getAddresses(token) {
@@ -628,3 +600,31 @@ export async function placeBid(token, auctionId, amount) {
   });
 }
 
+// SAVED ITEMS
+export async function getSaved(token, itemType) {
+  const query = itemType && itemType !== 'all' ? `?itemType=${itemType}` : '';
+  return request(`/saved${query}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+}
+
+export async function saveNewItem(token, itemId, itemType) {
+  return request('/saved', {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${token}` },
+    body: JSON.stringify({ itemId, itemType }),
+  });
+}
+
+export async function removeSaved(token, itemId) {
+  return request(`/saved/${itemId}`, {
+    method: 'DELETE',
+    headers: { Authorization: `Bearer ${token}` },
+  });
+}
+
+export async function checkIsSaved(token, itemId) {
+  return request(`/saved/${itemId}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+}

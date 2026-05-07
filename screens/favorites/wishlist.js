@@ -1,128 +1,134 @@
-import React, { useState } from 'react';
-import {View, Text, ScrollView,StyleSheet, TouchableOpacity, StatusBar, Dimensions, Image} from 'react-native';
-import { Ionicons, MaterialCommunityIcons, Feather } from '@expo/vector-icons';
+import React, { useState, useCallback } from 'react';
+import {View, Text, ScrollView,StyleSheet, TouchableOpacity, StatusBar, Dimensions, Image, ActivityIndicator} from 'react-native';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useFocusEffect } from '@react-navigation/native';
+import { useAuth } from '../../context/AuthContext';
+import { getSaved, removeSaved } from '../../services/authService';
 
 
 const { width } = Dimensions.get('window');
 
-// const COLORS = {
-//   bg: '#F5F5F5',
-//   card: '#F2E6E3',
-//   accent: '#C17C74',
-//   text: '#2c2c2c',
-//   muted: '#888888',
-//   white: '#ffffff',
-//   border: 'rgba(193,124,116,0.18)',
-//   c2cBg: '#e0ede8',
-//   c2cText: '#3a7a5e',
-//   outfitBg: '#e8daf8',
-//   outfitText: '#6b3fa0',
-// };
 
 const TABS = ['All', 'FASH', 'Marketplace'];
 
-const ALL_ITEMS = [
-  { id: '1',  name: 'White Abaya',             brand: 'FASH Originals',            price: '$250',  image: require('./images/whiteabaya.png'),   source: 'fash' },
-  { id: '2',  name: 'Chanel Flap Bag',         brand: '@summer_closet · C2C',      price: '$489',  image: require('./images/bluebag.png'),      source: 'c2c'  },
-  { id: '3',  name: 'Burgundy Soirée Dress',   brand: 'FASH Exclusive',            price: '$380',  image: require('./images/reddress.png'),     source: 'fash' },
-  { id: '4',  name: 'YSL Libre Perfume',       brand: '@luxe_preloved · C2C',      price: '500',   image: require('./images/perfume.png'),      source: 'c2c'  },
-  { id: '5',  name: 'TinkerBell Kids Costume', brand: 'FASH Originals',            price: '$150',  image: require('./images/tinkerbell.png'),   source: 'fash' },
-  { id: '6',  name: 'Pink CarSeat',            brand: '@style_vault · C2C',        price: '$1580', image: require('./images/carseat.png'),      source: 'c2c'  },
-];
 
-
-const SourceBadge = ({ source }) => {
-  if (source === 'fash') {
+const SourceBadge = ({ itemType }) => {
+  if (itemType === 'collection') {
     return (
       <View style={[styles.badge, { backgroundColor: '#C17C74' }]}>
         <Text style={[styles.badgeText, { color: 'white' }]}>FASH</Text>
       </View>
     );
   }
-
-  if (source === 'c2c') {
-    return (
-      <View style={[styles.badge, { backgroundColor: '#e0ede8' }]}>
-        <Text style={[styles.badgeText, { color: '#3a7a5e' }]}>Marketplace</Text>
-      </View>
-    );
-  }
-
   return (
-    <View style={[styles.badge, { backgroundColor: '#e8daf8' }]}>
-      <Text style={[styles.badgeText, { color: '#6b3fa0' }]}>AI Outfit</Text>
+    <View style={[styles.badge, { backgroundColor: '#e0ede8' }]}>
+      <Text style={[styles.badgeText, { color: '#3a7a5e' }]}>Marketplace</Text>
     </View>
   );
 };
 
-const SavedCard = ({ item }) => (
-  <TouchableOpacity style={styles.itemCard} activeOpacity={0.85}>
-    <View style={styles.itemImg}>
-  {item.image ? (
-    <Image
-      source={item.image}
-      style={styles.itemImage}
-      resizeMode="cover"
-    />
-  ) : (
-    <MaterialCommunityIcons
-      name={item.icon}
-      size={32}
-      color="#C17C74"
-    />
-  )}
-</View>
-    <View style={styles.itemInfo}>
-      <Text style={styles.itemName}>{item.name}</Text>
-      <Text style={styles.itemBrand}>{item.brand}</Text>
-      <Text style={styles.itemPrice}>{item.price}</Text>
-      <SourceBadge source={item.source} />
-    </View>
 
-    <TouchableOpacity style={styles.heartBtn} activeOpacity={0.7}>
-      <Ionicons name="heart" size={20} color='#C17C74' />
-    </TouchableOpacity>
-  </TouchableOpacity>
-);
+const SavedCard = ({ savedItem, onRemove }) => {
+  const { item, itemType, itemId } = savedItem;
+  return (
+    <View style={styles.itemCard}>
+      <View style={styles.itemImg}>
+        {item?.image ? (
+          <Image source={{ uri: item.image }} style={styles.itemImage} resizeMode="cover" />
+        ) : (
+          <MaterialCommunityIcons name="hanger" size={32} color="#C17C74" />
+        )}
+      </View>
+      <View style={styles.itemInfo}>
+        <Text style={styles.itemName}>{item?.title ?? '—'}</Text>
+        <Text style={styles.itemBrand}>
+          {itemType === 'marketplace' && item?.handle
+            ? `${item.handle} · C2C`
+            : item?.brand ?? '—'}
+        </Text>
+        <Text style={styles.itemPrice}>${item?.price ?? '—'}</Text>
+        <SourceBadge itemType={itemType} />
+      </View>
+      <TouchableOpacity
+        style={styles.heartBtn}
+        onPress={() => onRemove(itemId)}
+        activeOpacity={0.7}
+      >
+        <Ionicons name="heart" size={20} color="#C17C74" />
+      </TouchableOpacity>
+    </View>
+  );
+};
 
 
 export default function SavedScreen() {
+  const { getToken } = useAuth();
   const [activeTab, setActiveTab] = useState('All');
+  const [savedItems, setSavedItems] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  const fetchSaved = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const token = await getToken();
+      if (!token) return;
+      const data = await getSaved(token);
+      setSavedItems(data.savedItems ?? data ?? []);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  }, [getToken]);
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchSaved();
+    }, [fetchSaved])
+  );
+
+  const handleRemove = async (itemId) => {
+    try {
+      const token = await getToken();
+      await removeSaved(token, itemId);
+      setSavedItems(prev => prev.filter(s => s.itemId.toString() !== itemId.toString()));
+    } catch (err) {
+      console.error('Remove failed:', err.message);
+    }
+  };
 
   const filteredItems = () => {
-    if (activeTab === 'FASH')        return ALL_ITEMS.filter(i => i.source === 'fash');
-    if (activeTab === 'Marketplace') return ALL_ITEMS.filter(i => i.source === 'c2c');
-    return ALL_ITEMS;
+    if (activeTab === 'FASH')        return savedItems.filter(i => i.itemType === 'collection');
+    if (activeTab === 'Marketplace') return savedItems.filter(i => i.itemType === 'marketplace');
+    return savedItems;
   };
 
   const totalCount = {
-    'All': ALL_ITEMS.length,
-    'FASH': ALL_ITEMS.filter(i => i.source === 'fash').length,
-    'Marketplace': ALL_ITEMS.filter(i => i.source === 'c2c').length,
+    'All':         savedItems.length,
+    'FASH':        savedItems.filter(i => i.itemType === 'collection').length,
+    'Marketplace': savedItems.filter(i => i.itemType === 'marketplace').length,
   };
 
   return (
     <SafeAreaView style={styles.safe}>
-      <StatusBar barStyle="dark-content" backgroundColor='white'/>
+      <StatusBar barStyle="dark-content" backgroundColor="white" />
 
-      {/* logo */}
       <View style={styles.logoHeader}>
         <Image
           source={require('../../source/assets/images/Blacklogo.png')}
           style={styles.logo}
           resizeMode="contain"
         />
-        </View>
+      </View>
 
-      
       <View style={styles.titleHeader}>
         <Text style={styles.headerTitle}>Saved Items</Text>
         <Text style={styles.headerSub}>Your wishlist & favorites</Text>
       </View>
 
-
-      {/* Tabs */}
       <View style={styles.tabsWrapper}>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.tabsRow}>
           {TABS.map(tab => (
@@ -142,45 +148,45 @@ export default function SavedScreen() {
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-
-        {/* Items section */}
-        {filteredItems().length > 0 && (
-  <>
-    <Text style={styles.sectionLabel}>Saved Items</Text>
-    {filteredItems().map(item => (
-      <SavedCard key={item.id} item={item} />
-    ))}
-  </>
-)}
-
-        {/* Empty state */}
-        {filteredItems().length === 0 && (
+        {loading ? (
+          <ActivityIndicator size="large" color="#C17C74" style={{ marginTop: 40 }} />
+        ) : error ? (
           <View style={styles.emptyState}>
-            <Ionicons name="heart-outline" size={52} color='#F2E6E3' />
+            <MaterialCommunityIcons name="wifi-off" size={40} color="#C17C74" />
+            <Text style={styles.emptyTitle}>Something went wrong</Text>
+            <Text style={styles.emptySub}>{error}</Text>
+            <TouchableOpacity onPress={fetchSaved} style={styles.retryBtn}>
+              <Text style={styles.retryText}>Try again</Text>
+            </TouchableOpacity>
+          </View>
+        ) : filteredItems().length === 0 ? (
+          <View style={styles.emptyState}>
+            <Ionicons name="heart-outline" size={52} color="#F2E6E3" />
             <Text style={styles.emptyTitle}>Nothing saved yet</Text>
             <Text style={styles.emptySub}>
               Browse the marketplace and tap{' '}
-              <Ionicons name="heart-outline" size={13} color='#888888' />{' '}
+              <Ionicons name="heart-outline" size={13} color="#888888" />{' '}
               to save items here.
             </Text>
           </View>
+        ) : (
+          <>
+            <Text style={styles.sectionLabel}>Saved Items</Text>
+            {filteredItems().map(item => (
+              <SavedCard key={item.savedId} savedItem={item} onRemove={handleRemove} />
+            ))}
+          </>
         )}
-
       </ScrollView>
     </SafeAreaView>
   );
 }
 
+
 const styles = StyleSheet.create({
   safe: { 
     flex: 1, 
     backgroundColor: '#F5F5F5' 
-  },
-
-  itemImage: {
-    width: '100%',
-    height: '100%',
-    borderRadius: 14,
   },
 
   logoHeader: {
@@ -341,6 +347,19 @@ const styles = StyleSheet.create({
     color: '#888888', 
     textAlign: 'center', 
     lineHeight: 20 
+  },
+
+  retryBtn: { 
+    paddingHorizontal: 20, 
+    paddingVertical: 8, 
+    backgroundColor: '#C17C74', 
+    borderRadius: 12 
+  },
+
+  retryText: { 
+    color: 'white', 
+    fontSize: 13, 
+    fontWeight: '600' 
   },
 
 });

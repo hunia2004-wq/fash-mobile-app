@@ -8,6 +8,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { COLORS, CATEGORIES } from './marketplacedata';
 import { getAllListings } from '../../services/authService';
 import { useCart } from '../../context/CartContext';
+import { useAuth } from '../../context/AuthContext';
+import { getSaved, saveNewItem, removeSaved } from '../../services/authService';
+
 
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = (width - 48) / 2;
@@ -27,8 +30,9 @@ const ConditionBadge = ({ condition }) => (
 );
 
 export default function MarketplaceScreen({ navigation }) {
-  // ✅ useCart called inside the component, not outside
   const { addToCart, isInCart, cartCount: contextCartCount } = useCart();
+
+  const { getToken } = useAuth();
 
   const [listings, setListings] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -44,19 +48,36 @@ export default function MarketplaceScreen({ navigation }) {
   const wishlistCount = Object.keys(wishlistItems).length;
   const wishlistList = listings.filter((item) => wishlistItems[item._id]);
 
-  // Cart data comes from context now
   const cartList = listings.filter((item) => isInCart(item._id));
   const cartTotal = cartList.reduce((sum, item) => sum + parseFloat(item.price || 0), 0);
 
-  const toggleHeart = (id, e) => {
+  const toggleHeart = async (id, e) => {
     e && e.stopPropagation();
-    setSavedItems((prev) => ({ ...prev, [id]: !prev[id] }));
-    setWishlistItems((prev) => {
+    const alreadySaved = savedItems[id];
+    setSavedItems(prev => ({ ...prev, [id]: !prev[id] }));
+    setWishlistItems(prev => {
+    const updated = { ...prev };
+    if (updated[id]) { delete updated[id]; } else { updated[id] = true; }
+    return updated;
+  });
+
+  try {
+    const token = await getToken();
+    if (alreadySaved) {
+      await removeSaved(token, id);
+    } else {
+      await saveNewItem(token, id, 'marketplace');
+    }
+  } catch (err) {
+    setSavedItems(prev => ({ ...prev, [id]: alreadySaved }));
+    setWishlistItems(prev => {
       const updated = { ...prev };
-      if (updated[id]) { delete updated[id]; } else { updated[id] = true; }
+      if (alreadySaved) { updated[id] = true; } else { delete updated[id]; }
       return updated;
     });
-  };
+    console.error('Save failed:', err.message);
+  }
+};
 
   const removeFromWishlist = (id) => {
     setWishlistItems((prev) => { const u = { ...prev }; delete u[id]; return u; });
@@ -89,11 +110,34 @@ export default function MarketplaceScreen({ navigation }) {
     }
   }, [activeCategory, searchQuery]);
 
-  // ✅ Fixed: useEffect (not useEffects)
   useEffect(() => {
     const delay = setTimeout(() => fetchListings(), searchQuery ? 400 : 0);
     return () => clearTimeout(delay);
   }, [fetchListings]);
+
+  useEffect(() => {
+    const loadSavedState = async () => {
+      try {
+        const token = await getToken();
+        if (!token) return;
+        const data = await getSaved(token);
+        const items = data.savedItems ?? data ?? [];
+        const savedMap = {};
+        const wishlistMap = {};
+        items
+          .filter(s => s.itemType === 'marketplace')
+          .forEach(s => {
+            savedMap[s.itemId] = true;
+            wishlistMap[s.itemId] = true;
+          });
+        setSavedItems(savedMap);
+        setWishlistItems(wishlistMap);
+      } catch (err) {
+        console.error('Failed to load saved state:', err.message);
+      }
+    };
+    loadSavedState();
+  }, []);
 
   return (
     <SafeAreaView style={styles.safe}>
