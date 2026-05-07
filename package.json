@@ -19,6 +19,7 @@
     "expo-constants": "~55.0.15",
     "expo-font": "~55.0.6",
     "expo-image-picker": "~55.0.20",
+    "expo-location": "~55.1.9",
     "expo-secure-store": "~55.0.13",
     "expo-status-bar": "~55.0.5",
     "galio-framework": "^0.9.5",
