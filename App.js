@@ -45,7 +45,6 @@ import AIStyling from './screens/home-screen/AIStylingScreen';
 
 import ConfirmBid from './screens/home-screen/ConfirmBid';
 
-import CartScreen from './screens/home-screen/CartScreen';
 import PaymentScreen from './screens/home-screen/PaymentScreen';
 
 import MarketplaceHome from './screens/home-screen/MarketplaceHome';
@@ -192,7 +191,6 @@ export default function App() {
 
                     <Stack.Screen name="ConfirmBid" component={ConfirmBid} />
 
-                    <Stack.Screen name="Cart" component={CartScreen} />
                     <Stack.Screen name="Payment" component={PaymentScreen} />
 
                     <Stack.Screen name="MarketplaceHome" component={MarketplaceHome} />

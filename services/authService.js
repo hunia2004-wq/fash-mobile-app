@@ -771,3 +771,19 @@ export async function clearCartAPI(token) {
     headers: { Authorization: `Bearer ${token}` },
   });
 }
+
+// CHECKOUT/ PAYMENT
+export async function initiateCheckout(token) {
+  return request('/checkout/initiate', {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${token}` },
+  });
+}
+
+export async function placeOrderCOD(token, address) {
+  return request('/checkout/cod', {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${token}` },
+    body: JSON.stringify({ address }),
+  });
+}
