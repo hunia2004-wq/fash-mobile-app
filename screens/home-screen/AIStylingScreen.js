@@ -1,296 +1,218 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import {
-View,
-Text,
-ScrollView,
-StyleSheet,
-TouchableOpacity,
-StatusBar,
-Image,
-TextInput,
-KeyboardAvoidingView,
-Platform,
-ActivityIndicator,
-Animated,
-Dimensions,
+  View, Text, StyleSheet, TouchableOpacity, TextInput,
+  FlatList, KeyboardAvoidingView, Platform, StatusBar,
+  ActivityIndicator, Image,
 } from 'react-native';
-import { Ionicons, Feather, MaterialCommunityIcons } from '@expo/vector-icons';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ANTHROPIC_API_KEY } from '../../App';
-
-const { width } = Dimensions.get('window');
+import { useAuth } from '../../context/AuthContext';
+import { chatWithAIStylist } from '../../services/authService';
 
 const COLORS = {
-bg: '#F5F5F5',
-card: '#F2E6E3',
-accent: '#C17C74',
-accentLight: '#f7edec',
-text: '#2c2c2c',
-muted: '#888888',
-white: '#ffffff',
-border: 'rgba(193,124,116,0.18)',
-iconBg: '#e3c8c5',
-userBubble: '#C17C74',
-aiBubble: '#ffffff',
+  bg: '#F5F5F5', card: '#F2E6E3', accent: '#C17C74',
+  accentLight: '#f7edec', text: '#2c2c2c', muted: '#888888',
+  white: '#ffffff', border: 'rgba(193,124,116,0.18)',
 };
-
-
-const WARDROBE_ITEMS = [
-{ id: 'w1', name: 'White Linen Shirt', category: 'Tops', color: 'White', brand: 'Zara' },
-{ id: 'w2', name: 'High-Waist Beige Trousers', category: 'Bottoms', color: 'Beige', brand: 'Mango' },
-{ id: 'w3', name: 'Floral Midi Dress', category: 'Dresses', color: 'Floral', brand: 'H&M' },
-{ id: 'w4', name: 'Oversized Denim Jacket', category: 'Tops', color: 'Blue', brand: "Levi's" },
-{ id: 'w5', name: 'Black Slim Jeans', category: 'Bottoms', color: 'Black', brand: 'Zara' },
-{ id: 'w6', name: 'Silk Cami Top', category: 'Tops', color: 'Dusty Rose', brand: 'ASOS' },
-{ id: 'w7', name: 'White Leather Sneakers', category: 'Shoes', color: 'White', brand: 'Adidas' },
-{ id: 'w8', name: 'Beige Trench Coat', category: 'Outerwear', color: 'Beige', brand: 'Massimo Dutti' },
-{ id: 'w9', name: 'Gold Hoop Earrings', category: 'Accessories', color: 'Gold', brand: 'Mango' },
-{ id: 'w10', name: 'Mini Leather Bag', category: 'Bags', color: 'Tan', brand: 'Zara' },
-];
 
 const SUGGESTIONS = [
-{ icon: '☀️', label: 'Casual day out' },
-{ icon: '💼', label: 'Work outfit' },
-{ icon: '🌙', label: 'Evening look' },
-{ icon: '🌧️', label: 'Rainy day' },
-{ icon: '💍', label: 'Date night' },
-{ icon: '✈️', label: 'Travel outfit' },
+  'What should I wear today?',
+  'Suggest a casual outfit',
+  'What goes with my jeans?',
+  'Help me dress for a dinner',
+  'What to wear for work?',
 ];
 
-const callAIStylist = async (userMessage, conversationHistory) => {
-  const wardrobeList = WARDROBE_ITEMS.map(
-    (item) => `- ${item.name} (${item.category}, ${item.color}, ${item.brand})`
-  ).join('\n');
+const TypingIndicator = () => (
+  <View style={styles.typingWrap}>
+    <View style={styles.aiBubble}>
+      <Text style={styles.typingDots}>• • •</Text>
+    </View>
+  </View>
+);
 
-  const systemPrompt = `You are a personal AI fashion stylist.
+export default function AIStylingScreen({ navigation, route }) {
+  const { prefillMessage } = route.params || {};
+  const { getToken } = useAuth();
 
-Wardrobe:
-${wardrobeList}
+  const [messages,  setMessages]  = useState([
+    {
+      id: '0',
+      role: 'assistant',
+      content: "Hi! I'm your FASH AI Stylist 👗\nI can help you build outfits from your wardrobe. What would you like to wear today?",
+    },
+  ]);
+  
+  const [input,     setInput]     = useState(prefillMessage ?? '');
+  const [loading,   setLoading]   = useState(false);
+  const flatListRef = useRef(null);
 
-When suggesting outfits, respond with your advice as text, and include outfit suggestions wrapped in <outfit> tags as JSON like:
-<outfit>{"title": "Casual Day Out", "items": ["White Linen Shirt", "High-Waist Beige Trousers"], "tip": "Add gold hoops to elevate the look"}</outfit>`;
+  // history for context — excludes the initial greeting
+  const getHistory = () =>
+    messages
+      .filter(m => m.id !== '0')
+      .map(m => ({ role: m.role, content: m.content }));
 
-  const messages = [
-    { role: 'system', content: systemPrompt },
-    ...conversationHistory.map((m) => ({
-      role: m.role,
-      content: m.content,
-    })),
-    { role: 'user', content: userMessage },
-  ];
+  const sendMessage = useCallback(async (text) => {
+    const trimmed = (text ?? input).trim();
+    if (!trimmed || loading) return;
 
-  try {
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${OPENAI_API_KEY}`, // using local variable
-      },
-    
-      body: JSON.stringify({
-        model: 'gpt-4o-mini',
-        max_tokens: 1000,
-        messages: messages,
-      }),
-    });
+    const userMsg = { id: Date.now().toString(), role: 'user', content: trimmed };
+    setMessages(prev => [...prev, userMsg]);
+    setInput('');
+    setLoading(true);
 
-    const data = await response.json();
-    console.log('Full API response:', JSON.stringify(data, null, 2));
-
-    if (!response.ok) {
-      console.error('API Error:', data.error);
-      return `API Error: ${data.error?.message || 'Unknown error'}`;
+    try {
+      const token = await getToken();
+      const data  = await chatWithAIStylist(token, trimmed, getHistory());
+      const reply = data.reply ?? data;
+      setMessages(prev => [
+        ...prev,
+        { id: (Date.now() + 1).toString(), role: 'assistant', content: reply },
+      ]);
+    } catch (err) {
+      setMessages(prev => [
+        ...prev,
+        { id: (Date.now() + 1).toString(), role: 'assistant', content: "Sorry, I couldn't connect right now. Please try again!" },
+      ]);
+    } finally {
+      setLoading(false);
+      setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 100);
     }
+  }, [input, loading, messages, getToken]);
 
-    return data?.choices?.[0]?.message?.content || 'No response from stylist.';
-  } catch (err) {
-    console.error('Network/fetch error:', err);
-    return `Network error: ${err.message}`;
-  }
-};
-const parseAIResponse = (rawText) => {
-const outfitRegex = /<outfit>([\s\S]*?)<\/outfit>/g;
-const outfits = [];
-let match;
+  const renderMessage = ({ item }) => {
+    const isUser = item.role === 'user';
+    return (
+      <View style={[styles.messageRow, isUser && styles.messageRowUser]}>
+        {!isUser && (
+          <View style={styles.aiAvatar}>
+            <MaterialCommunityIcons name="hanger" size={16} color={COLORS.white} />
+          </View>
+        )}
+        <View style={[styles.bubble, isUser ? styles.bubbleUser : styles.bubbleAI]}>
+          <Text style={[styles.bubbleText, isUser && styles.bubbleTextUser]}>
+            {item.content}
+          </Text>
+        </View>
+      </View>
+    );
+  };
 
-while ((match = outfitRegex.exec(rawText)) !== null) {
-try {
-outfits.push(JSON.parse(match[1].trim()));
-} catch (e) {}
-}
+  return (
+    <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
+      <StatusBar barStyle="dark-content" />
 
-const text = rawText.replace(/<outfit>[\s\S]*?<\/outfit>/g, '').trim();
-return { text, outfits };
-};
+      {/* Header */}
+      <View style={styles.header}>
+        <TouchableOpacity style={styles.navBtn} onPress={() => navigation.goBack()} activeOpacity={0.8}>
+          <Ionicons name="arrow-back" size={20} color={COLORS.text} />
+        </TouchableOpacity>
+        <View style={styles.headerCenter}>
+          <View style={styles.headerAvatar}>
+            <MaterialCommunityIcons name="hanger" size={18} color={COLORS.white} />
+          </View>
+          <View>
+            <Text style={styles.headerTitle}>AI Stylist</Text>
+            <Text style={styles.headerSub}>Powered by your wardrobe</Text>
+          </View>
+        </View>
+        <View style={{ width: 40 }} />
+      </View>
 
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        keyboardVerticalOffset={0}
+      >
+        {/* Messages */}
+        <FlatList
+          ref={flatListRef}
+          data={messages}
+          keyExtractor={item => item.id}
+          renderItem={renderMessage}
+          contentContainerStyle={styles.messagesList}
+          showsVerticalScrollIndicator={false}
+          onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
+          ListFooterComponent={loading ? <TypingIndicator /> : null}
+        />
 
-const OutfitCard = ({ outfit }) => {
-return (
-<View style={styles.outfitCard}>
-<Text style={styles.outfitTitle}>{outfit.title}</Text>
+        {/* Suggestion chips — only show when no conversation yet */}
+        {messages.length === 1 && !loading && (
+          <View style={styles.suggestionsWrap}>
+            <FlatList
+              horizontal
+              data={SUGGESTIONS}
+              keyExtractor={s => s}
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.suggestionsRow}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  style={styles.suggestionChip}
+                  onPress={() => sendMessage(item)}
+                  activeOpacity={0.8}
+                >
+                  <Text style={styles.suggestionText}>{item}</Text>
+                </TouchableOpacity>
+              )}
+            />
+          </View>
+        )}
 
-{outfit.items.map((item, i) => (
-<Text key={i} style={styles.outfitItem}>• {item}</Text>
-))}
-
-<Text style={styles.outfitTip}>{outfit.tip}</Text>
-</View>
-);
-};
-
-
-const MessageBubble = ({ message }) => {
-const isUser = message.role === 'user';
-
-if (isUser) {
-return (
-<View style={styles.userRow}>
-<View style={styles.userBubble}>
-<Text style={styles.userText}>{message.content}</Text>
-</View>
-</View>
-);
-}
-
-const { text, outfits } = parseAIResponse(message.content);
-
-return (
-<View style={styles.aiRow}>
-{outfits.map((o, i) => (
-<OutfitCard key={i} outfit={o} />
-))}
-
-{text ? (
-<View style={styles.aiBubble}>
-<Text style={styles.aiText}>{text}</Text>
-</View>
-) : null}
-</View>
-);
-};
-
-export default function AIStylingScreen({navigation}) {
-const [messages, setMessages] = useState([
-{
-id: '1',
-role: 'assistant',
-content: "Hi! I'm your AI stylist 👗 What do you want to wear today?",
-},
-]);
-
-const [input, setInput] = useState('');
-const [loading, setLoading] = useState(false);
-const scrollRef = useRef();
-
-const sendMessage = async () => {
-if (!input.trim()) return;
-
-const userMsg = { id: Date.now().toString(), role: 'user', content: input };
-setMessages((p) => [...p, userMsg]);
-setInput('');
-setLoading(true);
-
-const ai = await callAIStylist(input, messages);
-
-setMessages((p) => [...p, { id: Date.now().toString(), role: 'assistant', content: ai }]);
-setLoading(false);
-};
-
-return (
-<SafeAreaView style={styles.safe}>
-<StatusBar barStyle="dark-content" />
-
-<View style={styles.topNav}>
-    <TouchableOpacity style={styles.navBtn} onPress={() => navigation.goBack()} activeOpacity={0.8}>
-      <Ionicons name="arrow-back" size={20} color={COLORS.text} />
-    </TouchableOpacity>
-    <Text style={styles.navTitle}>AI Stylist</Text>
-    <View style={{ width: 40 }} />
-</View>
-
-<ScrollView ref={scrollRef} contentContainerStyle={{ padding: 16 }}>
-{messages.map((m) => (
-<MessageBubble key={m.id} message={m} />
-))}
-{loading && <ActivityIndicator />}
-</ScrollView>
-
-<View style={styles.inputBar}>
-<TextInput
-style={styles.input}
-value={input}
-onChangeText={setInput}
-placeholder="Ask your stylist..."
-/>
-<TouchableOpacity onPress={sendMessage}>
-<Ionicons name="arrow-up" size={22} />
-</TouchableOpacity>
-</View>
-</SafeAreaView>
-);
+        {/* Input bar */}
+        <View style={styles.inputBar}>
+          <TextInput
+            style={styles.input}
+            placeholder="Ask about your outfit..."
+            placeholderTextColor={COLORS.muted}
+            value={input}
+            onChangeText={setInput}
+            multiline
+            maxLength={500}
+            onSubmitEditing={() => sendMessage()}
+          />
+          <TouchableOpacity
+            style={[styles.sendBtn, (!input.trim() || loading) && { opacity: 0.4 }]}
+            onPress={() => sendMessage()}
+            disabled={!input.trim() || loading}
+            activeOpacity={0.85}
+          >
+            {loading
+              ? <ActivityIndicator size="small" color={COLORS.white} />
+              : <Ionicons name="send" size={18} color={COLORS.white} />
+            }
+          </TouchableOpacity>
+        </View>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
+  );
 }
 
 const styles = StyleSheet.create({
-safe: { flex: 1, backgroundColor: COLORS.bg },
-
-userRow: { alignItems: 'flex-end', marginBottom: 10 },
-aiRow: { marginBottom: 10 },
-
-userBubble: {
-backgroundColor: COLORS.accent,
-padding: 10,
-borderRadius: 12,
-},
-userText: { color: '#fff' },
-
-aiBubble: {
-backgroundColor: '#fff',
-padding: 10,
-borderRadius: 12,
-},
-aiText: { color: '#000' },
-
-outfitCard: {
-backgroundColor: '#fff',
-padding: 12,
-borderRadius: 12,
-marginBottom: 8,
-},
-outfitTitle: { fontWeight: 'bold' },
-outfitItem: { fontSize: 13 },
-outfitTip: { fontStyle: 'italic', marginTop: 5 },
-
-inputBar: {
-flexDirection: 'row',
-padding: 10,
-backgroundColor: '#fff',
-alignItems: 'center',
-},
-input: { flex: 1 },
-
-navBtn: {
-  width: 40, height: 40, 
-  borderRadius: 12,
-  backgroundColor: COLORS.card, 
-  alignItems: 'center', 
-  justifyContent: 'center',
-},
-
-topNav: {
-  flexDirection: 'row',
-  alignItems: 'center',
-  justifyContent: 'space-between',
-  paddingHorizontal: 16,
-  paddingVertical: 12,
-  backgroundColor: COLORS.white,
-  borderBottomWidth: 1,
-  borderBottomColor: COLORS.border,
-},
-
-navTitle: {
-  fontSize: 16,
-  fontWeight: '700',
-  color: COLORS.accent,
-},
-
+  safe:              { flex: 1, backgroundColor: COLORS.bg },
+  header:            { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 12, backgroundColor: COLORS.white, borderBottomWidth: 1, borderBottomColor: COLORS.border },
+  navBtn:            { width: 40, height: 40, borderRadius: 12, backgroundColor: COLORS.card, alignItems: 'center', justifyContent: 'center' },
+  headerCenter:      { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  headerAvatar:      { width: 36, height: 36, borderRadius: 18, backgroundColor: COLORS.accent, alignItems: 'center', justifyContent: 'center' },
+  headerTitle:       { fontSize: 15, fontWeight: '700', color: COLORS.text },
+  headerSub:         { fontSize: 11, color: COLORS.muted },
+  messagesList:      { padding: 16, paddingBottom: 8 },
+  messageRow:        { flexDirection: 'row', alignItems: 'flex-end', marginBottom: 12, gap: 8 },
+  messageRowUser:    { justifyContent: 'flex-end' },
+  aiAvatar:          { width: 28, height: 28, borderRadius: 14, backgroundColor: COLORS.accent, alignItems: 'center', justifyContent: 'center', marginBottom: 2 },
+  bubble:            { maxWidth: '78%', borderRadius: 18, paddingHorizontal: 14, paddingVertical: 10 },
+  bubbleAI:          { backgroundColor: COLORS.white, borderWidth: 1, borderColor: COLORS.border, borderBottomLeftRadius: 4 },
+  bubbleUser:        { backgroundColor: COLORS.accent, borderBottomRightRadius: 4 },
+  bubbleText:        { fontSize: 14, color: COLORS.text, lineHeight: 20 },
+  bubbleTextUser:    { color: COLORS.white },
+  typingWrap:        { flexDirection: 'row', alignItems: 'flex-end', gap: 8, paddingHorizontal: 16, marginBottom: 12 },
+  aiBubble:          { backgroundColor: COLORS.white, borderRadius: 18, borderBottomLeftRadius: 4, paddingHorizontal: 14, paddingVertical: 10, borderWidth: 1, borderColor: COLORS.border },
+  typingDots:        { fontSize: 18, color: COLORS.accent, letterSpacing: 4 },
+  suggestionsWrap:   { paddingVertical: 8 },
+  suggestionsRow:    { paddingHorizontal: 16, gap: 8 },
+  suggestionChip:    { backgroundColor: COLORS.white, borderRadius: 20, paddingHorizontal: 14, paddingVertical: 8, borderWidth: 1.5, borderColor: COLORS.accent },
+  suggestionText:    { fontSize: 12, fontWeight: '600', color: COLORS.accent },
+  inputBar:          { flexDirection: 'row', alignItems: 'flex-end', gap: 10, paddingHorizontal: 16, paddingVertical: 12, paddingBottom: 16, backgroundColor: COLORS.white, borderTopWidth: 1, borderTopColor: COLORS.border },
+  input:             { flex: 1, backgroundColor: COLORS.bg, borderRadius: 20, paddingHorizontal: 16, paddingVertical: 10, fontSize: 14, color: COLORS.text, maxHeight: 100, borderWidth: 1, borderColor: COLORS.border },
+  sendBtn:           { width: 42, height: 42, borderRadius: 21, backgroundColor: COLORS.accent, alignItems: 'center', justifyContent: 'center' },
 });

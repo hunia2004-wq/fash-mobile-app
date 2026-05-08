@@ -7,7 +7,7 @@ const SettingsScreen = ({ navigation }) => {
     { id: 'email', title: 'Email Address', subtitle: 'Chanage your email', screen: 'EmailScreen' },
     { id: 'password', title: 'Change Password', subtitle: 'Change your password', screen: 'ChangePasswordScreen' },
     { id: 'notifications', title: 'Notifications', subtitle: 'Push and email alerts', screen: 'NotificationsScreen' },
-    { id: 'language', title: 'Language', subtitle: 'English, Arabic', screen: 'LanguagesScreen' },
+    { id: 'language', title: 'Language', subtitle: 'English, French', screen: 'LanguagesScreen' },
     { id: 'privacy', title: 'Privacy Settings', subtitle: 'Control your data', screen: 'PrivacyScreen' },
     { id: 'cards', title: 'Saved Cards', subtitle: 'Your Saved Cards', screen: 'CardsScreen' },
     { id: 'address', title: 'Saved Addresses', subtitle: 'Your addresses', screen: 'AddressScreen' },
