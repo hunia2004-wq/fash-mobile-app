@@ -6,7 +6,7 @@ import { updateLanguage, getSettings } from '../../services/authService';
 
 const LANGUAGES = [
   { code: 'en', label: 'English', native: 'English' },
-  { code: 'ar', label: 'Arabic', native: 'العربية' },
+  { code: 'ar', label: 'French', native: 'Français' },
 ];
 
 const LanguagesScreen = ({ navigation }) => {
