@@ -173,8 +173,6 @@ export async function verifyEmailChange(token, otp) {
 
 
 // PASSWORD
-
-
 export async function changePassword(token, { oldPassword, newPassword }) {
   return request("/user/change-password", {
     method: "PUT",
@@ -188,7 +186,6 @@ export async function changePassword(token, { oldPassword, newPassword }) {
 
 
 // PRIVACY
-
 export async function updatePrivacy(token, privacySettings) {
   return request("/user/settings/privacy", {
     method: "PUT",
@@ -201,7 +198,6 @@ export async function updatePrivacy(token, privacySettings) {
 
 
 // NOTIFICATIONS
-
 export async function updateNotifications(token, notificationSettings) {
   return request("/user/settings/notifications", {
     method: "PUT",
@@ -222,7 +218,6 @@ export async function getSettings(token) {
 
 
 // LANGUAGE
-
 export async function updateLanguage(token, languageSettings) {
   return request("/user/settings/language", {
     method: "PUT",
@@ -235,7 +230,6 @@ export async function updateLanguage(token, languageSettings) {
 
 
 // CARDS
-
 export const getCards = async (token) => {
   return request('/cards', {
     method: 'GET',
@@ -284,8 +278,8 @@ export const deleteCard = async (token, id) => {
   });
 };
 
-// ORDERS
 
+// ORDERS
 export async function getOrders(token) {
   return request("/orders", {
     headers: {
@@ -294,9 +288,15 @@ export async function getOrders(token) {
   });
 }
 
+export async function cancelOrder(token, orderId) {
+  return request(`/orders/${orderId}/cancel`, {
+    method: 'PATCH',
+    headers: { Authorization: `Bearer ${token}` },
+  });
+}
+
 
 // FAVORITES
-
 export async function getFavorites(token) {
   return request("/user/favorites", {
     headers: {
@@ -324,7 +324,6 @@ export async function removeFavorite(token, itemId) {
 }
 
 // ADDRESSES
-
 export async function getAddresses(token) {
   return request("/addresses", {
     headers: {
@@ -374,7 +373,6 @@ export async function deleteAddress(token, id) {
 
 
 //SECURITY
-
 export const getSecurity = (token) => {
   return request('/user/security', {
     method: 'GET',
@@ -385,7 +383,6 @@ export const getSecurity = (token) => {
 };
 
 // 2FA
-
 export const toggle2FA = (token, data) => {
   return request('/user/security/2fa', {
     method: 'PUT',
@@ -407,7 +404,6 @@ export const get2FA = (token) => {
 };
 
 // LOGIN DEVICES
-
 export const getLoginDevices = (token) => {
   return request('/user/security/devices', {
     method: 'GET',
@@ -436,7 +432,6 @@ export const logoutAllDevices = (token) => {
 };
 
 // CONNECTED ACCOUNTS
-
 export const getConnectedAccount = (token, data) => {
   return request('/connected-accounts', {
     method: 'GET',
@@ -458,7 +453,6 @@ export const toggleConnectedAccount = (token, data) => {
 
 
 //CONTACT SUPPORT
-
 export const contactSupport = async (token, { subject, orderNumber, message, image }) => {
   const formData = new FormData();
 
@@ -490,7 +484,6 @@ export const contactSupport = async (token, { subject, orderNumber, message, ima
 };
 
 //FAQ
-
 export const getFaqs = (token) => {
   return request("/support/faqs", {
     method: "GET",
@@ -501,7 +494,6 @@ export const getFaqs = (token) => {
 };
 
 // MARKETPLACE LISTINGS 
-
 export async function getAllListings(query = {}) {
   const params = new URLSearchParams();
   if (query.category && query.category !== 'All') params.append('category', query.category);
@@ -542,7 +534,6 @@ export async function deleteListing(token, id) {
 }
 
 // WARDROBE
-
 export async function getWardrobeItems(token, category) {
   const query = category && category !== 'All' ? `?category=${category}` : '';
   console.log('getWardrobeItems URL:', `/wardrobe${query}`);
