@@ -54,6 +54,9 @@ export default function ProductDetailScreen({ navigation, route }) {
   const sellerRating = seller.rating ?? 0;
   const sellerSales = seller.totalSales ?? 0;
 
+  console.log('seller field:', JSON.stringify(item.seller, null, 2));
+
+
   const getInitial = () => {
     const trimmed = sellerName.trim();
     return trimmed.length > 0 ? trimmed.charAt(0).toUpperCase() : '?';
@@ -106,7 +109,7 @@ export default function ProductDetailScreen({ navigation, route }) {
         <View style={styles.imageGallery}>
           <View style={styles.mainImage}>
             {item.image ? (
-              <Image source={item.image} style={styles.mainImageImg} resizeMode="cover" />
+              <Image source={{ uri: item.image }} style={styles.mainImageImg} resizeMode="cover" />
             ) : (
               <View style={styles.imagePlaceholder}>
                 <MaterialCommunityIcons name="hanger" size={64} color={COLORS.accent} />
@@ -198,7 +201,7 @@ export default function ProductDetailScreen({ navigation, route }) {
           <TouchableOpacity
             style={styles.sellerCard}
             activeOpacity={0.88}
-            onPress={() => navigation.navigate('SellerProfileScreen', { seller })}
+            onPress={() => navigation.navigate('SellerProfileScreen', { sellerId: item.seller?.userId })}
           >
             {/* Avatar */}
             <View style={styles.avatar}>

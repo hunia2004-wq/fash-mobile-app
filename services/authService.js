@@ -787,3 +787,31 @@ export async function chatWithAIStylist(token, message, history = []) {
     body: JSON.stringify({ message, history }),
   });
 }
+
+// SELLER PROFILE
+export async function getSellerProfile(token, sellerId) {
+  return request(`/sellers/${sellerId}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+}
+
+export async function toggleFollowSeller(token, sellerId) {
+  return request(`/sellers/${sellerId}/follow`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${token}` },
+  });
+}
+
+export async function getSellerReviews(token, sellerId, page = 1, limit = 10) {
+  return request(`/sellers/${sellerId}/reviews?page=${page}&limit=${limit}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+}
+
+export async function createSellerReview(token, sellerId, reviewData) {
+  return request(`/sellers/${sellerId}/reviews`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${token}` },
+    body: JSON.stringify(reviewData),
+  });
+}
