@@ -25,10 +25,10 @@ export default function MainCart({ navigation }) {
   const deliveryFee = cartItems.length > 0 ? 25 : 0;
   const grandTotal = total + deliveryFee;
 
-  const handleRemove = (id) => {
+  const handleRemove = (cartItemId) => {
     Alert.alert('Remove Item', 'Remove this item from your cart?', [
       { text: 'Cancel', style: 'cancel' },
-      { text: 'Remove', style: 'destructive', onPress: () => removeFromCart(id) },
+      { text: 'Remove', style: 'destructive', onPress: () => removeFromCart(cartItemId) },
     ]);
   };
 

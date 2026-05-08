@@ -1,20 +1,19 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import {View, Text, ScrollView, StyleSheet, TouchableOpacity, StatusBar, Dimensions, Image, TextInput, ActivityIndicator} from 'react-native';
+import {
+  View, Text, ScrollView, StyleSheet, TouchableOpacity,
+  StatusBar, Dimensions, Image, TextInput, ActivityIndicator,
+} from 'react-native';
 import { Feather, Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useFocusEffect } from '@react-navigation/native';
 import { useAuth } from '../../context/AuthContext';
+import { useCart } from '../../context/CartContext';
 import { getSaved, saveNewItem, removeSaved, getCollectionItems } from '../../services/authService';
 
 const { width } = Dimensions.get('window');
-
 const CARD_WIDTH = (width - 44) / 2;
-
 const CATEGORIES = ['All', 'Soirée', 'Suits', 'Umrah & Hajj', 'Kids'];
 
-
-// Product card 
-const ProductCard = ({ item, saved, onToggleSave }) => (
+const ProductCard = ({ item, saved, onToggleSave, onAddToCart, inCart }) => (
   <TouchableOpacity style={styles.wCard} activeOpacity={0.85}>
     <View style={styles.wCardImg}>
       {item.image ? (
@@ -55,15 +54,22 @@ const ProductCard = ({ item, saved, onToggleSave }) => (
       <Text style={styles.wCardName}>{item.title}</Text>
       <View style={styles.wCardBottom}>
         <Text style={styles.wCardPrice}>EGP {item.price}</Text>
-        <TouchableOpacity style={styles.bagBtn} activeOpacity={0.85}>
-          <Ionicons name="bag-handle-outline" size={13} color="#fff" />
+        <TouchableOpacity
+          style={[styles.bagBtn, inCart && { backgroundColor: '#888' }]}
+          onPress={onAddToCart}
+          activeOpacity={0.85}
+        >
+          <Ionicons
+            name={inCart ? 'checkmark' : 'bag-handle-outline'}
+            size={13}
+            color="#fff"
+          />
         </TouchableOpacity>
       </View>
     </View>
   </TouchableOpacity>
 );
 
-//Coming-soon placeholder — for Suits 
 const ComingSoonCard = () => (
   <View style={[styles.wCard, { opacity: 0.6 }]}>
     <View style={[styles.wCardImg, { backgroundColor: '#e8ecf5' }]}>
@@ -77,22 +83,21 @@ const ComingSoonCard = () => (
   </View>
 );
 
-// main screen
 export default function FashCollectionScreen({ navigation }) {
   const { getToken } = useAuth();
-  const [activeCategory, setActiveCategory] = useState('All');
-  const [search, setSearch] = useState('');
-  const [items, setItems] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [savedMap, setSavedMap] = useState({});
+  const { addToCart, isInCart } = useCart();
 
+  const [activeCategory, setActiveCategory] = useState('All');
+  const [search,         setSearch]         = useState('');
+  const [items,          setItems]          = useState([]);
+  const [loading,        setLoading]        = useState(true);
+  const [savedMap,       setSavedMap]       = useState({});
+
+  //  fetch items 
   const fetchItems = useCallback(async () => {
     try {
       setLoading(true);
-      const data = await getCollectionItems({
-        category: activeCategory,
-        search,
-      });
+      const data = await getCollectionItems({ category: activeCategory, search });
       setItems(data.items ?? data ?? []);
     } catch (err) {
       console.error('Failed to fetch collection:', err.message);
@@ -101,30 +106,31 @@ export default function FashCollectionScreen({ navigation }) {
     }
   }, [activeCategory, search]);
 
-  const loadSaved = useCallback(async () => {
-    try {
-      const token = await getToken();
-      if (!token) return;
-      const data = await getSaved(token);
-      const map = {};
-      (data.savedItems ?? data ?? [])
-        .filter(s => s.itemType === 'collection')
-        .forEach(s => { map[s.itemId] = true; });
-      setSavedMap(map);
-    } catch (err) {
-      console.error('Failed to load saved:', err.message);
-    }
-  }, [getToken]);
-
   useEffect(() => {
     const delay = setTimeout(() => fetchItems(), search ? 400 : 0);
     return () => clearTimeout(delay);
   }, [fetchItems]);
 
+  //  load saved state
   useEffect(() => {
+    const loadSaved = async () => {
+      try {
+        const token = await getToken();
+        if (!token) return;
+        const data = await getSaved(token);
+        const map = {};
+        (data.savedItems ?? data ?? [])
+          .filter(s => s.itemType === 'collection')
+          .forEach(s => { map[s.itemId] = true; });
+        setSavedMap(map);
+      } catch (err) {
+        console.error('Failed to load saved:', err.message);
+      }
+    };
     loadSaved();
   }, []);
 
+  //  toggle save
   const handleToggleSave = async (id) => {
     const alreadySaved = savedMap[id];
     setSavedMap(prev => ({ ...prev, [id]: !alreadySaved }));
@@ -141,7 +147,6 @@ export default function FashCollectionScreen({ navigation }) {
     }
   };
 
-  // Show suits placeholder only when searching nothing & category allows it
   const showSuits =
     search.length === 0 &&
     (activeCategory === 'All' || activeCategory === 'Suits') &&
@@ -152,14 +157,15 @@ export default function FashCollectionScreen({ navigation }) {
       <StatusBar barStyle="dark-content" backgroundColor="#F5F5F5" />
 
       {/* Logo */}
-<View style={styles.logoHeader}>
-  <Image
-    source={require('../../source/assets/images/Blacklogo.png')}
-    style={styles.logo}
-    resizeMode="contain"
-  />
-</View>
+      <View style={styles.logoHeader}>
+        <Image
+          source={require('../../source/assets/images/Blacklogo.png')}
+          style={styles.logo}
+          resizeMode="contain"
+        />
+      </View>
 
+      {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()} activeOpacity={0.7}>
           <Ionicons name="arrow-back" size={20} color="#2c2c2c" />
@@ -168,6 +174,7 @@ export default function FashCollectionScreen({ navigation }) {
         <View style={{ width: 40 }} />
       </View>
 
+      {/* Search */}
       <View style={styles.searchRow}>
         <View style={styles.searchBar}>
           <Feather name="search" size={14} color="#C17C74" style={{ marginRight: 8 }} />
@@ -191,6 +198,7 @@ export default function FashCollectionScreen({ navigation }) {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
+        {/* Category chips */}
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
@@ -210,6 +218,7 @@ export default function FashCollectionScreen({ navigation }) {
           ))}
         </ScrollView>
 
+        {/* Content */}
         {loading ? (
           <ActivityIndicator size="large" color="#C17C74" style={{ marginTop: 40 }} />
         ) : items.length === 0 && !showSuits ? (
@@ -226,6 +235,8 @@ export default function FashCollectionScreen({ navigation }) {
                   item={item}
                   saved={!!savedMap[item._id]}
                   onToggleSave={handleToggleSave}
+                  onAddToCart={() => addToCart(item, 'collection')}
+                  inCart={isInCart(item._id)}
                 />
               </View>
             ))}
@@ -253,277 +264,43 @@ export default function FashCollectionScreen({ navigation }) {
   );
 }
 
-
 const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-    backgroundColor: '#F5F5F5',
-  },
-
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingBottom: 12,
-  },
-
-  logoHeader: { 
-    paddingBottom: 10, 
-    alignItems: 'center', 
-    backgroundColor: '#F5F5F5' 
-  },
-
-  logo: { 
-    width: 120,
-    height: 50 
-  },
-
-  backBtn: {
-    width: 40, 
-    height: 40, 
-    borderRadius: 12,
-    backgroundColor: '#F2E6E3', 
-    alignItems: 'center', 
-    justifyContent: 'center',
-    
-  },
-
-  headerTitle: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    textAlign: 'center',
-    fontSize: 17,
-    fontWeight: '700',
-    color: '#C17C74',
-    pointerEvents: 'none',
-  },
-
-  searchRow: {
-    paddingHorizontal: 14,
-    paddingTop: 10,
-    paddingBottom: 2,
-  },
-
-  searchBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    borderWidth: 0.5,
-    borderColor: 'rgba(193,124,116,0.18)',
-  },
-
-  searchInput: {
-    flex: 1,
-    fontSize: 14,
-    color: '#2c2c2c',
-  },
-
-  scrollContent: {
-    paddingBottom: 32,
-  },
-
-  chipsRow: {
-    paddingHorizontal: 14,
-    paddingTop: 12,
-    paddingBottom: 12,
-    gap: 8,
-    flexDirection: 'row',
-  },
-
-  chip: {
-    paddingHorizontal: 16,
-    paddingVertical: 7,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: 'rgba(193,124,116,0.18)',
-    backgroundColor: '#F2E6E3',
-  },
-
-  chipActive: {
-    backgroundColor: '#C17C74',
-  },
-
-  chipText: {
-    fontSize: 12,
-    color: '#C17C74',
-    fontWeight: '500',
-  },
-
-  chipTextActive: {
-    color: '#fff',
-  },
-
-  grid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    paddingHorizontal: 14,
-    gap: 10,
-  },
-
-  gridItem: {
-    width: CARD_WIDTH,
-  },
-
-  wCard: {
-    backgroundColor: '#F2E6E3',
-    borderRadius: 18,
-    overflow: 'hidden',
-  },
-
-  wCardImg: {
-    width: '100%',
-    aspectRatio: 3 / 4,
-    backgroundColor: '#F2E6E3',
-    alignItems: 'center',
-    justifyContent: 'center',
-    position: 'relative',
-  },
-
-  fashBadge: {
-    position: 'absolute',
-    bottom: 8,
-    left: 8,
-    backgroundColor: '#C17C74',
-    borderRadius: 6,
-    paddingHorizontal: 7,
-    paddingVertical: 3,
-  },
-
-  fashBadgeText: {
-    color: '#fff',
-    fontSize: 8,
-    fontWeight: '800',
-    letterSpacing: 0.4,
-  },
-
-  wCardBadge: {
-    position: 'absolute',
-    top: 10,
-    right: 10,
-    backgroundColor: '#C17C74',
-    borderRadius: 8,
-    paddingHorizontal: 7,
-    paddingVertical: 3,
-  },
-
-  wCardBadgeText: {
-    color: '#fff',
-    fontSize: 9,
-    fontWeight: '700',
-  },
-
-  heartOverlay: {
-    position: 'absolute',
-    top: 9,
-    left: 9,
-    width: 26,
-    height: 26,
-    borderRadius: 13,
-    backgroundColor: 'rgba(0,0,0,0.22)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-
-  wCardInfo: {
-    padding: 10,
-  },
-
-  wCardBrand: {
-    fontSize: 9,
-    fontWeight: '700',
-    color: '#C17C74',
-    textTransform: 'uppercase',
-    letterSpacing: 0.4,
-    marginBottom: 2,
-  },
-
-  wCardName: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#2c2c2c',
-  },
-
-  wCardDetail: {
-    fontSize: 10,
-    color: '#888888',
-    marginTop: 2,
-  },
-
-  wCardBottom: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginTop: 6,
-  },
-
-  wCardPrice: {
-    fontSize: 14,
-    fontWeight: '800',
-    color: '#C17C74',
-  },
-
-  bagBtn: {
-    width: 26,
-    height: 26,
-    borderRadius: 8,
-    backgroundColor: '#C17C74',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-
-  emptyState: {
-    alignItems: 'center',
-    paddingTop: 60,
-    paddingHorizontal: 40,
-    gap: 10,
-  },
-
-  emptyTitle: {
-    fontSize: 17,
-    fontWeight: '600',
-    color: '#2c2c2c',
-  },
-
-  emptySub: {
-    fontSize: 13,
-    color: '#888888',
-    textAlign: 'center',
-    lineHeight: 20,
-  },
-
-  promoBanner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#F2E6E3',
-    marginHorizontal: 14,
-    marginTop: 20,
-    borderRadius: 14,
-    padding: 14,
-  },
-
-  promoText: {
-    flex: 1,
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#2c2c2c',
-  },
-
-  promoBtn: {
-    backgroundColor: '#C17C74',
-    borderRadius: 10,
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-  },
-
-  promoBtnText: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#fff',
-  },
-
+  safe:           { flex: 1, backgroundColor: '#F5F5F5' },
+  logoHeader:     { paddingBottom: 10, alignItems: 'center', backgroundColor: '#F5F5F5' },
+  logo:           { width: 120, height: 50 },
+  header:         { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingBottom: 12 },
+  backBtn:        { width: 40, height: 40, borderRadius: 12, backgroundColor: '#F2E6E3', alignItems: 'center', justifyContent: 'center' },
+  headerTitle:    { position: 'absolute', left: 0, right: 0, textAlign: 'center', fontSize: 17, fontWeight: '700', color: '#C17C74', pointerEvents: 'none' },
+  searchRow:      { paddingHorizontal: 14, paddingTop: 10, paddingBottom: 2 },
+  searchBar:      { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', borderRadius: 12, paddingHorizontal: 14, paddingVertical: 10, borderWidth: 0.5, borderColor: 'rgba(193,124,116,0.18)' },
+  searchInput:    { flex: 1, fontSize: 14, color: '#2c2c2c' },
+  scrollContent:  { paddingBottom: 32 },
+  chipsRow:       { paddingHorizontal: 14, paddingTop: 12, paddingBottom: 12, gap: 8, flexDirection: 'row' },
+  chip:           { paddingHorizontal: 16, paddingVertical: 7, borderRadius: 20, borderWidth: 1, borderColor: 'rgba(193,124,116,0.18)', backgroundColor: '#F2E6E3' },
+  chipActive:     { backgroundColor: '#C17C74' },
+  chipText:       { fontSize: 12, color: '#C17C74', fontWeight: '500' },
+  chipTextActive: { color: '#fff' },
+  grid:           { flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: 14, gap: 10 },
+  gridItem:       { width: CARD_WIDTH },
+  wCard:          { backgroundColor: '#F2E6E3', borderRadius: 18, overflow: 'hidden' },
+  wCardImg:       { width: '100%', aspectRatio: 3 / 4, backgroundColor: '#F2E6E3', alignItems: 'center', justifyContent: 'center', position: 'relative' },
+  fashBadge:      { position: 'absolute', bottom: 8, left: 8, backgroundColor: '#C17C74', borderRadius: 6, paddingHorizontal: 7, paddingVertical: 3 },
+  fashBadgeText:  { color: '#fff', fontSize: 8, fontWeight: '800', letterSpacing: 0.4 },
+  wCardBadge:     { position: 'absolute', top: 10, right: 10, backgroundColor: '#C17C74', borderRadius: 8, paddingHorizontal: 7, paddingVertical: 3 },
+  wCardBadgeText: { color: '#fff', fontSize: 9, fontWeight: '700' },
+  heartOverlay:   { position: 'absolute', top: 9, left: 9, width: 26, height: 26, borderRadius: 13, backgroundColor: 'rgba(0,0,0,0.22)', alignItems: 'center', justifyContent: 'center' },
+  wCardInfo:      { padding: 10 },
+  wCardBrand:     { fontSize: 9, fontWeight: '700', color: '#C17C74', textTransform: 'uppercase', letterSpacing: 0.4, marginBottom: 2 },
+  wCardName:      { fontSize: 12, fontWeight: '600', color: '#2c2c2c' },
+  wCardDetail:    { fontSize: 10, color: '#888888', marginTop: 2 },
+  wCardBottom:    { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 6 },
+  wCardPrice:     { fontSize: 14, fontWeight: '800', color: '#C17C74' },
+  bagBtn:         { width: 26, height: 26, borderRadius: 8, backgroundColor: '#C17C74', alignItems: 'center', justifyContent: 'center' },
+  emptyState:     { alignItems: 'center', paddingTop: 60, paddingHorizontal: 40, gap: 10 },
+  emptyTitle:     { fontSize: 17, fontWeight: '600', color: '#2c2c2c' },
+  emptySub:       { fontSize: 13, color: '#888888', textAlign: 'center', lineHeight: 20 },
+  promoBanner:    { flexDirection: 'row', alignItems: 'center', backgroundColor: '#F2E6E3', marginHorizontal: 14, marginTop: 20, borderRadius: 14, padding: 14 },
+  promoText:      { flex: 1, fontSize: 13, fontWeight: '600', color: '#2c2c2c' },
+  promoBtn:       { backgroundColor: '#C17C74', borderRadius: 10, paddingHorizontal: 14, paddingVertical: 8 },
+  promoBtnText:   { fontSize: 12, fontWeight: '700', color: '#fff' },
 });

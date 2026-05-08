@@ -742,3 +742,32 @@ export async function deleteOutfit(token, id) {
     headers: { Authorization: `Bearer ${token}` },
   });
 }
+
+// CART
+export async function getCart(token) {
+  return request('/cart', {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+}
+
+export async function addToCartAPI(token, itemId, itemType, options = {}) {
+  return request('/cart/items', {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${token}` },
+    body: JSON.stringify({ itemId, itemType, ...options }),
+  });
+}
+
+export async function removeFromCartAPI(token, cartItemId) {
+  return request(`/cart/items/${cartItemId}`, {
+    method: 'DELETE',
+    headers: { Authorization: `Bearer ${token}` },
+  });
+}
+
+export async function clearCartAPI(token) {
+  return request('/cart', {
+    method: 'DELETE',
+    headers: { Authorization: `Bearer ${token}` },
+  });
+}

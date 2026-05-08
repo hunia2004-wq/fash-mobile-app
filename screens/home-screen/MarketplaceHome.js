@@ -30,7 +30,6 @@ const ConditionBadge = ({ condition }) => (
 );
 
 export default function MarketplaceScreen({ navigation }) {
-  const { addToCart, isInCart, cartCount: contextCartCount } = useCart();
 
   const { getToken } = useAuth();
 
@@ -48,7 +47,7 @@ export default function MarketplaceScreen({ navigation }) {
   const wishlistCount = Object.keys(wishlistItems).length;
   const wishlistList = listings.filter((item) => wishlistItems[item._id]);
 
-  const cartList = listings.filter((item) => isInCart(item._id));
+  const { addToCart, removeFromCart, cartItems: cartList, isInCart, cartCount: contextCartCount } = useCart();
   const cartTotal = cartList.reduce((sum, item) => sum + parseFloat(item.price || 0), 0);
 
   const toggleHeart = async (id, e) => {
@@ -303,7 +302,7 @@ export default function MarketplaceScreen({ navigation }) {
                   {/* Cart button — uses context */}
                   <TouchableOpacity
                     style={[styles.cartBtn, isInCart(item._id) && styles.cartBtnActive]}
-                    onPress={() => addToCart(item)}
+                    onPress={() => addToCart(item, 'marketplace')}
                     activeOpacity={0.85}
                   >
                     <Ionicons
@@ -356,10 +355,7 @@ export default function MarketplaceScreen({ navigation }) {
                       <Text style={styles.modalItemBrand}>{item.brand || 'No brand'} · {item.size || 'N/A'}</Text>
                       <Text style={styles.modalItemPrice}>EGP {item.price}</Text>
                     </View>
-                    <TouchableOpacity
-                      onPress={() => { const { removeFromCart } = require('../../context/CartContext'); }}
-                      style={styles.modalRemoveBtn}
-                    >
+                    <TouchableOpacity onPress={() => removeFromCart(item._id)} style={styles.modalRemoveBtn}>
                       <Ionicons name="trash-outline" size={18} color="#E05C5C" />
                     </TouchableOpacity>
                   </View>
