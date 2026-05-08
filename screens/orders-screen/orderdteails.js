@@ -7,6 +7,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AuthContext } from '../../context/AuthContext';
 import { useCart } from '../../context/CartContext';
+import { cancelOrder } from '../../services/authService';
+
 
 const COLORS = {
   bg: '#F5F5F5', card: '#F2E6E3', accent: '#C17C74',
@@ -151,8 +153,21 @@ export default function OrderDetailScreen({ navigation, route }) {
     Alert.alert('Cancel Order', 'Are you sure you want to cancel this order?', [
       { text: 'No', style: 'cancel' },
       {
-        text: 'Yes, Cancel', style: 'destructive',
-        onPress: () => Alert.alert('Contact support to cancel this order.'),
+        text: 'Yes, Cancel',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            const token = await getToken();
+            await cancelOrder(token, order._id);
+            Alert.alert(
+              'Order Cancelled',
+              'Your order has been cancelled successfully.',
+              [{ text: 'OK', onPress: () => navigation.goBack() }]
+            );
+          } catch (err) {
+            Alert.alert('Error', err.message);
+          }
+        },
       },
     ]);
   };

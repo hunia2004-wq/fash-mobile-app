@@ -7,6 +7,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { getOrders } from '../../services/authService';
 import { AuthContext } from '../../context/AuthContext';
+import { useFocusEffect } from '@react-navigation/native';
+import { useCallback } from 'react';
 
 const COLORS = {
   bg: '#F5F5F5', card: '#F2E6E3', accent: '#C17C74',
@@ -89,21 +91,25 @@ export default function OrdersScreen({ navigation }) {
   const [loading, setLoading] = useState(true);
   const [error,   setError]   = useState(null);
 
-  useEffect(() => {
-    const fetchOrders = async () => {
-      try {
-        const token = await getToken();
-        if (!token) return;
-        const data = await getOrders(token);
-        setOrders(Array.isArray(data) ? data : data.orders ?? []);
-      } catch (e) {
-        setError(e.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchOrders();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      const fetchOrders = async () => {
+        try {
+          setLoading(true);
+          setError(null);
+          const token = await getToken();
+          if (!token) return;
+          const data = await getOrders(token);
+          setOrders(Array.isArray(data) ? data : data.orders ?? []);
+        } catch (e) {
+          setError(e.message);
+        } finally {
+          setLoading(false);
+        }
+      };
+      fetchOrders();
+    }, [])
+  );
 
   if (loading) {
     return (
