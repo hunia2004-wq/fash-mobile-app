@@ -44,6 +44,18 @@ export default function UploadScreen({ navigation }) {
   const [saving, setSaving] = useState(false);
   const [listOnMarketplace, setListOnMarketplace] = useState(false);
 
+  const resetForm = () => {
+    setItemName('');
+    setSize('');
+    setBrand('');
+    setPrice('');
+    setSeasons(['Spring']);
+    setOccasions(['Casual']);
+    setCategory('Dresses');
+    setImageUri(null);
+    setListOnMarketplace(false);
+  };
+
   const toggle = (setter, current, val) =>
     setter(current.includes(val) ? current.filter(v => v !== val) : [...current, val]);
 
@@ -88,7 +100,7 @@ export default function UploadScreen({ navigation }) {
       if (price)   formData.append('price', price);
       if (seasons.length)   formData.append('season', seasons[0]);
       if (occasions.length) formData.append('occasion', occasions[0]);
-      formData.append('listOnMarketplace', listOnMarketplace ? 'true' : 'false'); // always send
+      formData.append('listOnMarketplace', listOnMarketplace ? 'true' : 'false');
 
       if (imageUri) {
         formData.append('image', {
@@ -105,7 +117,16 @@ export default function UploadScreen({ navigation }) {
         listOnMarketplace
           ? 'Item added to your wardrobe and listed on the Marketplace.'
           : 'Item added to your wardrobe.',
-        [{ text: 'OK', onPress: () => navigation.goBack() }] // goBack triggers useFocusEffect on WardrobeScreen
+        [
+          {
+            text: 'Add Another',
+            onPress: resetForm,
+          },
+          {
+            text: 'Go to Wardrobe',
+            onPress: () => navigation.goBack(),
+          },
+        ]
       );
     } catch (err) {
       Alert.alert('Error', err.message);
@@ -247,7 +268,7 @@ export default function UploadScreen({ navigation }) {
 
         <View style={styles.divider} />
 
-        {/* Marketplace toggle — above Save so user picks before submitting */}
+        {/* Marketplace toggle */}
         <TouchableOpacity
           style={[styles.btnOutlineFull, listOnMarketplace && { backgroundColor: '#F2E6E3' }]}
           onPress={() => setListOnMarketplace(prev => !prev)}
@@ -262,7 +283,7 @@ export default function UploadScreen({ navigation }) {
           <Text style={styles.btnOutlineText}>Also list on Marketplace</Text>
         </TouchableOpacity>
 
-        {/* Save button — label updates based on marketplace toggle */}
+        {/* Save button */}
         <TouchableOpacity
           style={[styles.btnAccent, saving && { opacity: 0.6 }]}
           onPress={handleSave}

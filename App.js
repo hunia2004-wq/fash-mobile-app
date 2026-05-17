@@ -219,6 +219,7 @@ export default function App() {
                     <Stack.Screen name="SellerProfileScreen" component={SellerProfileScreen} />
 
                     <Stack.Screen name="ARscreen" component={ARscreen} options={{ headerShown: false }}/>
+
                   </>
                 )}
               </Stack.Navigator>

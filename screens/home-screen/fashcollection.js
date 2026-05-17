@@ -11,7 +11,7 @@ import { getSaved, saveNewItem, removeSaved, getCollectionItems } from '../../se
 
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = (width - 44) / 2;
-const CATEGORIES = ['All', 'Soirée', 'Suits', 'Umrah & Hajj', 'Kids'];
+const CATEGORIES = ['All', 'Soirée', 'Suits', 'Umrah & Hajj', 'Kids Costumes'];
 
 
 const ProductCard = ({ item, saved, onToggleSave, onAddToCart, inCart }) => (

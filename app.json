@@ -28,10 +28,18 @@
     "plugins": [
       "expo-secure-store",
       ["expo-camera", { "cameraPermission": "FASH needs camera access for AR try-on." }],
-      ["expo-media-library", { "photosPermission": "FASH needs photo access to save your looks." }]
-    ],
-    "extra": {
-      "anthropicApiKey": "YOUR_KEY_HERE"
-    }
+      ["expo-media-library", { "photosPermission": "FASH needs photo access to save your looks." }],
+      [
+        "@reactvision/react-viro",
+        {
+          "android": { "xRMode": "AR" },
+          "ios": {
+            "cameraUsagePermission": "FASH uses your camera for AR try-on.",
+            "photosPermission": "FASH would like to read photos.",
+            "savephotosPermission": "FASH would like to save photos to your library."
+          }
+        }
+      ]
+    ]
   }
 }
