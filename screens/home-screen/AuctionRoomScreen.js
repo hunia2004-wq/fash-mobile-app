@@ -74,7 +74,7 @@ const BidRow = ({ bid, isTop, isMe }) => {
           {new Date(bid.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
         </Text>
       </View>
-      <Text style={[styles.bidAmt, isTop && { color: COLORS.accent }]}>${bid.amount}</Text>
+      <Text style={[styles.bidAmt, isTop && { color: COLORS.accent }]}>$]EGP{bid.amount}</Text>
     </Animated.View>
   );
 };
@@ -348,16 +348,16 @@ export default function AuctionRoomScreen({ navigation, route }) {
                   disabled={placing}
                   activeOpacity={0.8}
                 >
-                  <Text style={styles.quickText}>+${inc}</Text>
+                  <Text style={styles.quickText}>+EGP{inc}</Text>
                 </TouchableOpacity>
               ))}
               <View style={styles.suggestedTag}>
-                <Text style={styles.suggestedText}>Suggested: ${suggested}</Text>
+                <Text style={styles.suggestedText}>Suggested: EGP{suggested}</Text>
               </View>
             </ScrollView>
             <View style={styles.inputRow}>
               <View style={styles.inputWrap}>
-                <Text style={styles.dollar}>$</Text>
+                <Text style={styles.dollar}>EGP</Text>
                 <TextInput
                   style={styles.bidInput}
                   placeholder={`${suggested} or more`}

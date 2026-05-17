@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import {View, Text, ScrollView, StyleSheet,TouchableOpacity, TextInput, StatusBar, Dimensions, Image, Alert, ActivityIndicator} from 'react-native';
+import {View, Text, ScrollView, StyleSheet, TouchableOpacity, TextInput, StatusBar, Dimensions, Image, Alert, ActivityIndicator} from 'react-native';
 import { Feather, Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
@@ -30,7 +30,7 @@ const TagRow = ({ options, selected, onToggle }) => (
   </View>
 );
 
-export default function UploadScreen({navigation}) {
+export default function UploadScreen({ navigation }) {
   const { getToken } = useAuth();
 
   const [itemName, setItemName] = useState('');
@@ -40,10 +40,9 @@ export default function UploadScreen({navigation}) {
   const [seasons, setSeasons] = useState(['Spring']);
   const [occasions, setOccasions] = useState(['Casual']);
   const [category, setCategory] = useState('Dresses');
-  const [imageUri, setImageUri]   = useState(null);
-  const [saving, setSaving]       = useState(false);
+  const [imageUri, setImageUri] = useState(null);
+  const [saving, setSaving] = useState(false);
   const [listOnMarketplace, setListOnMarketplace] = useState(false);
-  
 
   const toggle = (setter, current, val) =>
     setter(current.includes(val) ? current.filter(v => v !== val) : [...current, val]);
@@ -87,9 +86,9 @@ export default function UploadScreen({navigation}) {
       if (size)    formData.append('size', size);
       if (brand)   formData.append('brand', brand);
       if (price)   formData.append('price', price);
-      if (seasons.length)  formData.append('season', seasons[0]);
+      if (seasons.length)   formData.append('season', seasons[0]);
       if (occasions.length) formData.append('occasion', occasions[0]);
-      if (listOnMarketplace) formData.append('listOnMarketplace', 'true');
+      formData.append('listOnMarketplace', listOnMarketplace ? 'true' : 'false'); // always send
 
       if (imageUri) {
         formData.append('image', {
@@ -101,9 +100,13 @@ export default function UploadScreen({navigation}) {
 
       await createWardrobeItem(token, formData);
 
-      Alert.alert('Saved!', 'Item added to your wardrobe.', [
-        { text: 'OK', onPress: () => navigation.navigate('WardrobeTab') },
-      ]);
+      Alert.alert(
+        'Saved!',
+        listOnMarketplace
+          ? 'Item added to your wardrobe and listed on the Marketplace.'
+          : 'Item added to your wardrobe.',
+        [{ text: 'OK', onPress: () => navigation.goBack() }] // goBack triggers useFocusEffect on WardrobeScreen
+      );
     } catch (err) {
       Alert.alert('Error', err.message);
     } finally {
@@ -113,38 +116,39 @@ export default function UploadScreen({navigation}) {
 
   return (
     <SafeAreaView style={styles.safe}>
-      <StatusBar barStyle="dark-content" backgroundColor= 'white'/>
+      <StatusBar barStyle="dark-content" backgroundColor='white' />
 
-      {/* logo */}
+      {/* Logo */}
       <View style={styles.logoHeader}>
         <Image
           source={require('../../source/assets/images/Blacklogo.png')}
           style={styles.logo}
           resizeMode="contain"
         />
-        </View>
+      </View>
 
       <View style={styles.titleHeader}>
         <Text style={styles.headerTitle}>Add to Wardrobe</Text>
         <Text style={styles.headerSub}>Upload a photo or fill in details</Text>
       </View>
 
-      <ScrollView style={{ flex: 1 }}
+      <ScrollView
+        style={{ flex: 1 }}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
         keyboardShouldPersistTaps="handled"
       >
         {/* Upload zone */}
         <TouchableOpacity style={styles.uploadZone} activeOpacity={0.8} onPress={() => pickImage(false)}>
-        {imageUri ? (
+          {imageUri ? (
             <Image source={{ uri: imageUri }} style={styles.previewImage} />
           ) : (
             <>
-          <View style={styles.uploadIconCircle}>
-            <Feather name="camera" size={28} color='#C17C74' />
-          </View>
-          <Text style={styles.uploadText}>Tap to upload photo</Text>
-          <Text style={styles.uploadSub}>JPG, PNG, HEIC supported</Text>
+              <View style={styles.uploadIconCircle}>
+                <Feather name="camera" size={28} color='#C17C74' />
+              </View>
+              <Text style={styles.uploadText}>Tap to upload photo</Text>
+              <Text style={styles.uploadSub}>JPG, PNG, HEIC supported</Text>
             </>
           )}
         </TouchableOpacity>
@@ -233,7 +237,6 @@ export default function UploadScreen({navigation}) {
 
         <View style={styles.divider} />
 
-
         {/* Occasion */}
         <Text style={styles.sectionLabel}>Occasion</Text>
         <TagRow
@@ -244,24 +247,36 @@ export default function UploadScreen({navigation}) {
 
         <View style={styles.divider} />
 
-        {/* CTAs */}
-        <TouchableOpacity style={[styles.btnAccent, saving && { opacity: 0.6 }]} 
-        onPress={handleSave}
-        disabled={saving}
-        activeOpacity={0.85}>
+        {/* Marketplace toggle — above Save so user picks before submitting */}
+        <TouchableOpacity
+          style={[styles.btnOutlineFull, listOnMarketplace && { backgroundColor: '#F2E6E3' }]}
+          onPress={() => setListOnMarketplace(prev => !prev)}
+          activeOpacity={0.8}
+        >
+          <Feather
+            name={listOnMarketplace ? 'check-square' : 'square'}
+            size={15}
+            color='#C17C74'
+            style={{ marginRight: 6 }}
+          />
+          <Text style={styles.btnOutlineText}>Also list on Marketplace</Text>
+        </TouchableOpacity>
+
+        {/* Save button — label updates based on marketplace toggle */}
+        <TouchableOpacity
+          style={[styles.btnAccent, saving && { opacity: 0.6 }]}
+          onPress={handleSave}
+          disabled={saving}
+          activeOpacity={0.85}
+        >
           {saving ? (
             <ActivityIndicator size="small" color="white" style={{ marginRight: 8 }} />
           ) : (
             <Feather name="check" size={16} color="white" style={{ marginRight: 6 }} />
           )}
-          <Text style={styles.btnAccentText}>Save to Wardrobe</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={[styles.btnOutlineFull, listOnMarketplace && { backgroundColor: '#F2E6E3' }]}
-        onPress={() => setListOnMarketplace(prev => !prev)}
-        activeOpacity={0.8}>
-          <Feather name="shopping-bag" size={15} color='#C17C74' style={{ marginRight: 6 }} />
-          <Text style={styles.btnOutlineText}>{listOnMarketplace ? '✓ Will list on Marketplace' : 'List on Marketplace'}</Text>
+          <Text style={styles.btnAccentText}>
+            {listOnMarketplace ? 'Save & List on Marketplace' : 'Save to Wardrobe'}
+          </Text>
         </TouchableOpacity>
 
       </ScrollView>
@@ -319,7 +334,7 @@ const styles = StyleSheet.create({
     gap: 10,
   },
 
-  previewImage:   { 
+  previewImage: { 
     width: '100%', 
     height: 220, 
     borderRadius: 18 
@@ -424,7 +439,8 @@ const styles = StyleSheet.create({
 
   tagRow: { 
     flexDirection: 'row', 
-    flexWrap: 'wrap', gap: 8, 
+    flexWrap: 'wrap', 
+    gap: 8, 
     paddingHorizontal: 16, 
     paddingBottom: 4 
   },
@@ -477,9 +493,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderWidth: 1.5, 
     borderColor: '#C17C74',
-    marginHorizontal: 16, 
+    marginHorizontal: 16,
+    marginBottom: 4,
     borderRadius: 16, 
     paddingVertical: 15,
   },
-  
 });

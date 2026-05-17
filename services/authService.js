@@ -4,7 +4,7 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 // Fire-and-forget on app start to pre-warm Vercel serverless functions
 export async function warmupServer() {
-  const endpoints = ['/listings', '/cart', '/saved'];
+  const endpoints = ['/listings', '/saved'];
   
   await Promise.allSettled(
     endpoints.map(async (endpoint) => {

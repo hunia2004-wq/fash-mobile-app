@@ -179,14 +179,14 @@ function HomeContent() {
           <TouchableOpacity style={styles.auctionCard} onPress={() => navigation.navigate('AuctionRoomScreen')}>
             <Image source={require('../../source/assets/images/shoes.png')} style={styles.auctionImage} resizeMode="contain" />
             <Text style={styles.itemName}>YSL Tribute Heels</Text>
-            <Text style={styles.bidPrice}>Current bid: $400</Text>
+            <Text style={styles.bidPrice}>Current bid: EGP 400</Text>
             <Text style={styles.bidTime}>1h left</Text>
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.auctionCard}>
             <Image source={require('../../source/assets/images/bag.png')} style={styles.auctionImage} resizeMode="contain" />
             <Text style={styles.itemName}>Miu Miu Bag</Text>
-            <Text style={styles.bidPrice}>Current bid: $345</Text>
+            <Text style={styles.bidPrice}>Current bid: EGP 345</Text>
             <Text style={styles.bidTime}>2h left</Text>
           </TouchableOpacity>
         </View>

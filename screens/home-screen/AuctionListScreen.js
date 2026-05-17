@@ -76,7 +76,7 @@ const LiveCard = ({ auction, onPress }) => {
       <View style={styles.liveCardBody}>
         <Text style={styles.liveCardBrand}>{auction.brand}</Text>
         <Text style={styles.liveCardTitle} numberOfLines={1}>{auction.title}</Text>
-        <Text style={styles.liveCardBid}>${auction.currentBid}</Text>
+        <Text style={styles.liveCardBid}>EGP {auction.currentBid}</Text>
         <View style={[styles.timeTag, { backgroundColor: countdown.urgent ? COLORS.liveLight : COLORS.accentLight }]}>
           <Ionicons name="time-outline" size={10} color={countdown.urgent ? COLORS.live : COLORS.accent} />
           <Text style={[styles.timeText, { color: countdown.urgent ? COLORS.live : COLORS.accent }]}>
@@ -136,7 +136,7 @@ const AuctionCard = ({ auction, onPress }) => {
           </Text>
         </View>
         <Text style={styles.bidLabel}>Current bid</Text>
-        <Text style={styles.bidAmount}>${auction.currentBid}</Text>
+        <Text style={styles.bidAmount}>EGP {auction.currentBid}</Text>
         <View style={styles.cardFooter}>
           <View style={[styles.timeTag, { backgroundColor: countdown.urgent ? COLORS.liveLight : COLORS.accentLight }]}>
             <Ionicons name="time-outline" size={10} color={countdown.urgent ? COLORS.live : COLORS.accent} />
@@ -287,7 +287,7 @@ export default function AuctionListScreen({ navigation }) {
                         <View style={styles.upcomingInfo}>
                           <Text style={styles.upcomingBrand}>{auction.brand}</Text>
                           <Text style={styles.upcomingTitle} numberOfLines={1}>{auction.title}</Text>
-                          <Text style={styles.upcomingBid}>Current bid: ${auction.currentBid}</Text>
+                          <Text style={styles.upcomingBid}>Current bid: EGP {auction.currentBid}</Text>
                         </View>
                         <View style={styles.upcomingRight}>
                           <View style={styles.timeTag}>

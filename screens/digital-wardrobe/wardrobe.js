@@ -4,7 +4,7 @@ import { Feather, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { useAuth } from '../../context/AuthContext';
-import { getWardrobeItems, getWardrobeStats,toggleWardrobeFavorite } from '../../services/authService';
+import { getWardrobeItems, getWardrobeStats, toggleWardrobeFavorite } from '../../services/authService';
 
 const { width } = Dimensions.get('window');
 
@@ -46,17 +46,15 @@ const WardrobeCard = ({ item, onToggleFavorite }) => (
   </TouchableOpacity>
 );
 
-export default function WardrobeScreen({navigation}) {
+export default function WardrobeScreen({ navigation }) {
   const { getToken } = useAuth();
   const [activeCategory, setActiveCategory] = useState('All');
   const [items, setItems] = useState([]);
   const [stats, setStats] = useState({ total: 0, favorites: 0, listed: 0 });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
   const [searchQuery, setSearchQuery] = useState('');
 
-  
   const fetchWardrobe = useCallback(async (category = 'All', search = '') => {
     try {
       setLoading(true);
@@ -75,12 +73,20 @@ export default function WardrobeScreen({navigation}) {
       setLoading(false);
     }
   }, [getToken]);
-  
-  // Add search debounce effect:
+
+  // Re-fetch whenever screen comes into focus (e.g. returning from UploadScreen)
+  useFocusEffect(
+    useCallback(() => {
+      fetchWardrobe(activeCategory);
+    }, [activeCategory])
+  );
+
+  // Debounced search — only fires when searchQuery changes
   useEffect(() => {
-    const delay = setTimeout(() => fetchWardrobe(activeCategory, searchQuery), searchQuery ? 400 : 0);
+    if (!searchQuery) return;
+    const delay = setTimeout(() => fetchWardrobe(activeCategory, searchQuery), 400);
     return () => clearTimeout(delay);
-  }, [searchQuery, activeCategory]);
+  }, [searchQuery]);
 
   const handleCategoryChange = (cat) => {
     setActiveCategory(cat);
@@ -101,7 +107,6 @@ export default function WardrobeScreen({navigation}) {
       console.error('Toggle favorite failed:', err.message);
     }
   };
-
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -127,24 +132,22 @@ export default function WardrobeScreen({navigation}) {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
-
-<View style={styles.searchBarWrap}>
-  <Ionicons name="search-outline" size={16} color="#C17C74" style={{ marginRight: 8 }} />
-  <TextInput
-    style={styles.searchInput}
-    placeholder="Search wardrobe..."
-    placeholderTextColor="#888"
-    value={searchQuery}
-    onChangeText={setSearchQuery}
-    returnKeyType="search"
-  />
-  {searchQuery.length > 0 && (
-    <TouchableOpacity onPress={() => setSearchQuery('')}>
-      <Ionicons name="close-circle" size={16} color="#888" />
-    </TouchableOpacity>
-  )}
-</View>
-
+        <View style={styles.searchBarWrap}>
+          <Ionicons name="search-outline" size={16} color="#C17C74" style={{ marginRight: 8 }} />
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Search wardrobe..."
+            placeholderTextColor="#888"
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            returnKeyType="search"
+          />
+          {searchQuery.length > 0 && (
+            <TouchableOpacity onPress={() => setSearchQuery('')}>
+              <Ionicons name="close-circle" size={16} color="#888" />
+            </TouchableOpacity>
+          )}
+        </View>
 
         {/* Stats */}
         <View style={styles.statsBar}>
@@ -295,6 +298,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(193,124,116,0.18)',
   },
+
   searchInput: {
     flex: 1,
     fontSize: 14,
@@ -405,10 +409,9 @@ const styles = StyleSheet.create({
     fontWeight: '600' 
   },
 
-  favBtn:         { position: 'absolute', bottom: 8, right: 8, backgroundColor: 'white', borderRadius: 20, padding: 5, shadowColor: '#000', shadowOpacity: 0.08, shadowRadius: 4, elevation: 2 },
-  emptyState:     { alignItems: 'center', marginTop: 60, gap: 10 },
-  emptyText:      { color: '#888', fontSize: 14, textAlign: 'center', paddingHorizontal: 20 },
-  retryBtn:       { marginTop: 6, paddingHorizontal: 20, paddingVertical: 8, backgroundColor: '#C17C74', borderRadius: 12 },
-  retryText:      { color: 'white', fontSize: 13, fontWeight: '600' },
-
+  favBtn:       { position: 'absolute', bottom: 8, right: 8, backgroundColor: 'white', borderRadius: 20, padding: 5, shadowColor: '#000', shadowOpacity: 0.08, shadowRadius: 4, elevation: 2 },
+  emptyState:   { alignItems: 'center', marginTop: 60, gap: 10 },
+  emptyText:    { color: '#888', fontSize: 14, textAlign: 'center', paddingHorizontal: 20 },
+  retryBtn:     { marginTop: 6, paddingHorizontal: 20, paddingVertical: 8, backgroundColor: '#C17C74', borderRadius: 12 },
+  retryText:    { color: 'white', fontSize: 13, fontWeight: '600' },
 });

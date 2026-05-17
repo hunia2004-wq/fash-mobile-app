@@ -40,11 +40,10 @@ export function CartProvider({ children }) {
 
 
   useEffect(() => { 
-    const delay = setTimeout(() => fetchCart(), 3000); // wait 3s after app starts
+    const delay = setTimeout(() => fetchCart(), 3000);
     return () => clearTimeout(delay);
-  }, []);
-  useEffect(() => { fetchCart(); }, []);
-
+  }, [fetchCart]);
+  
   //  sync helper — updates state from backend response 
   const syncFromResponse = (data) => {
     const items = (data.cart?.items ?? data.items ?? []).map(normalize);
