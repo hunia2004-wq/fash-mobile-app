@@ -68,6 +68,8 @@ import MainCart from './screens/home-screen/MainCart';
 
 import ARscreen from './screens/ARscreen';
 
+import Fashproductsdetails from './screens/home-screen/fashproductsdetails';
+
 import { logout, warmupServer } from './services/authService';
 
 
@@ -219,6 +221,8 @@ export default function App() {
                     <Stack.Screen name="SellerProfileScreen" component={SellerProfileScreen} />
 
                     <Stack.Screen name="ARscreen" component={ARscreen} options={{ headerShown: false }}/>
+
+                    <Stack.Screen name="Fashproductsdetails" component={Fashproductsdetails} />
 
                   </>
                 )}

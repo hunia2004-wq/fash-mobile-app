@@ -31,23 +31,31 @@ const SourceBadge = ({ itemType }) => {
 
 const SavedCard = ({ savedItem, onRemove }) => {
   const { item, itemType, itemId } = savedItem;
+
+  // Handle both single image string and images array
+  const imageUri = item?.image ?? item?.images?.[0] ?? null;
+
   return (
     <View style={styles.itemCard}>
       <View style={styles.itemImg}>
-        {item?.image ? (
-          <Image source={{ uri: item.image }} style={styles.itemImage} resizeMode="cover" />
+        {imageUri ? (
+          <Image
+            source={{ uri: imageUri }}
+            style={styles.itemImage}
+            resizeMode="cover"
+          />
         ) : (
           <MaterialCommunityIcons name="hanger" size={32} color="#C17C74" />
         )}
       </View>
       <View style={styles.itemInfo}>
-        <Text style={styles.itemName}>{item?.title ?? '—'}</Text>
+        <Text style={styles.itemName}>{item?.title ?? item?.name ?? '—'}</Text>
         <Text style={styles.itemBrand}>
           {itemType === 'marketplace' && item?.handle
             ? `${item.handle} · C2C`
             : item?.brand ?? '—'}
         </Text>
-        <Text style={styles.itemPrice}>${item?.price ?? '—'}</Text>
+        <Text style={styles.itemPrice}>EGP {item?.price ?? '—'}</Text>
         <SourceBadge itemType={itemType} />
       </View>
       <TouchableOpacity
@@ -277,6 +285,12 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase', 
     letterSpacing: 0.9,
   },
+
+itemImage: {
+  width: '100%',
+  height: '100%',
+  borderRadius: 14,
+},
 
   itemCard: {
     backgroundColor: '#F2E6E3',

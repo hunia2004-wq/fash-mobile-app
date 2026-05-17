@@ -1,16 +1,16 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import {View, Text, ScrollView, StyleSheet, TouchableOpacity, StatusBar, Dimensions, Image, ActivityIndicator, TextInput} from 'react-native';
+import {View, Text, ScrollView, StyleSheet, TouchableOpacity, StatusBar, Dimensions, Image, ActivityIndicator, TextInput, Alert} from 'react-native';
 import { Feather, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { useAuth } from '../../context/AuthContext';
-import { getWardrobeItems, getWardrobeStats, toggleWardrobeFavorite } from '../../services/authService';
+import { getWardrobeItems, getWardrobeStats, toggleWardrobeFavorite, deleteWardrobeItem } from '../../services/authService';
 
 const { width } = Dimensions.get('window');
 
 const CATEGORIES = ['All', 'Tops', 'Bottoms', 'Dresses', 'Shoes', 'Bags', 'Accessories'];
 
-const WardrobeCard = ({ item, onToggleFavorite }) => (
+const WardrobeCard = ({ item, onDelete }) => (
   <TouchableOpacity style={styles.wCard} activeOpacity={0.85}>
     <View style={styles.wCardImg}>
       {item.image ? (
@@ -28,12 +28,14 @@ const WardrobeCard = ({ item, onToggleFavorite }) => (
         </View>
       )}
 
+      {/* Delete button */}
       <TouchableOpacity
-        style={styles.favBtn}
-        onPress={() => onToggleFavorite(item._id)}
+        style={styles.deleteBtn}
+        onPress={() => onDelete(item._id)}
         activeOpacity={0.8}
+        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
       >
-        <Feather name="heart" size={14} color={item.isFavorite ? '#C17C74' : '#aaa'} />
+        <Ionicons name="trash-outline" size={14} color="white" />
       </TouchableOpacity>
     </View>
 
@@ -50,7 +52,7 @@ export default function WardrobeScreen({ navigation }) {
   const { getToken } = useAuth();
   const [activeCategory, setActiveCategory] = useState('All');
   const [items, setItems] = useState([]);
-  const [stats, setStats] = useState({ total: 0, favorites: 0, listed: 0 });
+  const [stats, setStats] = useState({ total: 0 });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -66,7 +68,7 @@ export default function WardrobeScreen({ navigation }) {
         getWardrobeStats(token),
       ]);
       setItems(itemsData.items ?? itemsData ?? []);
-      setStats(statsData.stats ?? statsData ?? { total: 0, favorites: 0, listed: 0 });
+      setStats(statsData.stats ?? statsData ?? { total: 0 });
     } catch (err) {
       setError(err.message);
     } finally {
@@ -74,14 +76,14 @@ export default function WardrobeScreen({ navigation }) {
     }
   }, [getToken]);
 
-  // Re-fetch whenever screen comes into focus (e.g. returning from UploadScreen)
+  // Re-fetch whenever screen comes into focus
   useFocusEffect(
     useCallback(() => {
       fetchWardrobe(activeCategory);
     }, [activeCategory])
   );
 
-  // Debounced search — only fires when searchQuery changes
+  // Debounced search
   useEffect(() => {
     if (!searchQuery) return;
     const delay = setTimeout(() => fetchWardrobe(activeCategory, searchQuery), 400);
@@ -93,19 +95,28 @@ export default function WardrobeScreen({ navigation }) {
     fetchWardrobe(cat);
   };
 
-  const handleToggleFavorite = async (id) => {
-    try {
-      const token = await getToken();
-      const data = await toggleWardrobeFavorite(token, id);
-      const updated = data.item;
-      setItems(prev => prev.map(item => item._id === id ? updated : item));
-      setStats(prev => ({
-        ...prev,
-        favorites: updated.isFavorite ? prev.favorites + 1 : prev.favorites - 1,
-      }));
-    } catch (err) {
-      console.error('Toggle favorite failed:', err.message);
-    }
+  const handleDelete = (id) => {
+    Alert.alert(
+      'Delete Item',
+      'Are you sure you want to remove this item from your wardrobe?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              const token = await getToken();
+              await deleteWardrobeItem(token, id);
+              setItems(prev => prev.filter(item => item._id !== id));
+              setStats(prev => ({ ...prev, total: Math.max(0, prev.total - 1) }));
+            } catch (err) {
+              Alert.alert('Error', err.message);
+            }
+          },
+        },
+      ]
+    );
   };
 
   return (
@@ -152,9 +163,7 @@ export default function WardrobeScreen({ navigation }) {
         {/* Stats */}
         <View style={styles.statsBar}>
           {[
-            [String(stats.total),     'Items'],
-            [String(stats.favorites), 'Favorites'],
-            [String(stats.listed),    'Listed'],
+            [String(stats.total), 'Items'],
           ].map(([num, lbl]) => (
             <View key={lbl} style={styles.statBox}>
               <Text style={styles.statNum}>{num}</Text>
@@ -203,7 +212,7 @@ export default function WardrobeScreen({ navigation }) {
           <View style={styles.grid}>
             {items.map(item => (
               <View key={item._id} style={styles.gridItem}>
-                <WardrobeCard item={item} onToggleFavorite={handleToggleFavorite} />
+                <WardrobeCard item={item} onDelete={handleDelete} />
               </View>
             ))}
           </View>
@@ -219,12 +228,11 @@ export default function WardrobeScreen({ navigation }) {
   );
 }
 
-
 const CARD_WIDTH = (width - 44) / 2;
 
 const styles = StyleSheet.create({
-  safe: { 
-    flex: 1, 
+  safe: {
+    flex: 1,
     backgroundColor: '#F5F5F5',
   },
 
@@ -233,59 +241,62 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#F5F5F5',
   },
-  
+
   logo: {
     width: 120,
     height: 50,
   },
-  
+
   titleHeader: {
     backgroundColor: '#F5F5F5',
     paddingHorizontal: 20,
-  },
-  
-  headerTitle: { 
-    fontSize: 20, 
-    fontWeight: '700', 
-    color: '#C17C74',
-  },
-  
-  headerSub: { 
-    fontSize: 13, 
-    color: '#888888', 
-    marginTop: 2 
+    marginBottom: 12,
   },
 
-  scrollContent: { 
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#C17C74',
+  },
+
+  headerSub: {
+    fontSize: 13,
+    color: '#888888',
+    marginTop: 2,
+  },
+
+  scrollContent: {
     paddingBottom: 20,
   },
 
-  statsBar: { 
-    flexDirection: 'row', 
-    gap: 10, 
-    padding: 14 
-  },
-
-  statBox: { 
-    flex: 1, 
-    backgroundColor: '#F2E6E3', 
-    borderRadius: 14, 
-    paddingVertical: 12, 
-    alignItems: 'center' 
-  },
-
-  statNum: { 
-    fontSize: 20, 
-    fontWeight: '700', 
-    color: '#C17C74', 
-  },
-
-  statLbl: { 
-    fontSize: 11, 
-    color: '#888888', 
-    marginTop: 2 
+  statsBar: {
+    flexDirection: 'row',
+    gap: 10,
+    paddingHorizontal: 14,
+    paddingTop: 10,
+    paddingBottom: 4,
   },
   
+  statBox: {
+    flex: 1,
+    backgroundColor: '#F2E6E3',
+    borderRadius: 14,
+    paddingVertical: 12,
+    alignItems: 'center',
+  },
+
+  statNum: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#C17C74',
+  },
+
+  statLbl: {
+    fontSize: 11,
+    color: '#888888',
+    marginTop: 2,
+  },
+
   searchBarWrap: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -294,7 +305,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 10,
     marginHorizontal: 14,
-    marginBottom: 8,
+    marginTop: 0,
+    marginBottom: 0,
     borderWidth: 1,
     borderColor: 'rgba(193,124,116,0.18)',
   },
@@ -305,51 +317,51 @@ const styles = StyleSheet.create({
     color: '#2c2c2c',
   },
 
-  chipsRow: { 
-    paddingHorizontal: 14, 
-    paddingBottom: 12, 
-    gap: 8, 
-    flexDirection: 'row' 
+  chipsRow: {
+    paddingHorizontal: 14,
+    paddingBottom: 12,
+    gap: 8,
+    flexDirection: 'row',
   },
 
-  chip: { 
-    paddingHorizontal: 16, 
-    paddingVertical: 7, 
-    borderRadius: 20, 
-    borderWidth: 1, 
-    borderColor: 'rgba(193,124,116,0.18)', 
+  chip: {
+    paddingHorizontal: 16,
+    paddingVertical: 7,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(193,124,116,0.18)',
     backgroundColor: '#F2E6E3',
   },
 
-  chipActive: { 
+  chipActive: {
     backgroundColor: '#C17C74',
   },
 
-  chipText: { 
-    fontSize: 12, 
-    color: '#C17C74', 
-    fontWeight: '500' 
+  chipText: {
+    fontSize: 12,
+    color: '#2c2c2c',
+    fontWeight: '600',
   },
 
-  chipTextActive: { 
-    color: 'white'
+  chipTextActive: {
+    color: 'white',
   },
 
-  grid: { 
-    flexDirection: 'row', 
-    flexWrap: 'wrap', 
-    paddingHorizontal: 14, 
-    gap: 10 
+  grid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    paddingHorizontal: 14,
+    gap: 10,
   },
 
-  gridItem: { 
-    width: CARD_WIDTH 
+  gridItem: {
+    width: CARD_WIDTH,
   },
 
-  wCard: { 
-    backgroundColor: '#F2E6E3', 
-    borderRadius: 18, 
-    overflow: 'hidden' 
+  wCard: {
+    backgroundColor: '#F2E6E3',
+    borderRadius: 18,
+    overflow: 'hidden',
   },
 
   wCardImg: {
@@ -361,35 +373,51 @@ const styles = StyleSheet.create({
   },
 
   wCardBadge: {
-    position: 'absolute', 
-    top: 10, 
+    position: 'absolute',
+    top: 10,
     right: 10,
     backgroundColor: '#C17C74',
-    borderRadius: 8, 
+    borderRadius: 8,
     paddingHorizontal: 7,
     paddingVertical: 3,
   },
 
-  wCardBadgeText: { 
-    color: 'white', 
-    fontSize: 9, 
-    fontWeight: '700' 
+  wCardBadgeText: {
+    color: 'white',
+    fontSize: 9,
+    fontWeight: '700',
   },
 
-  wCardInfo: { 
-    padding: 10 
+deleteBtn: {
+  position: 'absolute',
+  top: 8,
+  left: 8,
+  width: 36,
+  height: 36,
+  borderRadius: 18,
+  backgroundColor: '#C17C74',
+  alignItems: 'center',
+  justifyContent: 'center',
+  shadowColor: '#000',
+  shadowOpacity: 0.15,
+  shadowRadius: 4,
+  elevation: 4,
+},
+
+  wCardInfo: {
+    padding: 10,
   },
 
-  wCardName: { 
-    fontSize: 12, 
-    fontWeight: '600', 
+  wCardName: {
+    fontSize: 12,
+    fontWeight: '600',
     color: '#2c2c2c',
   },
 
-  wCardDetail: { 
-    fontSize: 10, 
-    color: '#888888', 
-    marginTop: 2 
+  wCardDetail: {
+    fontSize: 10,
+    color: '#888888',
+    marginTop: 2,
   },
 
   btnAccent: {
@@ -403,13 +431,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
 
-  btnAccentText: { 
-    color: 'white', 
-    fontSize: 15, 
-    fontWeight: '600' 
+  btnAccentText: {
+    color: 'white',
+    fontSize: 15,
+    fontWeight: '600',
   },
 
-  favBtn:       { position: 'absolute', bottom: 8, right: 8, backgroundColor: 'white', borderRadius: 20, padding: 5, shadowColor: '#000', shadowOpacity: 0.08, shadowRadius: 4, elevation: 2 },
   emptyState:   { alignItems: 'center', marginTop: 60, gap: 10 },
   emptyText:    { color: '#888', fontSize: 14, textAlign: 'center', paddingHorizontal: 20 },
   retryBtn:     { marginTop: 6, paddingHorizontal: 20, paddingVertical: 8, backgroundColor: '#C17C74', borderRadius: 12 },

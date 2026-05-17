@@ -170,7 +170,6 @@ export async function uploadAvatar(token, imageUri) {
 }
 
 // EMAIL (OTP FLOW)
-
 export async function requestEmailChange(token, newEmail) {
   console.log(token);
   return request("/user/change-email/request", {
@@ -343,6 +342,7 @@ export async function removeFavorite(token, itemId) {
     },
   });
 }
+
 
 // ADDRESSES
 export async function getAddresses(token) {
@@ -534,7 +534,7 @@ export async function createListing(token, listingData) {
   return request('/listings', {
     method: 'POST',
     headers: { Authorization: `Bearer ${token}` },
-    body: JSON.stringify(listingData),
+    body: listingData,  
   });
 }
 
@@ -678,11 +678,11 @@ export async function cancelRental(token, rentalId) {
 }
 
 // CREATE AUCTION
-export async function createAuction(token, formData) {
+export async function createAuction(token, payload) {
   return request('/auctions', {
     method: 'POST',
     headers: { Authorization: `Bearer ${token}` },
-    body: formData,
+    body: JSON.stringify(payload),
   });
 }
 

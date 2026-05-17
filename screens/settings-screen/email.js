@@ -3,6 +3,8 @@ import {View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Alert,}
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { requestEmailChange } from '../../services/authService';
 import { AuthContext } from '../../context/AuthContext';
+import { Ionicons} from '@expo/vector-icons';
+
 
 const EmailScreen = ({ navigation, route }) => {
   const user = route.params?.user || {};
@@ -61,9 +63,13 @@ const EmailScreen = ({ navigation, route }) => {
     <SafeAreaView style={styles.container}>
       {/* HEADER */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Text style={styles.backBtn}>‹</Text>
-        </TouchableOpacity>
+      <TouchableOpacity
+  style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: '#F2E6E3', alignItems: 'center', justifyContent: 'center' }}
+  onPress={() => navigation.goBack()}
+  activeOpacity={0.8}
+>
+  <Ionicons name="arrow-back" size={20} color="#2c2c2c" />
+</TouchableOpacity>
 
         <Text style={styles.headerTitle}>Email Address</Text>
 

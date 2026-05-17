@@ -290,7 +290,7 @@ useEffect(() => {
                     <Ionicons
                       name={savedItems[item._id] ? 'heart' : 'heart-outline'}
                       size={16}
-                      color={savedItems[item._id] ? '#E05C5C' : COLORS.muted}
+                      color={savedItems[item._id] ? '#E05C5C' : '#C17C74'}
                     />
                   </TouchableOpacity>
                 </View>

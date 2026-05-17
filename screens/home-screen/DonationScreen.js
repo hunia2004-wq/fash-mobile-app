@@ -41,11 +41,25 @@ const PointsBadge = ({ points }) => (
   </View>
 );
 
+const ItemImage = ({ item, style }) => {
+  if (item.image) {
+    return <Image source={{ uri: item.image }} style={style} resizeMode="cover" />;
+  }
+  return (
+    <View style={[style, styles.emojiFallback]}>
+      <Text style={styles.emojiFallbackText}>{CATEGORY_EMOJIS[item.category] || '👕'}</Text>
+    </View>
+  );
+};
+
 export default function DonationScreen({ navigation }) {
   const { getToken } = useAuth();
 
   const [wardrobeItems,  setWardrobeItems]  = useState([]);
   const [centers,        setCenters]        = useState([]);
+  const [centersError,   setCentersError]   = useState(null);
+  const [centersLoading, setCentersLoading] = useState(false);
+  const [centersFetched, setCentersFetched] = useState(false);
   const [pointsGuide,    setPointsGuide]    = useState({ 'Like New': 50, 'Good': 30, 'Fair': 15 });
   const [userPoints,     setUserPoints]     = useState(0);
   const [selectedItems,  setSelectedItems]  = useState([]);
@@ -62,18 +76,14 @@ export default function DonationScreen({ navigation }) {
       try {
         const token = await getToken();
         if (!token) return;
-
         const [wardrobeData, guideData] = await Promise.all([
           getWardrobeItems(token, 'All'),
           getPointsGuide(),
         ]);
-
         const items = wardrobeData.items ?? wardrobeData ?? [];
         setWardrobeItems(items.filter(i => !i.isDonated));
-
         const guide = guideData.data ?? guideData ?? {};
         if (Object.keys(guide).length > 0) setPointsGuide(guide);
-
       } catch (err) {
         console.error('Failed to init donation screen:', err.message);
       } finally {
@@ -83,29 +93,44 @@ export default function DonationScreen({ navigation }) {
     init();
   }, []);
 
-  // ── fetch nearby centers when Centers tab is opened ──────────────
-  const fetchCenters = useCallback(async () => {
+  // ── fetch nearby centers — plain async function, no useCallback ──
+  const fetchCenters = async () => {
     try {
-      const { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== 'granted') {
-        // fallback — fetch without location (backend returns all)
-        const data = await getNearbyCenters(30.0444, 31.2357);
-        setCenters(data.data ?? data ?? []);
-        return;
+      setCentersLoading(true);
+      setCentersError(null);
+
+      let lat = 30.0444;
+      let lng = 31.2357;
+
+      try {
+        const { status } = await Location.requestForegroundPermissionsAsync();
+        if (status === 'granted') {
+          const loc = await Location.getCurrentPositionAsync({});
+          lat = loc.coords.latitude;
+          lng = loc.coords.longitude;
+        }
+      } catch {
+        // location unavailable — use Cairo fallback coords
       }
-      const loc = await Location.getCurrentPositionAsync({});
-      const data = await getNearbyCenters(loc.coords.latitude, loc.coords.longitude);
+
+      const data = await getNearbyCenters(lat, lng);
       setCenters(data.data ?? data ?? []);
+      setCentersFetched(true);
     } catch (err) {
       console.error('Failed to fetch centers:', err.message);
+      setCentersError(err.message);
+    } finally {
+      setCentersLoading(false);
     }
-  }, []);
+  };
 
-  useEffect(() => {
-    if (activeTab === 'centers' && centers.length === 0) {
+  // ── tab switch: trigger fetch directly on press ──────────────────
+  const handleTabSwitch = (tab) => {
+    setActiveTab(tab);
+    if (tab === 'centers' && !centersFetched && !centersLoading) {
       fetchCenters();
     }
-  }, [activeTab]);
+  };
 
   // ── helpers ──────────────────────────────────────────────────────
   const toggleItem = (id) => {
@@ -115,7 +140,6 @@ export default function DonationScreen({ navigation }) {
   };
 
   const getPoints = (condition) => {
-    // backend uses lowercase keys, frontend uses title case
     return pointsGuide[condition]
       || pointsGuide[condition?.toLowerCase()]
       || pointsGuide['good']
@@ -137,7 +161,6 @@ export default function DonationScreen({ navigation }) {
       Alert.alert('No center selected', 'Please go to the Centers tab and select a donation center.');
       return;
     }
-
     Alert.alert(
       'Confirm Donation',
       `Donate ${selectedItems.length} item${selectedItems.length > 1 ? 's' : ''} to ${selectedCenter.name} and earn ${totalPointsToEarn} points?`,
@@ -219,19 +242,19 @@ export default function DonationScreen({ navigation }) {
       <StatusBar barStyle="dark-content" />
 
       <View style={styles.logoHeader}>
-  <Image source={require('../../source/assets/images/Blacklogo.png')} style={styles.logo} resizeMode="contain" />
-</View>
+        <Image source={require('../../source/assets/images/Blacklogo.png')} style={styles.logo} resizeMode="contain" />
+      </View>
 
-<View style={styles.header}>
-  <TouchableOpacity style={styles.navBtn} onPress={() => navigation.goBack()} activeOpacity={0.8}>
-    <Ionicons name="arrow-back" size={20} color={COLORS.text} />
-  </TouchableOpacity>
-  <View>
-    <Text style={styles.headerTitle}>Donation</Text>
-    <Text style={styles.headerSub}>Give back · Earn points</Text>
-  </View>
-  <PointsBadge points={userPoints} />
-</View>
+      <View style={styles.header}>
+        <TouchableOpacity style={styles.navBtn} onPress={() => navigation.goBack()} activeOpacity={0.8}>
+          <Ionicons name="arrow-back" size={20} color={COLORS.text} />
+        </TouchableOpacity>
+        <View>
+          <Text style={styles.headerTitle}>Donation</Text>
+          <Text style={styles.headerSub}>Give back · Earn points</Text>
+        </View>
+        <PointsBadge points={userPoints} />
+      </View>
 
       <View style={styles.pointsBanner}>
         <Text style={styles.pointsBannerEmoji}>⭐</Text>
@@ -253,10 +276,11 @@ export default function DonationScreen({ navigation }) {
         </View>
       )}
 
+      {/* Tabs — use handleTabSwitch to trigger fetch on press */}
       <View style={styles.tabRow}>
         <TouchableOpacity
           style={[styles.tab, activeTab === 'donate' && styles.tabActive]}
-          onPress={() => setActiveTab('donate')}
+          onPress={() => handleTabSwitch('donate')}
           activeOpacity={0.8}
         >
           <Ionicons name="heart-outline" size={15} color={activeTab === 'donate' ? COLORS.white : COLORS.muted} style={{ marginRight: 6 }} />
@@ -264,7 +288,7 @@ export default function DonationScreen({ navigation }) {
         </TouchableOpacity>
         <TouchableOpacity
           style={[styles.tab, activeTab === 'centers' && styles.tabActive]}
-          onPress={() => setActiveTab('centers')}
+          onPress={() => handleTabSwitch('centers')}
           activeOpacity={0.8}
         >
           <Ionicons name="location-outline" size={15} color={activeTab === 'centers' ? COLORS.white : COLORS.muted} style={{ marginRight: 6 }} />
@@ -298,9 +322,7 @@ export default function DonationScreen({ navigation }) {
                     onPress={() => toggleItem(item._id)}
                     activeOpacity={0.85}
                   >
-                    <View style={[styles.itemEmoji, isSelected && styles.itemEmojiSelected]}>
-                      <Text style={styles.itemEmojiText}>{CATEGORY_EMOJIS[item.category] || '👕'}</Text>
-                    </View>
+                    <ItemImage item={item} style={styles.itemThumb} />
                     <View style={styles.itemInfo}>
                       <Text style={styles.itemName}>{item.name}</Text>
                       <Text style={styles.itemMeta}>{[item.brand, item.size].filter(Boolean).join(' · ')}</Text>
@@ -322,13 +344,38 @@ export default function DonationScreen({ navigation }) {
             </>
           )
         ) : (
-          centers.length === 0 ? (
+          // ── Centers tab ───────────────────────────────────────────
+          centersLoading ? (
             <ActivityIndicator size="large" color={COLORS.accent} style={{ marginTop: 40 }} />
+          ) : centersError ? (
+            <View style={styles.emptyState}>
+              <Ionicons name="wifi-outline" size={40} color={COLORS.accent} />
+              <Text style={styles.emptyTitle}>Couldn't load centers</Text>
+              <Text style={styles.emptySub}>{centersError}</Text>
+              <TouchableOpacity
+                style={styles.retryBtn}
+                onPress={() => { setCentersFetched(false); fetchCenters(); }}
+                activeOpacity={0.85}
+              >
+                <Text style={styles.retryBtnText}>Try Again</Text>
+              </TouchableOpacity>
+            </View>
+          ) : centersFetched && centers.length === 0 ? (
+            <View style={styles.emptyState}>
+              <Ionicons name="location-outline" size={40} color={COLORS.accent} />
+              <Text style={styles.emptyTitle}>No centers found</Text>
+              <Text style={styles.emptySub}>No donation centers found near your location.</Text>
+              <TouchableOpacity style={styles.retryBtn} onPress={fetchCenters} activeOpacity={0.85}>
+                <Text style={styles.retryBtnText}>Retry</Text>
+              </TouchableOpacity>
+            </View>
           ) : (
             <>
-              <Text style={styles.sectionLabel}>
-                Donation Centers Near You · {centers.length} found
-              </Text>
+              {centers.length > 0 && (
+                <Text style={styles.sectionLabel}>
+                  Donation Centers Near You · {centers.length} found
+                </Text>
+              )}
               {centers.map(center => (
                 <TouchableOpacity
                   key={center._id}
@@ -381,7 +428,12 @@ export default function DonationScreen({ navigation }) {
                     onPress={() => { setSelectedCenter(center); setActiveTab('donate'); }}
                     activeOpacity={0.85}
                   >
-                    <Ionicons name={selectedCenter?._id === center._id ? 'checkmark' : 'navigate-outline'} size={14} color={COLORS.white} style={{ marginRight: 6 }} />
+                    <Ionicons
+                      name={selectedCenter?._id === center._id ? 'checkmark' : 'navigate-outline'}
+                      size={14}
+                      color={COLORS.white}
+                      style={{ marginRight: 6 }}
+                    />
                     <Text style={styles.directionsBtnText}>
                       {selectedCenter?._id === center._id ? 'Selected' : 'Select This Center'}
                     </Text>
@@ -431,14 +483,9 @@ const styles = StyleSheet.create({
   topNav:               { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 12, backgroundColor: COLORS.white, borderBottomWidth: 1, borderBottomColor: COLORS.border },
   navBtn:               { width: 40, height: 40, borderRadius: 12, backgroundColor: COLORS.card, alignItems: 'center', justifyContent: 'center' },
   navTitle:             { fontSize: 16, fontWeight: '700', color: COLORS.text },
-  header: { 
-    flexDirection: 'row', 
-    alignItems: 'center', 
-    justifyContent: 'space-between',
-    paddingHorizontal: 20, 
-    marginBottom: 14,
-  },
-  headerSub: { fontSize: 13, color: COLORS.muted, marginTop: 2 },
+  header:               { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, marginBottom: 14 },
+  headerTitle:          { fontSize: 20, fontWeight: '700', color: COLORS.accent },
+  headerSub:            { fontSize: 13, color: COLORS.muted, marginTop: 2 },
   pointsBadge:          { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: COLORS.goldLight, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 8, borderWidth: 1, borderColor: '#f9e0a0' },
   pointsStar:           { fontSize: 14 },
   pointsValue:          { fontSize: 16, fontWeight: '800', color: COLORS.gold },
@@ -460,11 +507,13 @@ const styles = StyleSheet.create({
   emptyState:           { alignItems: 'center', paddingTop: 60, gap: 10 },
   emptyTitle:           { fontSize: 17, fontWeight: '600', color: COLORS.text },
   emptySub:             { fontSize: 13, color: COLORS.muted, textAlign: 'center' },
+  retryBtn:             { marginTop: 6, backgroundColor: COLORS.accent, borderRadius: 12, paddingHorizontal: 20, paddingVertical: 10 },
+  retryBtnText:         { color: COLORS.white, fontSize: 13, fontWeight: '700' },
   itemRow:              { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: COLORS.white, borderRadius: 16, padding: 14, marginBottom: 10, borderWidth: 1.5, borderColor: COLORS.border },
   itemRowSelected:      { borderColor: COLORS.accent, backgroundColor: COLORS.accentLight },
-  itemEmoji:            { width: 50, height: 50, borderRadius: 25, backgroundColor: COLORS.card, alignItems: 'center', justifyContent: 'center' },
-  itemEmojiSelected:    { backgroundColor: COLORS.white },
-  itemEmojiText:        { fontSize: 24 },
+  itemThumb:            { width: 56, height: 56, borderRadius: 12, backgroundColor: COLORS.card },
+  emojiFallback:        { alignItems: 'center', justifyContent: 'center' },
+  emojiFallbackText:    { fontSize: 26 },
   itemInfo:             { flex: 1 },
   itemName:             { fontSize: 14, fontWeight: '700', color: COLORS.text },
   itemMeta:             { fontSize: 11, color: COLORS.muted, marginTop: 2 },

@@ -17,13 +17,32 @@ const CATEGORY_EMOJIS = {
   Bags: '👜', Accessories: '✨', Outerwear: '🧥',
 };
 
+// Shows actual item image if available, otherwise emoji
+const ItemPreviewBubble = ({ item, style, index }) => {
+  const marginLeft = index > 0 ? -10 : 0;
+  const zIndex = 10 - index;
+
+  if (item?.image) {
+    return (
+      <Image
+        source={{ uri: item.image }}
+        style={[styles.itemEmojiBox, { marginLeft, zIndex, overflow: 'hidden' }]}
+        resizeMode="cover"
+      />
+    );
+  }
+  return (
+    <View style={[styles.itemEmojiBox, { marginLeft, zIndex }]}>
+      <Text style={styles.itemEmoji}>{CATEGORY_EMOJIS[item?.category] || '👕'}</Text>
+    </View>
+  );
+};
+
 const OutfitCard = ({ outfit, onPress, onSendToAI, onDelete }) => (
   <TouchableOpacity style={styles.outfitCard} onPress={onPress} activeOpacity={0.88}>
     <View style={styles.outfitItemsPreview}>
       {outfit.items.slice(0, 3).map((item, i) => (
-        <View key={i} style={[styles.itemEmojiBox, { marginLeft: i > 0 ? -10 : 0, zIndex: 10 - i }]}>
-          <Text style={styles.itemEmoji}>{CATEGORY_EMOJIS[item.category] || '👕'}</Text>
-        </View>
+        <ItemPreviewBubble key={i} item={item} index={i} />
       ))}
       {outfit.items.length > 3 && (
         <View style={[styles.itemEmojiBox, styles.itemEmojiMore, { marginLeft: -10 }]}>

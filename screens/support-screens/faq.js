@@ -3,6 +3,8 @@ import { View, Text, StyleSheet, TextInput, ScrollView, TouchableOpacity, Layout
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AuthContext } from '../../context/AuthContext';
 import { getFaqs } from '../../services/authService';
+import { Ionicons} from '@expo/vector-icons';
+
 
 
 if (Platform.OS === 'android') {
@@ -51,9 +53,13 @@ const FAQScreen = ({ navigation }) => {
     <SafeAreaView style={styles.container}>
       {/* header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Text style={styles.backBtn}>‹</Text>
-        </TouchableOpacity>
+      <TouchableOpacity
+  style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: '#F2E6E3', alignItems: 'center', justifyContent: 'center' }}
+  onPress={() => navigation.goBack()}
+  activeOpacity={0.8}
+>
+  <Ionicons name="arrow-back" size={20} color="#2c2c2c" />
+</TouchableOpacity>
         <Text style={styles.headerTitle}>FAQ</Text>
       </View>
 

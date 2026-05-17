@@ -3,6 +3,8 @@ import {View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator,
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AuthContext } from '../../context/AuthContext';
 import {getCards, addCard, updateCard, setDefaultCard, deleteCard,} from '../../services/authService';
+import { Ionicons} from '@expo/vector-icons';
+
 
 export default function SavedCards({ navigation }) {
   const { getToken } = useContext(AuthContext);
@@ -186,16 +188,18 @@ export default function SavedCards({ navigation }) {
     <SafeAreaView style={styles.container}>
       {/* HEADER */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtnWrap}>
-          <Text style={styles.backBtn}>‹</Text>
-        </TouchableOpacity>
-
-        <Text style={styles.headerTitle}>Saved Cards</Text>
-
-        <TouchableOpacity onPress={() => { resetForm(); setShowForm(true); }}>
-          <Text style={styles.addBtn}>+ Add</Text>
-        </TouchableOpacity>
-      </View>
+  <TouchableOpacity
+    style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: '#F2E6E3', alignItems: 'center', justifyContent: 'center' }}
+    onPress={() => navigation.goBack()}
+    activeOpacity={0.8}
+  >
+    <Ionicons name="arrow-back" size={20} color="#2c2c2c" />
+  </TouchableOpacity>
+  <Text style={styles.headerTitle}>Saved Cards</Text>
+  <TouchableOpacity onPress={() => { resetForm(); setShowForm(true); }}>
+    <Text style={styles.addBtn}>+ Add</Text>
+  </TouchableOpacity>
+</View>
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
 

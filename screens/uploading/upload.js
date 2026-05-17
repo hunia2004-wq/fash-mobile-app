@@ -60,21 +60,40 @@ export default function UploadScreen({ navigation }) {
     setter(current.includes(val) ? current.filter(v => v !== val) : [...current, val]);
 
   const pickImage = async (fromCamera = false) => {
-    const permission = fromCamera
-      ? await ImagePicker.requestCameraPermissionsAsync()
-      : await ImagePicker.requestMediaLibraryPermissionsAsync();
-
-    if (!permission.granted) {
-      Alert.alert('Permission required', 'Please allow access to continue.');
-      return;
-    }
-
-    const result = fromCamera
-      ? await ImagePicker.launchCameraAsync({ quality: 0.8 })
-      : await ImagePicker.launchImageLibraryAsync({ quality: 0.8 });
-
-    if (!result.canceled) {
-      setImageUri(result.assets[0].uri);
+    if (fromCamera) {
+      const perm = await ImagePicker.requestCameraPermissionsAsync();
+      if (!perm.granted) {
+        Alert.alert(
+          'Camera Access Required',
+          'Please enable camera access in your device settings to take photos.',
+          [{ text: 'OK' }]
+        );
+        return;
+      }
+      const result = await ImagePicker.launchCameraAsync({
+        quality: 0.8,
+        allowsEditing: false,
+      });
+      if (!result.canceled && result.assets?.length > 0) {
+        setImageUri(result.assets[0].uri);
+      }
+    } else {
+      const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (!perm.granted) {
+        Alert.alert(
+          'Photo Library Access Required',
+          'Please enable photo library access in your device settings.',
+          [{ text: 'OK' }]
+        );
+        return;
+      }
+      const result = await ImagePicker.launchImageLibraryAsync({
+        quality: 0.8,
+        allowsEditing: false,
+      });
+      if (!result.canceled && result.assets?.length > 0) {
+        setImageUri(result.assets[0].uri);
+      }
     }
   };
 
@@ -124,7 +143,7 @@ export default function UploadScreen({ navigation }) {
           },
           {
             text: 'Go to Wardrobe',
-            onPress: () => navigation.goBack(),
+            onPress: () => navigation.navigate('WardrobeTab'),
           },
         ]
       );

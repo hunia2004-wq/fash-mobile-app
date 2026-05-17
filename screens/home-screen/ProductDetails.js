@@ -246,7 +246,7 @@ export default function ProductDetailScreen({ navigation, route }) {
         <View style={styles.safetyTip}>
           <Ionicons name="shield-checkmark-outline" size={16} color={COLORS.accent} />
           <Text style={styles.safetyText}>
-            Meet in a safe, public place. Never share personal financial info.
+            Never share personal financial info.
           </Text>
         </View>
 

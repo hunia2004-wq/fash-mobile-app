@@ -68,10 +68,7 @@ function HomeContent() {
   <FontAwesome name="microphone" size={16} color="#C17C74" />
 </View>
 
-        {/* Filter */}
-        <TouchableOpacity style={styles.filterBtn}>
-          <Feather name="sliders" size={20} color="#C17C74" />
-        </TouchableOpacity>
+       
 
         {/* CART ICON ADDED */}
         <TouchableOpacity
