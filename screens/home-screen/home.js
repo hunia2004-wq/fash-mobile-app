@@ -5,8 +5,6 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import ProfileScreen from '../profile'; 
 import { useNavigation } from "@react-navigation/native";
 
-
-
 import WardrobeScreen from '../digital-wardrobe/wardrobe';
 import UploadScreen from '../uploading/upload';
 import SavedScreen from '../favorites/wishlist';
@@ -87,7 +85,7 @@ function HomeContent() {
       {/* Banner */}
       <TouchableOpacity
   style={styles.banner}
-  onPress={() => navigation.navigate('ARScreen')}
+  onPress={() => navigation.navigate('ARscreen')}
   activeOpacity={0.92}
 >
   <Image

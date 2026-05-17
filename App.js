@@ -66,6 +66,8 @@ import CreateAuction from './screens/home-screen/CreateAuction';
 
 import MainCart from './screens/home-screen/MainCart';
 
+import ARscreen from './screens/ARscreen';
+
 import { logout, warmupServer } from './services/authService';
 
 
@@ -215,6 +217,8 @@ export default function App() {
                     <Stack.Screen name="MainCart" component={MainCart} />
                     
                     <Stack.Screen name="SellerProfileScreen" component={SellerProfileScreen} />
+
+                    <Stack.Screen name="ARscreen" component={ARscreen} options={{ headerShown: false }}/>
                   </>
                 )}
               </Stack.Navigator>

@@ -26,10 +26,12 @@
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
-      "expo-secure-store"
+      "expo-secure-store",
+      ["expo-camera", { "cameraPermission": "FASH needs camera access for AR try-on." }],
+      ["expo-media-library", { "photosPermission": "FASH needs photo access to save your looks." }]
     ],
     "extra": {
-      "anthropicApiKey": "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"
+      "anthropicApiKey": "YOUR_KEY_HERE"
     }
   }
 }
