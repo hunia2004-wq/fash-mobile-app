@@ -6,6 +6,7 @@ import ProfileScreen from '../profile';
 import { useNavigation } from "@react-navigation/native";
 
 
+
 import WardrobeScreen from '../digital-wardrobe/wardrobe';
 import UploadScreen from '../uploading/upload';
 import SavedScreen from '../favorites/wishlist';
@@ -35,25 +36,39 @@ function HomeContent() {
     },
   ];
 
+  const [searchQuery, setSearchQuery] = useState('');
+
+
   return (
     <ScrollView style={styles.screen} showsVerticalScrollIndicator={false}>
 
       {/* Header */}
       <View style={styles.header}>
-        <Image
-          source={require('../../source/assets/images/Blacklogo.png')}
-          style={styles.logo}
-          resizeMode="contain"
-        />
+        <Image source={require('../../source/assets/images/Blacklogo.png')}
+        style={styles.logo}
+        resizeMode="contain" />
       </View>
 
       {/* Search */}
       <View style={styles.searchRow}>
-        <View style={styles.searchBar}>
-          <FontAwesome name="search" size={16} color="#C17C74" style={{ marginRight: 8 }} />
-          <TextInput placeholder="Search" style={styles.searchInput} placeholderTextColor="gray" />
-          <FontAwesome name="microphone" size={16} color="#C17C74" />
-        </View>
+      <View style={styles.searchBar}>
+  <FontAwesome name="search" size={16} color="#C17C74" style={{ marginRight: 8 }} />
+  <TextInput
+    placeholder="Search marketplace..."
+    style={styles.searchInput}
+    placeholderTextColor="gray"
+    value={searchQuery}
+    onChangeText={setSearchQuery}
+    returnKeyType="search"
+    onSubmitEditing={() => {
+      if (searchQuery.trim()) {
+        navigation.navigate('MarketplaceHome', { initialSearch: searchQuery.trim() });
+        setSearchQuery('');
+      }
+    }}
+  />
+  <FontAwesome name="microphone" size={16} color="#C17C74" />
+</View>
 
         {/* Filter */}
         <TouchableOpacity style={styles.filterBtn}>
@@ -70,13 +85,35 @@ function HomeContent() {
       </View>
 
       {/* Banner */}
-      <View style={styles.banner}>
-        <Image
-          source={require('../../source/assets/images/headercropped.png')}
-          style={styles.bannerImage}
-          resizeMode="cover"
-        />
-      </View>
+      <TouchableOpacity
+  style={styles.banner}
+  onPress={() => navigation.navigate('ARScreen')}
+  activeOpacity={0.92}
+>
+  <Image
+    source={require('../../source/assets/images/headercropped.png')}
+    style={styles.bannerImage}
+    resizeMode="cover"
+  />
+  {/* Dark gradient overlay */}
+  <View style={styles.bannerOverlay} />
+
+  {/* Top-right AR live badge */}
+  <View style={styles.arLiveBadge}>
+    <View style={styles.arLiveDot} />
+    <Text style={styles.arLiveText}>AR</Text>
+  </View>
+
+  {/* Bottom text */}
+  <View style={styles.bannerContent}>
+    <Text style={styles.bannerTitle}>Virtual Try-On</Text>
+    <Text style={styles.bannerSub}>See how it looks on you before you buy</Text>
+    <View style={styles.bannerBtn}>
+      <Ionicons name="cube-outline" size={14} color="white" />
+      <Text style={styles.bannerBtnText}>Try it on</Text>
+    </View>
+  </View>
+</TouchableOpacity>
 
       {/* Digital Closet */}
       <Text style={styles.sectionTitle}>Your Digital Closet</Text>
@@ -113,21 +150,23 @@ function HomeContent() {
         </TouchableOpacity>
       </View>
 
+
       {/* Marketplace */}
       <Text style={styles.sectionTitle}>FASH Marketplace</Text>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ paddingLeft: 20 }}>
       {boutiqueItems.map((item) => (
-  <TouchableOpacity
-    key={item.id}
-    style={styles.boutiqueCard}
-    onPress={() => navigation.navigate("MarketplaceHome")}
-  >
-    <Image source={item.image} style={styles.boutiqueImage} resizeMode="cover" />
-    <View style={styles.boutiqueLabelBtn}>
-      <Text style={styles.boutiqueLabel}>{item.label}</Text>
-    </View>
-  </TouchableOpacity>
+        <TouchableOpacity
+        key={item.id}
+        style={styles.boutiqueCard}
+        onPress={() => navigation.navigate("MarketplaceHome")}>
+          <Image source={item.image} style={styles.boutiqueImage} resizeMode="cover" />
+          <View style={styles.boutiqueLabelBtn}>
+            <Text style={styles.boutiqueLabel}>{item.label}</Text>
+            <Ionicons name="arrow-forward" size={12} color="#9B5E58" style={{ marginLeft: 4 }} />
+          </View>
+        </TouchableOpacity>
 ))}
+
       </ScrollView>
 
       {/* Live Bidding */}
@@ -307,19 +346,88 @@ const styles = StyleSheet.create({
     borderRadius:12
   },
 
-  banner:{
-    marginHorizontal:20,
-    marginBottom:24,
-    borderRadius:16,
-    overflow:'hidden',
-    height:180
+  banner: {
+    marginHorizontal: 20,
+    marginBottom: 24,
+    borderRadius: 20,
+    overflow: 'hidden',
+    height: 200,
   },
   
-  bannerImage:{
-    width:'100%',
-    height:'100%',
+  bannerImage: {
+    width: '100%',
+    height: '100%',
+    position: 'absolute',
   },
-
+  
+  bannerOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.45)',
+  },
+  
+  arLiveBadge: {
+    position: 'absolute',
+    top: 14,
+    right: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    backgroundColor: 'rgba(255,255,255,0.3)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.4)',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 20,
+  },
+  
+  arLiveDot: {
+    width: 7,
+    height: 7,
+    borderRadius: 4,
+    backgroundColor: '#FF4D4D',
+  },
+  
+  arLiveText: {
+    color: 'white',
+    fontWeight: '700',
+    fontSize: 12,
+  },
+  
+  bannerContent: {
+    position: 'absolute',
+    bottom: 18,
+    left: 18,
+  },
+  
+  bannerTitle: {
+    color: 'white',
+    fontSize: 22,
+    fontWeight: '700',
+    marginBottom: 4,
+  },
+  
+  bannerSub: {
+    color: 'rgba(255,255,255,0.85)',
+    fontSize: 12,
+    marginBottom: 12,
+  },
+  
+  bannerBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: '#C17C74',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    alignSelf: 'flex-start',
+  },
+  
+  bannerBtnText: {
+    color: 'white',
+    fontWeight: '700',
+    fontSize: 13,
+  },
   sectionTitle:{
     fontSize:18,
     fontWeight:'600',
@@ -366,7 +474,6 @@ const styles = StyleSheet.create({
     lineHeight:18
   },
 
-  // FIX: constrained wrapper so AI Styling image stays inside the card
   aiImageWrapper: {
     width: width * 0.13,
     height: width * 0.13,
@@ -383,7 +490,6 @@ const styles = StyleSheet.create({
     flexShrink: 0,
   },
 
-  // FIX: boutique card now has a white bg and label rendered below the image
   boutiqueCard: {
     width: width * 0.35,
     borderRadius: 16,
@@ -400,21 +506,21 @@ const styles = StyleSheet.create({
   boutiqueLabelBtn: {
     backgroundColor: '#F6E9E6',
     paddingVertical: 10,
-    paddingHorizontal: 8,
-    alignItems: 'center',      // centers horizontally
-    justifyContent: 'center',  // centers vertically
-    minHeight: 40,
+    paddingHorizontal: 12,
+    flexDirection: 'row',        
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderTopWidth: 1,
+    borderTopColor: '#E8D0CC',   
   },
   
   boutiqueLabel: {
     color: 'black',
-    fontWeight: '400',
+    fontWeight: '600',
     fontSize: 12,
     textAlign: 'center',
   },
   
-  // remove boutiqueLabelBtn and boutiqueLabel entirely
-
   sustainCard:{
     width:140,
     height:120,

@@ -11,7 +11,7 @@ export const COLORS = {
     success: '#6abf7b',
   };
   
-  export const CATEGORIES = ['All', 'Tops', 'Bottoms', 'Dresses', 'Shoes', 'Bags', 'Accessories'];
+  export const CATEGORIES = ['All', 'Shoes', 'Bags', 'Perfumes', 'Accessories', 'Newborn Accessories'];
   
   export const SAMPLE_ITEMS = [
     {

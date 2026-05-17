@@ -1,13 +1,34 @@
 const BASE_URL = "https://fash-backend-cp3n.vercel.app/api/v1";
 
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+// Fire-and-forget on app start to pre-warm Vercel serverless functions
+export async function warmupServer() {
+  const endpoints = ['/listings', '/cart', '/saved'];
+  
+  await Promise.allSettled(
+    endpoints.map(async (endpoint) => {
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000);
+        await fetch(`${BASE_URL}${endpoint}`, { signal: controller.signal });
+        clearTimeout(timeoutId);
+      } catch {
+        // best-effort — ignore errors
+      }
+    })
+  );
+}
 
 // CORE REQUEST WRAPPER
+// attempt 0 gets a longer timeout to absorb cold-start latency (~10–20 s on Vercel)
 
-async function request(endpoint, options = {}, retries = 2) {
+async function request(endpoint, options = {}, retries = 2, attempt = 0) {
   const { headers: customHeaders, body, ...restOptions } = options;
 
+  const timeoutMs = attempt === 0 ? 60000 : 30000; // 60s first attempt, 30s retries
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 30000);
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
   try {
     const response = await fetch(`${BASE_URL}${endpoint}`, {
@@ -20,12 +41,10 @@ async function request(endpoint, options = {}, retries = 2) {
       body,
     });
 
-    clearTimeout(timeout);
+    clearTimeout(timeoutId);
 
     let data = {};
-    try {
-      data = await response.json();
-    } catch {}
+    try { data = await response.json(); } catch {}
 
     if (!response.ok) {
       throw new Error(
@@ -38,17 +57,19 @@ async function request(endpoint, options = {}, retries = 2) {
     return data.data || data;
 
   } catch (err) {
-    clearTimeout(timeout);
+    clearTimeout(timeoutId);
 
-    console.log("REQUEST ERROR:", err);
+    const isTimeout = err.name === 'AbortError';
+    const isNetwork = err.message?.includes('Network request failed');
 
-    if (err.name === "AbortError" && retries > 0) {
-      console.log("Retrying request...");
-      return request(endpoint, options, retries - 1);
+    if ((isTimeout || isNetwork) && retries > 0) {
+      console.log(`Retrying ${endpoint}... (${retries} left)`);
+      await sleep(2000);
+      return request(endpoint, options, retries - 1, attempt + 1);
     }
 
-    if (err.name === "AbortError") {
-      throw new Error("Server is slow (cold start). Please try again.");
+    if (isTimeout) {
+      throw new Error('The server took too long to respond. Please check your connection and try again.');
     }
 
     throw err;
@@ -330,7 +351,6 @@ export async function getAddresses(token) {
       Authorization: `Bearer ${token}`,
     },
   });
-  return res.data.data; 
 }
 
 export async function addAddress(token, addressData) {
@@ -534,10 +554,12 @@ export async function deleteListing(token, id) {
 }
 
 // WARDROBE
-export async function getWardrobeItems(token, category) {
-  const query = category && category !== 'All' ? `?category=${category}` : '';
-  console.log('getWardrobeItems URL:', `/wardrobe${query}`);
-  return request(`/wardrobe${query}`, {
+export async function getWardrobeItems(token, category, search = '') {
+  const params = new URLSearchParams();
+  if (category && category !== 'All') params.append('category', category);
+  if (search) params.append('search', search);
+  const query = params.toString();
+  return request(`/wardrobe${query ? `?${query}` : ''}`, {
     headers: { Authorization: `Bearer ${token}` },
   });
 }

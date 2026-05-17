@@ -219,16 +219,19 @@ export default function DonationScreen({ navigation }) {
       <StatusBar barStyle="dark-content" />
 
       <View style={styles.logoHeader}>
-        <Image source={require('../../source/assets/images/Blacklogo.png')} style={styles.logo} resizeMode="contain" />
-      </View>
+  <Image source={require('../../source/assets/images/Blacklogo.png')} style={styles.logo} resizeMode="contain" />
+</View>
 
-      <View style={styles.header}>
-        <View>
-          <Text style={styles.headerTitle}>Donation</Text>
-          <Text style={styles.headerSub}>Give back · Earn points</Text>
-        </View>
-        <PointsBadge points={userPoints} />
-      </View>
+<View style={styles.header}>
+  <TouchableOpacity style={styles.navBtn} onPress={() => navigation.goBack()} activeOpacity={0.8}>
+    <Ionicons name="arrow-back" size={20} color={COLORS.text} />
+  </TouchableOpacity>
+  <View>
+    <Text style={styles.headerTitle}>Donation</Text>
+    <Text style={styles.headerSub}>Give back · Earn points</Text>
+  </View>
+  <PointsBadge points={userPoints} />
+</View>
 
       <View style={styles.pointsBanner}>
         <Text style={styles.pointsBannerEmoji}>⭐</Text>
@@ -428,9 +431,14 @@ const styles = StyleSheet.create({
   topNav:               { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 12, backgroundColor: COLORS.white, borderBottomWidth: 1, borderBottomColor: COLORS.border },
   navBtn:               { width: 40, height: 40, borderRadius: 12, backgroundColor: COLORS.card, alignItems: 'center', justifyContent: 'center' },
   navTitle:             { fontSize: 16, fontWeight: '700', color: COLORS.text },
-  header:               { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, marginBottom: 14 },
-  headerTitle:          { fontSize: 20, fontWeight: '700', color: COLORS.accent },
-  headerSub:            { fontSize: 13, color: COLORS.muted, marginTop: 2 },
+  header: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    justifyContent: 'space-between',
+    paddingHorizontal: 20, 
+    marginBottom: 14,
+  },
+  headerSub: { fontSize: 13, color: COLORS.muted, marginTop: 2 },
   pointsBadge:          { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: COLORS.goldLight, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 8, borderWidth: 1, borderColor: '#f9e0a0' },
   pointsStar:           { fontSize: 14 },
   pointsValue:          { fontSize: 16, fontWeight: '800', color: COLORS.gold },

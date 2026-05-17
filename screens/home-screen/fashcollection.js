@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity,
-  StatusBar, Dimensions, Image, TextInput, ActivityIndicator,
+  StatusBar, Dimensions, Image, TextInput, ActivityIndicator, Alert
 } from 'react-native';
 import { Feather, Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -12,6 +12,7 @@ import { getSaved, saveNewItem, removeSaved, getCollectionItems } from '../../se
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = (width - 44) / 2;
 const CATEGORIES = ['All', 'Soirée', 'Suits', 'Umrah & Hajj', 'Kids'];
+
 
 const ProductCard = ({ item, saved, onToggleSave, onAddToCart, inCart }) => (
   <TouchableOpacity style={styles.wCard} activeOpacity={0.85}>
@@ -36,15 +37,17 @@ const ProductCard = ({ item, saved, onToggleSave, onAddToCart, inCart }) => (
         </View>
       )}
 
+      {/* Heart — matches marketplace */}
       <TouchableOpacity
-        style={styles.heartOverlay}
+        style={styles.heartBtn}
         onPress={() => onToggleSave(item._id)}
         activeOpacity={0.8}
+        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
       >
         <Ionicons
           name={saved ? 'heart' : 'heart-outline'}
-          size={14}
-          color={saved ? '#C17C74' : '#fff'}
+          size={16}
+          color={saved ? '#E05C5C' : '#888'}
         />
       </TouchableOpacity>
     </View>
@@ -54,18 +57,23 @@ const ProductCard = ({ item, saved, onToggleSave, onAddToCart, inCart }) => (
       <Text style={styles.wCardName}>{item.title}</Text>
       <View style={styles.wCardBottom}>
         <Text style={styles.wCardPrice}>EGP {item.price}</Text>
-        <TouchableOpacity
-          style={[styles.bagBtn, inCart && { backgroundColor: '#888' }]}
-          onPress={onAddToCart}
-          activeOpacity={0.85}
-        >
-          <Ionicons
-            name={inCart ? 'checkmark' : 'bag-handle-outline'}
-            size={13}
-            color="#fff"
-          />
-        </TouchableOpacity>
       </View>
+      {/* Cart button — matches marketplace */}
+      <TouchableOpacity
+        style={[styles.cartBtn, inCart && styles.cartBtnActive]}
+        onPress={onAddToCart}
+        activeOpacity={0.85}
+      >
+        <Ionicons
+          name={inCart ? 'cart' : 'cart-outline'}
+          size={13}
+          color={inCart ? 'white' : '#C17C74'}
+          style={{ marginRight: 5 }}
+        />
+        <Text style={[styles.cartBtnText, inCart && styles.cartBtnTextActive]}>
+          {inCart ? 'In Cart' : 'Add to Cart'}
+        </Text>
+      </TouchableOpacity>
     </View>
   </TouchableOpacity>
 );
@@ -85,13 +93,17 @@ const ComingSoonCard = () => (
 
 export default function FashCollectionScreen({ navigation }) {
   const { getToken } = useAuth();
-  const { addToCart, isInCart } = useCart();
+  const { addToCart, isInCart, cartCount } = useCart();
 
   const [activeCategory, setActiveCategory] = useState('All');
   const [search,         setSearch]         = useState('');
   const [items,          setItems]          = useState([]);
   const [loading,        setLoading]        = useState(true);
   const [savedMap,       setSavedMap]       = useState({});
+
+  const [showSearch, setShowSearch] = useState(false);
+
+  const [notifyEnabled, setNotifyEnabled] = useState(false);
 
   //  fetch items 
   const fetchItems = useCallback(async () => {
@@ -147,6 +159,35 @@ export default function FashCollectionScreen({ navigation }) {
     }
   };
 
+  const handleNotify = () => {
+    if (notifyEnabled) {
+      Alert.alert(
+        'Notifications Off',
+        'You will no longer receive alerts for new FASH drops.',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          {
+            text: 'Turn Off',
+            style: 'destructive',
+            onPress: () => setNotifyEnabled(false),
+          },
+        ]
+      );
+    } else {
+      Alert.alert(
+        'Notify Me 🎉',
+        'You\'ll be notified when new FASH Collection drops arrive!',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          {
+            text: 'Yes, Notify Me',
+            onPress: () => setNotifyEnabled(true),
+          },
+        ]
+      );
+    }
+  };
+
   const showSuits =
     search.length === 0 &&
     (activeCategory === 'All' || activeCategory === 'Suits') &&
@@ -157,41 +198,62 @@ export default function FashCollectionScreen({ navigation }) {
       <StatusBar barStyle="dark-content" backgroundColor="#F5F5F5" />
 
       {/* Logo */}
-      <View style={styles.logoHeader}>
-        <Image
-          source={require('../../source/assets/images/Blacklogo.png')}
-          style={styles.logo}
-          resizeMode="contain"
-        />
-      </View>
+{/* Logo */}
+<View style={styles.logoHeader}>
+  <Image
+    source={require('../../source/assets/images/Blacklogo.png')}
+    style={styles.logo}
+    resizeMode="contain"
+  />
+</View>
 
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()} activeOpacity={0.7}>
-          <Ionicons name="arrow-back" size={20} color="#2c2c2c" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>FASH Collection</Text>
-        <View style={{ width: 40 }} />
-      </View>
+{/* Header */}
+<View style={styles.header}>
+  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+    <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()} activeOpacity={0.7}>
+      <Ionicons name="arrow-back" size={20} color="#2c2c2c" />
+    </TouchableOpacity>
+    <View>
+      <Text style={styles.headerTitle}>FASH Collection</Text>
+      <Text style={styles.headerSub}>
+        {loading ? 'Loading...' : `${items.length} items available`}
+      </Text>
+    </View>
+  </View>
 
-      {/* Search */}
-      <View style={styles.searchRow}>
-        <View style={styles.searchBar}>
-          <Feather name="search" size={14} color="#C17C74" style={{ marginRight: 8 }} />
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Search collection…"
-            placeholderTextColor="#888"
-            value={search}
-            onChangeText={setSearch}
-          />
-          {search.length > 0 && (
-            <TouchableOpacity onPress={() => setSearch('')} activeOpacity={0.7}>
-              <Ionicons name="close-circle" size={16} color="#888" />
-            </TouchableOpacity>
-          )}
+  <View style={styles.headerActions}>
+    <TouchableOpacity style={styles.iconBtn} onPress={() => setShowSearch(true)} activeOpacity={0.8}>
+      <Ionicons name="search-outline" size={20} color="#C17C74" />
+    </TouchableOpacity>
+    <TouchableOpacity style={styles.iconBtn} onPress={() => navigation.navigate('MainCart')} activeOpacity={0.8}>
+      <Ionicons name="cart-outline" size={20} color="#C17C74" />
+      {cartCount > 0 && (
+        <View style={styles.badgeCount}>
+          <Text style={styles.badgeCountText}>{cartCount}</Text>
         </View>
-      </View>
+      )}
+    </TouchableOpacity>
+  </View>
+</View>
+
+{/* Search bar — shown when showSearch is true */}
+{showSearch && (
+  <View style={styles.searchBarWrap}>
+    <Ionicons name="search-outline" size={16} color="#888" style={{ marginRight: 8 }} />
+    <TextInput
+      placeholder="Search collection…"
+      style={styles.searchInput}
+      placeholderTextColor="#888"
+      value={search}
+      onChangeText={setSearch}
+      autoFocus
+      returnKeyType="search"
+    />
+    <TouchableOpacity onPress={() => { setShowSearch(false); setSearch(''); }}>
+      <Ionicons name="close" size={18} color="#888" />
+    </TouchableOpacity>
+  </View>
+)}
 
       <ScrollView
         style={{ flex: 1 }}
@@ -248,15 +310,35 @@ export default function FashCollectionScreen({ navigation }) {
           </View>
         )}
 
-        {search.length === 0 && (
-          <View style={styles.promoBanner}>
-            <Ionicons name="sparkles-outline" size={16} color="#C17C74" style={{ marginRight: 10 }} />
-            <Text style={styles.promoText}>New drops added every week</Text>
-            <TouchableOpacity style={styles.promoBtn} activeOpacity={0.85}>
-              <Text style={styles.promoBtnText}>Notify me</Text>
-            </TouchableOpacity>
-          </View>
-        )}
+{search.length === 0 && (
+  <View style={styles.promoBanner}>
+    <Ionicons
+      name="sparkles-outline"
+      size={16}
+      color="#C17C74"
+      style={{ marginRight: 10 }}
+    />
+    <Text style={styles.promoText}>New drops added every week</Text>
+    <TouchableOpacity
+      style={[
+        styles.promoBtn,
+        notifyEnabled && { backgroundColor: '#a0635d' },
+      ]}
+      onPress={handleNotify}
+      activeOpacity={0.85}
+    >
+      <Ionicons
+        name={notifyEnabled ? 'notifications' : 'notifications-outline'}
+        size={13}
+        color="white"
+        style={{ marginRight: 4 }}
+      />
+      <Text style={styles.promoBtnText}>
+        {notifyEnabled ? 'Notifying' : 'Notify me'}
+      </Text>
+    </TouchableOpacity>
+  </View>
+)}
 
         <View style={{ height: 32 }} />
       </ScrollView>
@@ -268,12 +350,63 @@ const styles = StyleSheet.create({
   safe:           { flex: 1, backgroundColor: '#F5F5F5' },
   logoHeader:     { paddingBottom: 10, alignItems: 'center', backgroundColor: '#F5F5F5' },
   logo:           { width: 120, height: 50 },
-  header:         { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingBottom: 12 },
   backBtn:        { width: 40, height: 40, borderRadius: 12, backgroundColor: '#F2E6E3', alignItems: 'center', justifyContent: 'center' },
-  headerTitle:    { position: 'absolute', left: 0, right: 0, textAlign: 'center', fontSize: 17, fontWeight: '700', color: '#C17C74', pointerEvents: 'none' },
-  searchRow:      { paddingHorizontal: 14, paddingTop: 10, paddingBottom: 2 },
-  searchBar:      { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', borderRadius: 12, paddingHorizontal: 14, paddingVertical: 10, borderWidth: 0.5, borderColor: 'rgba(193,124,116,0.18)' },
-  searchInput:    { flex: 1, fontSize: 14, color: '#2c2c2c' },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    marginBottom: 14,
+  },
+  headerTitle: { fontSize: 20, fontWeight: '700', color: '#C17C74' },
+  headerSub:   { fontSize: 13, color: '#888888' },
+  headerActions: { flexDirection: 'row', gap: 8, alignItems: 'center' },
+  iconBtn: {
+    width: 40, height: 40, borderRadius: 12,
+    backgroundColor: '#F2E6E3',
+    alignItems: 'center', justifyContent: 'center',
+  },
+  badgeCount: {
+    position: 'absolute', top: 4, right: 4,
+    width: 16, height: 16, borderRadius: 8,
+    backgroundColor: '#E05C5C',
+    alignItems: 'center', justifyContent: 'center',
+  },
+  badgeCountText: { fontSize: 9, fontWeight: '800', color: 'white' },
+  searchBarWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F2E6E3',
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    height: 40,
+    marginHorizontal: 16,
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: 'rgba(193,124,116,0.18)',
+  },
+  searchInput: { flex: 1, fontSize: 14, color: '#2c2c2c' },
+  
+  // Heart — matches marketplace
+  heartBtn: {
+    position: 'absolute', top: 10, right: 10,
+    width: 30, height: 30, borderRadius: 15,
+    backgroundColor: 'white',
+    alignItems: 'center', justifyContent: 'center',
+    shadowColor: '#000', shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1, shadowRadius: 3, elevation: 2,
+  },
+  
+  // Cart button — matches marketplace
+  cartBtn: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+    marginTop: 8, borderRadius: 10, paddingVertical: 7,
+    borderWidth: 1.5, borderColor: '#C17C74',
+    backgroundColor: 'white',
+  },
+  cartBtnActive: { backgroundColor: '#C17C74', borderColor: '#C17C74' },
+  cartBtnText: { fontSize: 11, fontWeight: '700', color: '#C17C74' },
+  cartBtnTextActive: { color: 'white' },
   scrollContent:  { paddingBottom: 32 },
   chipsRow:       { paddingHorizontal: 14, paddingTop: 12, paddingBottom: 12, gap: 8, flexDirection: 'row' },
   chip:           { paddingHorizontal: 16, paddingVertical: 7, borderRadius: 20, borderWidth: 1, borderColor: 'rgba(193,124,116,0.18)', backgroundColor: '#F2E6E3' },
@@ -288,19 +421,23 @@ const styles = StyleSheet.create({
   fashBadgeText:  { color: '#fff', fontSize: 8, fontWeight: '800', letterSpacing: 0.4 },
   wCardBadge:     { position: 'absolute', top: 10, right: 10, backgroundColor: '#C17C74', borderRadius: 8, paddingHorizontal: 7, paddingVertical: 3 },
   wCardBadgeText: { color: '#fff', fontSize: 9, fontWeight: '700' },
-  heartOverlay:   { position: 'absolute', top: 9, left: 9, width: 26, height: 26, borderRadius: 13, backgroundColor: 'rgba(0,0,0,0.22)', alignItems: 'center', justifyContent: 'center' },
   wCardInfo:      { padding: 10 },
   wCardBrand:     { fontSize: 9, fontWeight: '700', color: '#C17C74', textTransform: 'uppercase', letterSpacing: 0.4, marginBottom: 2 },
   wCardName:      { fontSize: 12, fontWeight: '600', color: '#2c2c2c' },
   wCardDetail:    { fontSize: 10, color: '#888888', marginTop: 2 },
-  wCardBottom:    { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 6 },
   wCardPrice:     { fontSize: 14, fontWeight: '800', color: '#C17C74' },
-  bagBtn:         { width: 26, height: 26, borderRadius: 8, backgroundColor: '#C17C74', alignItems: 'center', justifyContent: 'center' },
   emptyState:     { alignItems: 'center', paddingTop: 60, paddingHorizontal: 40, gap: 10 },
   emptyTitle:     { fontSize: 17, fontWeight: '600', color: '#2c2c2c' },
   emptySub:       { fontSize: 13, color: '#888888', textAlign: 'center', lineHeight: 20 },
   promoBanner:    { flexDirection: 'row', alignItems: 'center', backgroundColor: '#F2E6E3', marginHorizontal: 14, marginTop: 20, borderRadius: 14, padding: 14 },
   promoText:      { flex: 1, fontSize: 13, fontWeight: '600', color: '#2c2c2c' },
-  promoBtn:       { backgroundColor: '#C17C74', borderRadius: 10, paddingHorizontal: 14, paddingVertical: 8 },
-  promoBtnText:   { fontSize: 12, fontWeight: '700', color: '#fff' },
+  promoBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#C17C74',
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  promoBtnText: { fontSize: 12, fontWeight: '700', color: '#fff' },
 });

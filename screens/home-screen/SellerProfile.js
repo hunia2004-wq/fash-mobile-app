@@ -135,6 +135,9 @@ export default function SellerProfileScreen({ navigation, route }) {
         getSellerProfile(token, sellerId),
         getSellerReviews(token, sellerId),
       ]);
+
+      console.log('profileData:', JSON.stringify(profileData, null, 2)); // ADD THIS
+
       const s          = profileData.seller ?? profileData;
       const isFollowing = profileData.isFollowing ?? false;
       setSeller(s);

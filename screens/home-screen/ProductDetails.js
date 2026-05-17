@@ -56,6 +56,12 @@ export default function ProductDetailScreen({ navigation, route }) {
 
   console.log('seller field:', JSON.stringify(item.seller, null, 2));
 
+  console.log('FULL ITEM:', JSON.stringify({
+    sellerId: item.sellerId,
+    seller: item.seller,
+    sellerType: typeof item.seller,
+  }, null, 2));
+
 
   const getInitial = () => {
     const trimmed = sellerName.trim();
@@ -79,6 +85,8 @@ export default function ProductDetailScreen({ navigation, route }) {
   const handleOffer = () => {
     Alert.alert('Make an Offer', 'This feature is coming soon!');
   };
+
+  console.log('seller object:', JSON.stringify(item.seller, null, 2));
 
   return (
     <SafeAreaView style={styles.safe} edges={['bottom']}>
@@ -201,7 +209,14 @@ export default function ProductDetailScreen({ navigation, route }) {
           <TouchableOpacity
             style={styles.sellerCard}
             activeOpacity={0.88}
-            onPress={() => navigation.navigate('SellerProfileScreen', { sellerId: item.seller?.userId })}
+            onPress={() => {
+              const sellerId = typeof item.seller === 'string' 
+                ? item.seller 
+                : item.seller?._id ?? item.seller?.userId ?? item.sellerId;
+              if (!sellerId) return Alert.alert('Seller not available');
+              navigation.navigate('SellerProfileScreen', { sellerId });
+            }}
+            
           >
             {/* Avatar */}
             <View style={styles.avatar}>

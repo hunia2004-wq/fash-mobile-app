@@ -66,7 +66,7 @@ import CreateAuction from './screens/home-screen/CreateAuction';
 
 import MainCart from './screens/home-screen/MainCart';
 
-import { logout } from './services/authService';
+import { logout, warmupServer } from './services/authService';
 
 
 
@@ -99,6 +99,9 @@ export default function App() {
   );
 
   React.useEffect(() => {
+    // Fire warmup immediately — doesn't block auth restore
+    warmupServer();
+
     const bootstrapAsync = async () => {
       let userToken = null;
       try {

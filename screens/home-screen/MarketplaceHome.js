@@ -29,7 +29,7 @@ const ConditionBadge = ({ condition }) => (
   </View>
 );
 
-export default function MarketplaceScreen({ navigation }) {
+export default function MarketplaceScreen({ navigation, route }) {
 
   const { getToken } = useAuth();
 
@@ -77,6 +77,13 @@ export default function MarketplaceScreen({ navigation }) {
     console.error('Save failed:', err.message);
   }
 };
+
+useEffect(() => {
+  if (route.params?.initialSearch) {
+    setSearchQuery(route.params.initialSearch);
+    setShowSearch(true);
+  }
+}, []);
 
   const removeFromWishlist = (id) => {
     setWishlistItems((prev) => { const u = { ...prev }; delete u[id]; return u; });

@@ -38,6 +38,11 @@ export function CartProvider({ children }) {
     }
   }, [getToken]);
 
+
+  useEffect(() => { 
+    const delay = setTimeout(() => fetchCart(), 3000); // wait 3s after app starts
+    return () => clearTimeout(delay);
+  }, []);
   useEffect(() => { fetchCart(); }, []);
 
   //  sync helper — updates state from backend response 

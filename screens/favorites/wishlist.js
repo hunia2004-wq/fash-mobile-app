@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import {View, Text, ScrollView,StyleSheet, TouchableOpacity, StatusBar, Dimensions, Image, ActivityIndicator} from 'react-native';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -69,36 +69,43 @@ export default function SavedScreen() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const fetchSaved = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const token = await getToken();
-      if (!token) return;
-      const data = await getSaved(token);
-      setSavedItems(data.savedItems ?? data ?? []);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  }, [getToken]);
+  const hasFetched = useRef(false);
 
-  useFocusEffect(
-    useCallback(() => {
+const fetchSaved = useCallback(async () => {
+  try {
+    setLoading(true);
+    setError(null);
+    const token = await getToken();
+    if (!token) return;
+    const data = await getSaved(token);
+    setSavedItems(data.savedItems ?? data ?? []);
+    hasFetched.current = true;
+  } catch (err) {
+    setError(err.message);
+  } finally {
+    setLoading(false);
+  }
+}, [getToken]);
+
+useFocusEffect(
+  useCallback(() => {
+    // Only refetch if not already fetched, or if coming back after a remove action
+    if (!hasFetched.current) {
       fetchSaved();
-    }, [fetchSaved])
-  );
-
-  const handleRemove = async (itemId) => {
-    try {
-      const token = await getToken();
-      await removeSaved(token, itemId);
-      setSavedItems(prev => prev.filter(s => s.itemId.toString() !== itemId.toString()));
-    } catch (err) {
-      console.error('Remove failed:', err.message);
     }
-  };
+  }, [fetchSaved])
+);
+
+const handleRemove = async (itemId) => {
+  try {
+    const token = await getToken();
+    await removeSaved(token, itemId);
+    setSavedItems(prev => prev.filter(s => s.itemId.toString() !== itemId.toString()));
+    hasFetched.current = true; // keep true, list is already updated locally
+  } catch (err) {
+    console.error('Remove failed:', err.message);
+  }
+};
 
   const filteredItems = () => {
     if (activeTab === 'FASH')        return savedItems.filter(i => i.itemType === 'collection');

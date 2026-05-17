@@ -1,6 +1,6 @@
-import React, { useState, useCallback } from 'react';
-import {View, Text, ScrollView, StyleSheet, TouchableOpacity, StatusBar, Dimensions, Image, ActivityIndicator} from 'react-native';
-import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
+import React, { useState, useCallback, useEffect } from 'react';
+import {View, Text, ScrollView, StyleSheet, TouchableOpacity, StatusBar, Dimensions, Image, ActivityIndicator, TextInput} from 'react-native';
+import { Feather, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { useAuth } from '../../context/AuthContext';
@@ -54,21 +54,19 @@ export default function WardrobeScreen({navigation}) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const fetchWardrobe = useCallback(async (category = 'All') => {
+  const [searchQuery, setSearchQuery] = useState('');
+
+  
+  const fetchWardrobe = useCallback(async (category = 'All', search = '') => {
     try {
       setLoading(true);
       setError(null);
-  
       const token = await getToken();
-      console.log('TOKEN VALUE:', token);
-      console.log('TOKEN TYPE:', typeof token);
       if (!token) return;
-  
       const [itemsData, statsData] = await Promise.all([
-        getWardrobeItems(token, category),
+        getWardrobeItems(token, category, search),
         getWardrobeStats(token),
       ]);
-  
       setItems(itemsData.items ?? itemsData ?? []);
       setStats(statsData.stats ?? statsData ?? { total: 0, favorites: 0, listed: 0 });
     } catch (err) {
@@ -77,13 +75,12 @@ export default function WardrobeScreen({navigation}) {
       setLoading(false);
     }
   }, [getToken]);
-
-
-  useFocusEffect(
-    useCallback(() => {
-      fetchWardrobe(activeCategory);
-    }, [activeCategory, fetchWardrobe])
-  );
+  
+  // Add search debounce effect:
+  useEffect(() => {
+    const delay = setTimeout(() => fetchWardrobe(activeCategory, searchQuery), searchQuery ? 400 : 0);
+    return () => clearTimeout(delay);
+  }, [searchQuery, activeCategory]);
 
   const handleCategoryChange = (cat) => {
     setActiveCategory(cat);
@@ -130,6 +127,25 @@ export default function WardrobeScreen({navigation}) {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
+
+<View style={styles.searchBarWrap}>
+  <Ionicons name="search-outline" size={16} color="#C17C74" style={{ marginRight: 8 }} />
+  <TextInput
+    style={styles.searchInput}
+    placeholder="Search wardrobe..."
+    placeholderTextColor="#888"
+    value={searchQuery}
+    onChangeText={setSearchQuery}
+    returnKeyType="search"
+  />
+  {searchQuery.length > 0 && (
+    <TouchableOpacity onPress={() => setSearchQuery('')}>
+      <Ionicons name="close-circle" size={16} color="#888" />
+    </TouchableOpacity>
+  )}
+</View>
+
+
         {/* Stats */}
         <View style={styles.statsBar}>
           {[
@@ -265,6 +281,24 @@ const styles = StyleSheet.create({
     fontSize: 11, 
     color: '#888888', 
     marginTop: 2 
+  },
+  
+  searchBarWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F2E6E3',
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    marginHorizontal: 14,
+    marginBottom: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(193,124,116,0.18)',
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 14,
+    color: '#2c2c2c',
   },
 
   chipsRow: { 

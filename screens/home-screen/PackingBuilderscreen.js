@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity,
-  StatusBar, Dimensions, Alert, ActivityIndicator, TextInput,
+  StatusBar, Dimensions, Alert, ActivityIndicator, TextInput, Image
 } from 'react-native';
 import { Ionicons, Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -124,23 +124,30 @@ export default function OutfitBuilderScreen({ navigation }) {
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
       <StatusBar barStyle="dark-content" />
 
-      <View style={styles.topNav}>
-        <TouchableOpacity style={styles.navBtn} onPress={() => navigation.goBack()} activeOpacity={0.8}>
-          <Ionicons name="arrow-back" size={20} color={COLORS.text} />
-        </TouchableOpacity>
-        <Text style={styles.navTitle}>Build Outfit</Text>
-        <TouchableOpacity
-          style={[styles.navSaveBtn, (selectedItems.length < 2 || saving) && { opacity: 0.4 }]}
-          onPress={handleSaveOutfit}
-          disabled={saving}
-          activeOpacity={0.8}
-        >
-          {saving
-            ? <ActivityIndicator size="small" color={COLORS.white} />
-            : <Text style={styles.navSaveBtnText}>Save</Text>
-          }
-        </TouchableOpacity>
-      </View>
+      <View style={styles.logoHeader}>
+  <Image source={require('../../source/assets/images/Blacklogo.png')} style={styles.logo} resizeMode="contain" />
+</View>
+
+<View style={styles.topNav}>
+  <TouchableOpacity style={styles.navBtn} onPress={() => navigation.goBack()} activeOpacity={0.8}>
+    <Ionicons name="arrow-back" size={20} color={COLORS.text} />
+  </TouchableOpacity>
+  <View>
+    <Text style={styles.navTitle}>Build Outfit</Text>
+    <Text style={styles.navSub}>Pick items from your wardrobe</Text>
+  </View>
+  <TouchableOpacity
+    style={[styles.navSaveBtn, (selectedItems.length < 2 || saving) && { opacity: 0.4 }]}
+    onPress={handleSaveOutfit}
+    disabled={saving}
+    activeOpacity={0.8}
+  >
+    {saving
+      ? <ActivityIndicator size="small" color={COLORS.white} />
+      : <Text style={styles.navSaveBtnText}>Save</Text>
+    }
+  </TouchableOpacity>
+</View>
 
       {/* Outfit name input */}
       {selectedItems.length >= 2 && (
@@ -291,6 +298,9 @@ export default function OutfitBuilderScreen({ navigation }) {
 const styles = StyleSheet.create({
   safe:                { flex: 1, backgroundColor: COLORS.bg },
   topNav:              { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 12, backgroundColor: COLORS.white, borderBottomWidth: 1, borderBottomColor: COLORS.border },
+  logoHeader: { paddingBottom: 10, alignItems: 'center', backgroundColor: COLORS.white },
+logo:       { width: 120, height: 50 },
+navSub:     { fontSize: 13, color: COLORS.muted, marginTop: 2 },
   navBtn:              { width: 40, height: 40, borderRadius: 12, backgroundColor: COLORS.card, alignItems: 'center', justifyContent: 'center' },
   navTitle:            { fontSize: 16, fontWeight: '700', color: '#C17C74' },
   navSaveBtn:          { backgroundColor: COLORS.accent, borderRadius: 10, paddingHorizontal: 16, paddingVertical: 8 },

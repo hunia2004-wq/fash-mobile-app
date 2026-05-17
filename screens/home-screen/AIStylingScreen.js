@@ -65,7 +65,9 @@ export default function AIStylingScreen({ navigation, route }) {
     try {
       const token = await getToken();
       const data  = await chatWithAIStylist(token, trimmed, getHistory());
-      const reply = data.reply ?? data;
+      console.log('AI response:', JSON.stringify(data, null, 2)); 
+
+      const reply = data.reply ?? data.message ?? data.response ?? data;
       setMessages(prev => [
         ...prev,
         { id: (Date.now() + 1).toString(), role: 'assistant', content: reply },
