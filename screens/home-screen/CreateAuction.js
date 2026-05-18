@@ -114,16 +114,27 @@ export default function CreateAuctionScreen({ navigation }) {
   
       const endTime = new Date(Date.now() + DURATION_MS[duration]).toISOString();
   
-      await createAuction(token, {
-        title:         title.trim(),
-        brand:         brand.trim() || 'Unknown',
-        description:   description.trim() || `${title} — ${condition}`,
-        category,
-        condition,
-        startingPrice: parseFloat(startingPrice),
-        endTime,
-        ...(size && { size: size.trim() }),
+      // Build FormData instead of plain JSON
+      const formData = new FormData();
+      formData.append('title',         title.trim());
+      formData.append('brand',         brand.trim() || 'Unknown');
+      formData.append('description',   description.trim() || `${title} — ${condition}`);
+      formData.append('category',      category);
+      formData.append('condition',     condition);
+      formData.append('startingPrice', parseFloat(startingPrice));
+      formData.append('endTime',       endTime);
+      if (size) formData.append('size', size.trim());
+  
+      // Append each image
+      images.forEach((uri, index) => {
+        formData.append('images', {
+          uri,
+          type: 'image/jpeg',
+          name: `auction_image_${index}.jpg`,
+        });
       });
+  
+      await createAuction(token, formData);
   
       Alert.alert(
         'Auction Created! 🎉',

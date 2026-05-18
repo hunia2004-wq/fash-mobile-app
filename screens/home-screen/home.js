@@ -8,12 +8,16 @@ import { useNavigation } from "@react-navigation/native";
 import WardrobeScreen from '../digital-wardrobe/wardrobe';
 import UploadScreen from '../uploading/upload';
 import SavedScreen from '../favorites/wishlist';
+
+import { useTranslation } from 'react-i18next';
+
  
 const { width } = Dimensions.get('window');
 const Tab = createBottomTabNavigator();
  
 function HomeContent() {
   const navigation = useNavigation();
+  const { t } = useTranslation();
 
   const boutiqueItems = [
     { id: '1', label: 'Limited Editions', bid: true, image: require('../../source/assets/images/bidnow.png') },
@@ -49,28 +53,25 @@ function HomeContent() {
 
       {/* Search */}
       <View style={styles.searchRow}>
-      <View style={styles.searchBar}>
-  <FontAwesome name="search" size={16} color="#C17C74" style={{ marginRight: 8 }} />
-  <TextInput
-    placeholder="Search marketplace..."
-    style={styles.searchInput}
-    placeholderTextColor="gray"
-    value={searchQuery}
-    onChangeText={setSearchQuery}
-    returnKeyType="search"
-    onSubmitEditing={() => {
-      if (searchQuery.trim()) {
-        navigation.navigate('MarketplaceHome', { initialSearch: searchQuery.trim() });
-        setSearchQuery('');
-      }
-    }}
-  />
-  <FontAwesome name="microphone" size={16} color="#C17C74" />
-</View>
+        <View style={styles.searchBar}>
+          <FontAwesome name="search" size={16} color="#C17C74" style={{ marginRight: 8 }} />
+          <TextInput
+            placeholder={t('search_placeholder')}
+            style={styles.searchInput}
+            placeholderTextColor="gray"
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            returnKeyType="search"
+            onSubmitEditing={() => {
+              if (searchQuery.trim()) {
+                navigation.navigate('MarketplaceHome', { initialSearch: searchQuery.trim() });
+                setSearchQuery('');
+              }
+            }}
+          />
+          <FontAwesome name="microphone" size={16} color="#C17C74" />
+        </View>
 
-       
-
-        {/* CART ICON ADDED */}
         <TouchableOpacity
           style={styles.filterBtn}
           onPress={() => navigation.navigate('MainCart')}
@@ -81,37 +82,34 @@ function HomeContent() {
 
       {/* Banner */}
       <TouchableOpacity
-  style={styles.banner}
-  onPress={() => navigation.navigate('ARscreen')}
-  activeOpacity={0.92}
->
-  <Image
-    source={require('../../source/assets/images/headercropped.png')}
-    style={styles.bannerImage}
-    resizeMode="cover"
-  />
-  {/* Dark gradient overlay */}
-  <View style={styles.bannerOverlay} />
+        style={styles.banner}
+        onPress={() => navigation.navigate('ARscreen')}
+        activeOpacity={0.92}
+      >
+        <Image
+          source={require('../../source/assets/images/headercropped.png')}
+          style={styles.bannerImage}
+          resizeMode="cover"
+        />
+        <View style={styles.bannerOverlay} />
 
-  {/* Top-right AR live badge */}
-  <View style={styles.arLiveBadge}>
-    <View style={styles.arLiveDot} />
-    <Text style={styles.arLiveText}>AR</Text>
-  </View>
+        <View style={styles.arLiveBadge}>
+          <View style={styles.arLiveDot} />
+          <Text style={styles.arLiveText}>AR</Text>
+        </View>
 
-  {/* Bottom text */}
-  <View style={styles.bannerContent}>
-    <Text style={styles.bannerTitle}>Virtual Try-On</Text>
-    <Text style={styles.bannerSub}>See how it looks on you before you buy</Text>
-    <View style={styles.bannerBtn}>
-      <Ionicons name="cube-outline" size={14} color="white" />
-      <Text style={styles.bannerBtnText}>Try it on</Text>
-    </View>
-  </View>
-</TouchableOpacity>
+        <View style={styles.bannerContent}>
+          <Text style={styles.bannerTitle}>{t('ar_title')}</Text>
+          <Text style={styles.bannerSub}>{t('ar_sub')}</Text>
+          <View style={styles.bannerBtn}>
+            <Ionicons name="cube-outline" size={14} color="white" />
+            <Text style={styles.bannerBtnText}>{t('ar_btn')}</Text>
+          </View>
+        </View>
+      </TouchableOpacity>
 
       {/* Digital Closet */}
-      <Text style={styles.sectionTitle}>Your Digital Closet</Text>
+      <Text style={styles.sectionTitle}>{t('digital_closet')}</Text>
       <View style={styles.closetRow}>
         <TouchableOpacity
           style={[styles.closetCard, styles.closetCardActive]}
@@ -119,8 +117,8 @@ function HomeContent() {
           activeOpacity={0.85}
         >
           <View>
-            <Text style={styles.closetCardTitle}>FASH Collection</Text>
-            <Text style={styles.closetCardSub}>Shop exclusive{'\n'}drops</Text>
+            <Text style={styles.closetCardTitle}>{t('fash_collection')}</Text>
+            <Text style={styles.closetCardSub}>{t('fash_collection_sub')}</Text>
           </View>
           <View style={styles.collectionIconBox}>
             <Ionicons name="bag-handle-outline" size={28} color="black" />
@@ -132,8 +130,8 @@ function HomeContent() {
           onPress={() => navigation.navigate("AIStylingScreen")}
         >
           <View>
-            <Text style={styles.closetCardTitle}>AI Styling</Text>
-            <Text style={styles.closetCardSub}>Smart Outfit Picks</Text>
+            <Text style={styles.closetCardTitle}>{t('ai_styling')}</Text>
+            <Text style={styles.closetCardSub}>{t('ai_styling_sub')}</Text>
           </View>
           <View style={styles.aiImageWrapper}>
             <Image
@@ -145,32 +143,31 @@ function HomeContent() {
         </TouchableOpacity>
       </View>
 
-
       {/* Marketplace */}
-      <Text style={styles.sectionTitle}>FASH Marketplace</Text>
+      <Text style={styles.sectionTitle}>{t('marketplace')}</Text>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ paddingLeft: 20 }}>
-      {boutiqueItems.map((item) => (
-        <TouchableOpacity
-        key={item.id}
-        style={styles.boutiqueCard}
-        onPress={() => navigation.navigate("MarketplaceHome")}>
-          <Image source={item.image} style={styles.boutiqueImage} resizeMode="cover" />
-          <View style={styles.boutiqueLabelBtn}>
-            <Text style={styles.boutiqueLabel}>{item.label}</Text>
-            <Ionicons name="arrow-forward" size={12} color="#9B5E58" style={{ marginLeft: 4 }} />
-          </View>
-        </TouchableOpacity>
-))}
-
+        {boutiqueItems.map((item) => (
+          <TouchableOpacity
+            key={item.id}
+            style={styles.boutiqueCard}
+            onPress={() => navigation.navigate("MarketplaceHome")}
+          >
+            <Image source={item.image} style={styles.boutiqueImage} resizeMode="cover" />
+            <View style={styles.boutiqueLabelBtn}>
+              <Text style={styles.boutiqueLabel}>{item.label}</Text>
+              <Ionicons name="arrow-forward" size={12} color="#9B5E58" style={{ marginLeft: 4 }} />
+            </View>
+          </TouchableOpacity>
+        ))}
       </ScrollView>
 
       {/* Live Bidding */}
       <View style={styles.biddingSection}>
         <View style={styles.biddingHeader}>
           <Text style={styles.liveDot}></Text>
-          <Text style={styles.biddingTitle}>LIVE BIDDING</Text>
+          <Text style={styles.biddingTitle}>{t('live_bidding')}</Text>
         </View>
-        <Text style={styles.biddingSubtitle}>Bid on exclusive pieces before they're gone</Text>
+        <Text style={styles.biddingSubtitle}>{t('live_bidding_sub')}</Text>
 
         <View style={styles.auctionRow}>
           <TouchableOpacity style={styles.auctionCard} onPress={() => navigation.navigate('AuctionRoomScreen')}>
@@ -192,12 +189,12 @@ function HomeContent() {
           style={styles.bidButton}
           onPress={() => navigation.navigate("AuctionListScreen")}
         >
-          <Text style={styles.bidButtonText}>Join the Auction</Text>
+          <Text style={styles.bidButtonText}>{t('join_auction')}</Text>
         </TouchableOpacity>
       </View>
 
       {/* FASH Share */}
-      <Text style={[styles.sectionTitle, { marginTop: 24 }]}>FASH Share</Text>
+      <Text style={[styles.sectionTitle, { marginTop: 24 }]}>{t('fash_share')}</Text>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ paddingLeft: 20 }}>
         {sustainabilityItems.map((item) => (
           <TouchableOpacity
@@ -423,6 +420,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     fontSize: 13,
   },
+
   sectionTitle:{
     fontSize:18,
     fontWeight:'600',
@@ -453,7 +451,7 @@ const styles = StyleSheet.create({
     elevation:3,
     borderColor: '#F2E6E3',
     borderWidth: 4,
-    overflow: 'hidden', // prevents image from bleeding outside card
+    overflow: 'hidden',
   },
 
   closetCardTitle:{
@@ -637,5 +635,4 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderColor: "#C17C74",
   },
-
 });

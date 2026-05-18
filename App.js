@@ -11,6 +11,8 @@ import Constants from 'expo-constants';
 
 export const ANTHROPIC_API_KEY = Constants.expoConfig?.extra?.anthropicApiKey || '';
 
+import './source/i18n'; 
+
 import LoginScreen from './screens/login';
 import SignupScreen from './screens/signup';
 import ForgotPasswordScreen from './screens/forgotpassword';

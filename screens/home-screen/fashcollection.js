@@ -8,12 +8,13 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../../context/AuthContext';
 import { useCart } from '../../context/CartContext';
 import { getSaved, saveNewItem, removeSaved, getCollectionItems } from '../../services/authService';
+import { useTranslation } from 'react-i18next';
 
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = (width - 44) / 2;
 const CATEGORIES = ['All', 'Soirée', 'Suits', 'Umrah & Hajj', 'Kids Costumes'];
 
-const ProductCard = ({ item, saved, onToggleSave, onPress }) => (
+const ProductCard = ({ item, saved, onToggleSave, onPress, t }) => (
   <TouchableOpacity style={styles.wCard} activeOpacity={0.85} onPress={onPress}>
     <View style={styles.wCardImg}>
       {item.image ? (
@@ -28,11 +29,10 @@ const ProductCard = ({ item, saved, onToggleSave, onPress }) => (
 
       {item.isNew && (
         <View style={styles.wCardBadge}>
-          <Text style={styles.wCardBadgeText}>New</Text>
+          <Text style={styles.wCardBadgeText}>{t('badge_new')}</Text>
         </View>
       )}
 
-      {/* Heart — tapping saves AND navigates to wishlist, exactly like marketplace */}
       <TouchableOpacity
         style={styles.heartBtn}
         onPress={(e) => { e.stopPropagation(); onToggleSave(item._id); }}
@@ -52,21 +52,17 @@ const ProductCard = ({ item, saved, onToggleSave, onPress }) => (
       <Text style={styles.wCardName}>{item.title}</Text>
       <View style={styles.wCardBottom}>
         <Text style={styles.wCardPrice}>EGP {item.price}</Text>
-        <Text style={styles.perDay}>/ day</Text>
+        <Text style={styles.perDay}>{t('per_day')}</Text>
       </View>
-      <TouchableOpacity
-        style={styles.rentBtn}
-        onPress={onPress}
-        activeOpacity={0.85}
-      >
+      <TouchableOpacity style={styles.rentBtn} onPress={onPress} activeOpacity={0.85}>
         <Ionicons name="calendar-outline" size={13} color="white" style={{ marginRight: 5 }} />
-        <Text style={styles.rentBtnText}>Rent Now</Text>
+        <Text style={styles.rentBtnText}>{t('rent_now')}</Text>
       </TouchableOpacity>
     </View>
   </TouchableOpacity>
 );
 
-const ComingSoonCard = () => (
+const ComingSoonCard = ({ t }) => (
   <View style={[styles.wCard, { opacity: 0.6 }]}>
     <View style={[styles.wCardImg, { backgroundColor: '#e8ecf5' }]}>
       <Feather name="clock" size={36} color="#C17C74" />
@@ -74,7 +70,7 @@ const ComingSoonCard = () => (
     <View style={styles.wCardInfo}>
       <Text style={styles.wCardBrand}>FASH Originals</Text>
       <Text style={styles.wCardName}>Suits</Text>
-      <Text style={styles.wCardDetail}>Coming soon</Text>
+      <Text style={styles.wCardDetail}>{t('coming_soon')}</Text>
     </View>
   </View>
 );
@@ -82,6 +78,7 @@ const ComingSoonCard = () => (
 export default function FashCollectionScreen({ navigation }) {
   const { getToken } = useAuth();
   const { cartCount } = useCart();
+  const { t } = useTranslation();
 
   const [activeCategory, setActiveCategory] = useState('All');
   const [search,         setSearch]         = useState('');
@@ -126,10 +123,8 @@ export default function FashCollectionScreen({ navigation }) {
     loadSaved();
   }, []);
 
-  // ── heart: save to backend then navigate to Saved tab (same as marketplace) ──
   const handleToggleSave = async (id) => {
     const alreadySaved = savedMap[id];
-    // Optimistic toggle
     setSavedMap(prev => ({ ...prev, [id]: !alreadySaved }));
     try {
       const token = await getToken();
@@ -137,7 +132,6 @@ export default function FashCollectionScreen({ navigation }) {
         await removeSaved(token, id);
       } else {
         await saveNewItem(token, id, 'collection');
-        // Navigate to the Saved tab so the user sees their wishlist — mirrors marketplace behaviour
         navigation.navigate('SavedTab');
       }
     } catch (err) {
@@ -148,14 +142,14 @@ export default function FashCollectionScreen({ navigation }) {
 
   const handleNotify = () => {
     if (notifyEnabled) {
-      Alert.alert('Notifications Off', 'You will no longer receive alerts for new FASH drops.', [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Turn Off', style: 'destructive', onPress: () => setNotifyEnabled(false) },
+      Alert.alert(t('notifications_off'), t('notifications_off_msg'), [
+        { text: t('cancel'), style: 'cancel' },
+        { text: t('turn_off'), style: 'destructive', onPress: () => setNotifyEnabled(false) },
       ]);
     } else {
-      Alert.alert('Notify Me 🎉', "You'll be notified when new FASH Collection drops arrive!", [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Yes, Notify Me', onPress: () => setNotifyEnabled(true) },
+      Alert.alert(t('notify_me'), t('notify_me_msg'), [
+        { text: t('cancel'), style: 'cancel' },
+        { text: t('yes_notify'), onPress: () => setNotifyEnabled(true) },
       ]);
     }
   };
@@ -179,9 +173,9 @@ export default function FashCollectionScreen({ navigation }) {
             <Ionicons name="arrow-back" size={20} color="#2c2c2c" />
           </TouchableOpacity>
           <View>
-            <Text style={styles.headerTitle}>FASH Collection</Text>
+            <Text style={styles.headerTitle}>{t('fash_collection')}</Text>
             <Text style={styles.headerSub}>
-              {loading ? 'Loading...' : `${items.length} items available`}
+              {loading ? t('loading') : `${items.length} ${t('items_available')}`}
             </Text>
           </View>
         </View>
@@ -204,7 +198,7 @@ export default function FashCollectionScreen({ navigation }) {
         <View style={styles.searchBarWrap}>
           <Ionicons name="search-outline" size={16} color="#888" style={{ marginRight: 8 }} />
           <TextInput
-            placeholder="Search collection…"
+            placeholder={t('search_collection')}
             style={styles.searchInput}
             placeholderTextColor="#888"
             value={search}
@@ -237,8 +231,8 @@ export default function FashCollectionScreen({ navigation }) {
         ) : items.length === 0 && !showSuits ? (
           <View style={styles.emptyState}>
             <Feather name="search" size={42} color="#F2E6E3" />
-            <Text style={styles.emptyTitle}>No items found</Text>
-            <Text style={styles.emptySub}>Try a different keyword or category</Text>
+            <Text style={styles.emptyTitle}>{t('no_items_found')}</Text>
+            <Text style={styles.emptySub}>{t('no_items_sub')}</Text>
           </View>
         ) : (
           <View style={styles.grid}>
@@ -248,6 +242,7 @@ export default function FashCollectionScreen({ navigation }) {
                   item={item}
                   saved={!!savedMap[item._id]}
                   onToggleSave={handleToggleSave}
+                  t={t}
                   onPress={() => navigation.navigate('Fashproductsdetails', {
                     item,
                     isSaved: !!savedMap[item._id],
@@ -257,7 +252,7 @@ export default function FashCollectionScreen({ navigation }) {
             ))}
             {showSuits && (
               <View style={styles.gridItem}>
-                <ComingSoonCard />
+                <ComingSoonCard t={t} />
               </View>
             )}
           </View>
@@ -266,14 +261,14 @@ export default function FashCollectionScreen({ navigation }) {
         {search.length === 0 && (
           <View style={styles.promoBanner}>
             <Ionicons name="sparkles-outline" size={16} color="#C17C74" style={{ marginRight: 10 }} />
-            <Text style={styles.promoText}>New drops added every week</Text>
+            <Text style={styles.promoText}>{t('new_drops')}</Text>
             <TouchableOpacity
               style={[styles.promoBtn, notifyEnabled && { backgroundColor: '#a0635d' }]}
               onPress={handleNotify}
               activeOpacity={0.85}
             >
               <Ionicons name={notifyEnabled ? 'notifications' : 'notifications-outline'} size={13} color="white" style={{ marginRight: 4 }} />
-              <Text style={styles.promoBtnText}>{notifyEnabled ? 'Notifying' : 'Notify me'}</Text>
+              <Text style={styles.promoBtnText}>{notifyEnabled ? t('notifying') : t('notify_me_btn')}</Text>
             </TouchableOpacity>
           </View>
         )}

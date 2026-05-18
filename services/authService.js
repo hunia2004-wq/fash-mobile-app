@@ -682,13 +682,13 @@ export async function createAuction(token, payload) {
   return request('/auctions', {
     method: 'POST',
     headers: { Authorization: `Bearer ${token}` },
-    body: JSON.stringify(payload),
+    body: payload,  // ← pass FormData directly, not JSON.stringify
   });
 }
 
 // DONATIONS
-export async function getNearbyCenters(lat, lng, maxDistanceKm = 50) {
-  return request(`/donations/centers?lat=${lat}&lng=${lng}&maxDistanceKm=${maxDistanceKm}`);
+export async function getNearbyCenters(lat, lng) {
+  return request(`/donations/centers?lat=${lat}&lng=${lng}&maxDistanceKm=99999`);
 }
 
 export async function createDonation(token, donationCenterId, itemIds) {

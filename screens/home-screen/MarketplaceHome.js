@@ -10,7 +10,7 @@ import { getAllListings } from '../../services/authService';
 import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../context/AuthContext';
 import { getSaved, saveNewItem, removeSaved } from '../../services/authService';
-
+import { useTranslation } from 'react-i18next';
 
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = (width - 48) / 2;
@@ -30,8 +30,8 @@ const ConditionBadge = ({ condition }) => (
 );
 
 export default function MarketplaceScreen({ navigation, route }) {
-
   const { getToken } = useAuth();
+  const { t } = useTranslation();
 
   const [listings, setListings] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -55,35 +55,35 @@ export default function MarketplaceScreen({ navigation, route }) {
     const alreadySaved = savedItems[id];
     setSavedItems(prev => ({ ...prev, [id]: !prev[id] }));
     setWishlistItems(prev => {
-    const updated = { ...prev };
-    if (updated[id]) { delete updated[id]; } else { updated[id] = true; }
-    return updated;
-  });
-
-  try {
-    const token = await getToken();
-    if (alreadySaved) {
-      await removeSaved(token, id);
-    } else {
-      await saveNewItem(token, id, 'marketplace');
-    }
-  } catch (err) {
-    setSavedItems(prev => ({ ...prev, [id]: alreadySaved }));
-    setWishlistItems(prev => {
       const updated = { ...prev };
-      if (alreadySaved) { updated[id] = true; } else { delete updated[id]; }
+      if (updated[id]) { delete updated[id]; } else { updated[id] = true; }
       return updated;
     });
-    console.error('Save failed:', err.message);
-  }
-};
 
-useEffect(() => {
-  if (route.params?.initialSearch) {
-    setSearchQuery(route.params.initialSearch);
-    setShowSearch(true);
-  }
-}, []);
+    try {
+      const token = await getToken();
+      if (alreadySaved) {
+        await removeSaved(token, id);
+      } else {
+        await saveNewItem(token, id, 'marketplace');
+      }
+    } catch (err) {
+      setSavedItems(prev => ({ ...prev, [id]: alreadySaved }));
+      setWishlistItems(prev => {
+        const updated = { ...prev };
+        if (alreadySaved) { updated[id] = true; } else { delete updated[id]; }
+        return updated;
+      });
+      console.error('Save failed:', err.message);
+    }
+  };
+
+  useEffect(() => {
+    if (route.params?.initialSearch) {
+      setSearchQuery(route.params.initialSearch);
+      setShowSearch(true);
+    }
+  }, []);
 
   const removeFromWishlist = (id) => {
     setWishlistItems((prev) => { const u = { ...prev }; delete u[id]; return u; });
@@ -109,7 +109,7 @@ useEffect(() => {
       setError(
         err?.response?.data?.error?.message ||
         err.message ||
-        'Failed to load listings'
+        t('load_failed')
       );
     } finally {
       setLoading(false);
@@ -165,7 +165,7 @@ useEffect(() => {
             <Ionicons name="search-outline" size={16} color={COLORS.muted} style={{ marginRight: 8 }} />
             <TextInput
               style={styles.searchInput}
-              placeholder="Search listings..."
+              placeholder={t('search_listings')}
               placeholderTextColor={COLORS.muted}
               value={searchQuery}
               onChangeText={setSearchQuery}
@@ -182,9 +182,9 @@ useEffect(() => {
                 <Ionicons name="arrow-back" size={20} color={COLORS.text} />
               </TouchableOpacity>
               <View>
-                <Text style={styles.headerTitle}>Marketplace</Text>
+                <Text style={styles.headerTitle}>{t('marketplace')}</Text>
                 <Text style={styles.headerSub}>
-                  {loading ? 'Loading...' : `${listings.length} listings near you`}
+                  {loading ? t('loading') : `${listings.length} ${t('listings_near_you')}`}
                 </Text>
               </View>
             </View>
@@ -193,8 +193,6 @@ useEffect(() => {
               <TouchableOpacity style={styles.iconBtn} onPress={() => setShowSearch(true)} activeOpacity={0.8}>
                 <Ionicons name="search-outline" size={20} color={COLORS.accent} />
               </TouchableOpacity>
-
-              {/* Wishlist */}
               <TouchableOpacity style={styles.iconBtn} onPress={() => setShowWishlist(true)} activeOpacity={0.8}>
                 <Ionicons name="heart-outline" size={20} color={COLORS.accent} />
                 {wishlistCount > 0 && (
@@ -203,8 +201,6 @@ useEffect(() => {
                   </View>
                 )}
               </TouchableOpacity>
-
-              {/* Cart — uses context count */}
               <TouchableOpacity style={styles.iconBtn} onPress={() => setShowCart(true)} activeOpacity={0.8}>
                 <Ionicons name="cart-outline" size={20} color={COLORS.accent} />
                 {contextCartCount > 0 && (
@@ -213,7 +209,6 @@ useEffect(() => {
                   </View>
                 )}
               </TouchableOpacity>
-
               <TouchableOpacity style={styles.addBtn} onPress={() => navigation.navigate('AddListingScreen')} activeOpacity={0.85}>
                 <Feather name="plus" size={20} color={COLORS.white} />
               </TouchableOpacity>
@@ -251,11 +246,11 @@ useEffect(() => {
           <View style={styles.centerMsg}>
             <Text style={styles.errorText}>{error}</Text>
             <TouchableOpacity style={styles.retryBtn} onPress={fetchListings}>
-              <Text style={styles.retryText}>Retry</Text>
+              <Text style={styles.retryText}>{t('retry')}</Text>
             </TouchableOpacity>
           </View>
         ) : listings.length === 0 ? (
-          <Text style={styles.emptyText}>No items found</Text>
+          <Text style={styles.emptyText}>{t('no_items_found')}</Text>
         ) : (
           <View style={styles.grid}>
             {listings.map((item) => (
@@ -280,7 +275,6 @@ useEffect(() => {
                     <ConditionBadge condition={item.condition} />
                   </View>
 
-                  {/* Heart */}
                   <TouchableOpacity
                     style={styles.heartBtn}
                     onPress={(e) => toggleHeart(item._id, e)}
@@ -297,7 +291,7 @@ useEffect(() => {
 
                 <View style={styles.itemInfo}>
                   <Text style={styles.itemTitle} numberOfLines={1}>{item.title}</Text>
-                  <Text style={styles.itemBrand}>{item.brand || 'No brand'} · {item.size || 'N/A'}</Text>
+                  <Text style={styles.itemBrand}>{item.brand || t('no_brand')} · {item.size || 'N/A'}</Text>
                   <Text style={styles.itemDescription} numberOfLines={2}>{item.description}</Text>
                   <View style={styles.priceRow}>
                     <Text style={styles.itemPrice}>EGP {item.price}</Text>
@@ -306,7 +300,6 @@ useEffect(() => {
                     )}
                   </View>
 
-                  {/* Cart button — uses context */}
                   <TouchableOpacity
                     style={[styles.cartBtn, isInCart(item._id) && styles.cartBtnActive]}
                     onPress={() => addToCart(item, 'marketplace')}
@@ -319,7 +312,7 @@ useEffect(() => {
                       style={{ marginRight: 5 }}
                     />
                     <Text style={[styles.cartBtnText, isInCart(item._id) && styles.cartBtnTextActive]}>
-                      {isInCart(item._id) ? 'In Cart' : 'Add to Cart'}
+                      {isInCart(item._id) ? t('in_cart') : t('add_to_cart')}
                     </Text>
                   </TouchableOpacity>
                 </View>
@@ -333,7 +326,7 @@ useEffect(() => {
       <Modal visible={showCart} animationType="slide" presentationStyle="pageSheet">
         <SafeAreaView style={styles.modalSafe}>
           <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>My Cart</Text>
+            <Text style={styles.modalTitle}>{t('my_cart')}</Text>
             <TouchableOpacity onPress={() => setShowCart(false)} style={styles.modalClose}>
               <Ionicons name="close" size={20} color={COLORS.text} />
             </TouchableOpacity>
@@ -342,8 +335,8 @@ useEffect(() => {
           {cartList.length === 0 ? (
             <View style={styles.modalEmpty}>
               <Ionicons name="cart-outline" size={52} color={COLORS.accent} />
-              <Text style={styles.modalEmptyTitle}>Your cart is empty</Text>
-              <Text style={styles.modalEmptySub}>Add items from the marketplace</Text>
+              <Text style={styles.modalEmptyTitle}>{t('cart_empty')}</Text>
+              <Text style={styles.modalEmptySub}>{t('cart_empty_sub')}</Text>
             </View>
           ) : (
             <>
@@ -359,7 +352,7 @@ useEffect(() => {
                     </View>
                     <View style={styles.modalItemInfo}>
                       <Text style={styles.modalItemTitle} numberOfLines={1}>{item.title}</Text>
-                      <Text style={styles.modalItemBrand}>{item.brand || 'No brand'} · {item.size || 'N/A'}</Text>
+                      <Text style={styles.modalItemBrand}>{item.brand || t('no_brand')} · {item.size || 'N/A'}</Text>
                       <Text style={styles.modalItemPrice}>EGP {item.price}</Text>
                     </View>
                     <TouchableOpacity onPress={() => removeFromCart(item._id)} style={styles.modalRemoveBtn}>
@@ -370,7 +363,7 @@ useEffect(() => {
               </ScrollView>
               <View style={styles.modalFooter}>
                 <View style={styles.modalTotalRow}>
-                  <Text style={styles.modalTotalLabel}>Total</Text>
+                  <Text style={styles.modalTotalLabel}>{t('total')}</Text>
                   <Text style={styles.modalTotalValue}>EGP {cartTotal.toFixed(2)}</Text>
                 </View>
                 <TouchableOpacity
@@ -379,7 +372,7 @@ useEffect(() => {
                   activeOpacity={0.85}
                 >
                   <Ionicons name="card-outline" size={16} color={COLORS.white} style={{ marginRight: 8 }} />
-                  <Text style={styles.checkoutBtnText}>Checkout · EGP {cartTotal.toFixed(2)}</Text>
+                  <Text style={styles.checkoutBtnText}>{t('checkout')} · EGP {cartTotal.toFixed(2)}</Text>
                 </TouchableOpacity>
               </View>
             </>
@@ -391,7 +384,7 @@ useEffect(() => {
       <Modal visible={showWishlist} animationType="slide" presentationStyle="pageSheet">
         <SafeAreaView style={styles.modalSafe}>
           <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>My Wishlist</Text>
+            <Text style={styles.modalTitle}>{t('my_wishlist')}</Text>
             <TouchableOpacity onPress={() => setShowWishlist(false)} style={styles.modalClose}>
               <Ionicons name="close" size={20} color={COLORS.text} />
             </TouchableOpacity>
@@ -400,8 +393,8 @@ useEffect(() => {
           {wishlistList.length === 0 ? (
             <View style={styles.modalEmpty}>
               <Ionicons name="heart-outline" size={52} color={COLORS.accent} />
-              <Text style={styles.modalEmptyTitle}>Your wishlist is empty</Text>
-              <Text style={styles.modalEmptySub}>Tap the heart on any item to save it</Text>
+              <Text style={styles.modalEmptyTitle}>{t('wishlist_empty')}</Text>
+              <Text style={styles.modalEmptySub}>{t('wishlist_empty_sub')}</Text>
             </View>
           ) : (
             <ScrollView contentContainerStyle={styles.modalList}>
@@ -416,7 +409,7 @@ useEffect(() => {
                   </View>
                   <View style={styles.modalItemInfo}>
                     <Text style={styles.modalItemTitle} numberOfLines={1}>{item.title}</Text>
-                    <Text style={styles.modalItemBrand}>{item.brand || 'No brand'} · {item.size || 'N/A'}</Text>
+                    <Text style={styles.modalItemBrand}>{item.brand || t('no_brand')} · {item.size || 'N/A'}</Text>
                     <Text style={styles.modalItemPrice}>EGP {item.price}</Text>
                   </View>
                   <View style={styles.wishlistActions}>

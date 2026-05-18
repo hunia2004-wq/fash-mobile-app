@@ -210,9 +210,10 @@ export default function ProductDetailScreen({ navigation, route }) {
             style={styles.sellerCard}
             activeOpacity={0.88}
             onPress={() => {
-              const sellerId = typeof item.seller === 'string' 
-                ? item.seller 
-                : item.seller?._id ?? item.seller?.userId ?? item.sellerId;
+              const sellerId = typeof item.seller === 'string'
+                ? item.seller
+                : item.seller?._id ?? item.seller?.userId ?? item.seller?.id ?? item.sellerId;  // ← add userId here
+            
               if (!sellerId) return Alert.alert('Seller not available');
               navigation.navigate('SellerProfileScreen', { sellerId });
             }}

@@ -9,21 +9,18 @@ import { COLORS, WARDROBE_ITEMS } from './Packingdata';
 
 const { width } = Dimensions.get('window');
 
-const CATEGORY_EMOJIS = {
-  Tops: '👕', Bottoms: '👖', Dresses: '👗', Shoes: '👟',
-  Bags: '👜', Accessories: '✨', Outerwear: '🧥',
-};
-
 export default function OutfitDetailScreen({ navigation, route }) {
   const { outfit, collection } = route.params;
   const [saved, setSaved] = useState(false);
 
-  const items = outfit.items ?? [];
+  const items = outfit.items
+    .map((id) => WARDROBE_ITEMS.find((w) => w.id === id))
+    .filter(Boolean);
 
   const handleStyleWithAI = () => {
     const itemNames = items.map((i) => i.name).join(', ');
     const message = `I'm wearing this outfit: ${itemNames}. The occasion is ${outfit.occasion}. Can you give me styling tips and suggest what accessories to add?`;
-    navigation.navigate('AIStylingScreen', { prefillMessage: message });
+    navigation.navigate('AIStylist', { prefillMessage: message });
   };
 
   const categoryColors = {

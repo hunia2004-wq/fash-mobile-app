@@ -8,20 +8,13 @@ import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../../context/AuthContext';
 import { chatWithAIStylist } from '../../services/authService';
+import { useTranslation } from 'react-i18next';
 
 const COLORS = {
   bg: '#F5F5F5', card: '#F2E6E3', accent: '#C17C74',
   accentLight: '#f7edec', text: '#2c2c2c', muted: '#888888',
   white: '#ffffff', border: 'rgba(193,124,116,0.18)',
 };
-
-const SUGGESTIONS = [
-  'What should I wear today?',
-  'Suggest a casual outfit',
-  'What goes with my jeans?',
-  'Help me dress for a dinner',
-  'What to wear for work?',
-];
 
 const TypingIndicator = () => (
   <View style={styles.typingWrap}>
@@ -34,20 +27,28 @@ const TypingIndicator = () => (
 export default function AIStylingScreen({ navigation, route }) {
   const { prefillMessage } = route.params || {};
   const { getToken } = useAuth();
+  const { t } = useTranslation();
 
-  const [messages,  setMessages]  = useState([
+  const [messages, setMessages] = useState([
     {
       id: '0',
       role: 'assistant',
-      content: "Hi! I'm your FASH AI Stylist 👗\nI can help you build outfits from your wardrobe. What would you like to wear today?",
+      content: t('ai_greeting'),
     },
   ]);
-  
-  const [input,     setInput]     = useState(prefillMessage ?? '');
-  const [loading,   setLoading]   = useState(false);
+
+  const SUGGESTIONS = [
+    t('suggestion_1'),
+    t('suggestion_2'),
+    t('suggestion_3'),
+    t('suggestion_4'),
+    t('suggestion_5'),
+  ];
+
+  const [input,   setInput]   = useState(prefillMessage ?? '');
+  const [loading, setLoading] = useState(false);
   const flatListRef = useRef(null);
 
-  // history for context — excludes the initial greeting
   const getHistory = () =>
     messages
       .filter(m => m.id !== '0')
@@ -65,7 +66,7 @@ export default function AIStylingScreen({ navigation, route }) {
     try {
       const token = await getToken();
       const data  = await chatWithAIStylist(token, trimmed, getHistory());
-      console.log('AI response:', JSON.stringify(data, null, 2)); 
+      console.log('AI response:', JSON.stringify(data, null, 2));
 
       const reply = data.reply ?? data.message ?? data.response ?? data;
       setMessages(prev => [
@@ -75,7 +76,7 @@ export default function AIStylingScreen({ navigation, route }) {
     } catch (err) {
       setMessages(prev => [
         ...prev,
-        { id: (Date.now() + 1).toString(), role: 'assistant', content: "Sorry, I couldn't connect right now. Please try again!" },
+        { id: (Date.now() + 1).toString(), role: 'assistant', content: t('ai_error') },
       ]);
     } finally {
       setLoading(false);
@@ -115,8 +116,8 @@ export default function AIStylingScreen({ navigation, route }) {
             <MaterialCommunityIcons name="hanger" size={18} color={COLORS.white} />
           </View>
           <View>
-            <Text style={styles.headerTitle}>AI Stylist</Text>
-            <Text style={styles.headerSub}>Powered by your wardrobe</Text>
+            <Text style={styles.headerTitle}>{t('ai_stylist_title')}</Text>
+            <Text style={styles.headerSub}>{t('ai_stylist_sub')}</Text>
           </View>
         </View>
         <View style={{ width: 40 }} />
@@ -139,7 +140,7 @@ export default function AIStylingScreen({ navigation, route }) {
           ListFooterComponent={loading ? <TypingIndicator /> : null}
         />
 
-        {/* Suggestion chips — only show when no conversation yet */}
+        {/* Suggestion chips */}
         {messages.length === 1 && !loading && (
           <View style={styles.suggestionsWrap}>
             <FlatList
@@ -165,12 +166,13 @@ export default function AIStylingScreen({ navigation, route }) {
         <View style={styles.inputBar}>
           <TextInput
             style={styles.input}
-            placeholder="Ask about your outfit..."
+            placeholder={t('ai_input_placeholder')}
             placeholderTextColor={COLORS.muted}
             value={input}
             onChangeText={setInput}
             multiline
             maxLength={500}
+            blurOnSubmit={true}
             onSubmitEditing={() => sendMessage()}
           />
           <TouchableOpacity

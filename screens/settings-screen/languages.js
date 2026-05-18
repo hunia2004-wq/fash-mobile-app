@@ -4,11 +4,12 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { AuthContext } from '../../context/AuthContext';
 import { updateLanguage, getSettings } from '../../services/authService';
 import { Ionicons} from '@expo/vector-icons';
+import i18n from '../../source/i18n';
 
 
 const LANGUAGES = [
   { code: 'en', label: 'English', native: 'English' },
-  { code: 'ar', label: 'French', native: 'Français' },
+  { code: 'fr', label: 'French', native: 'Français' },
 ];
 
 const LanguagesScreen = ({ navigation }) => {
@@ -20,13 +21,9 @@ const LanguagesScreen = ({ navigation }) => {
     try {
       const token = await getToken();
       const settings = await getSettings(token);
-  
       const lang = settings.language ?? 'en';
       setSelected(lang);
-
-      const updated = await getSettings(token);
-      console.log("UPDATED SETTINGS:", updated);
-  
+      i18n.changeLanguage(lang); 
     } catch (e) {
       console.log("ERROR LOADING LANGUAGE:", e);
       setSelected('en');
@@ -46,14 +43,14 @@ const handleLanguageChange = async (language) => {
   const previous = selected;
 
   setSelected(language);
-
-  console.log("SENDING LANGUAGE:", language);
+  i18n.changeLanguage(language); 
 
   try {
     await updateLanguage(token, { language });
   } catch (e) {
     Alert.alert("Error", "Failed to update language");
     setSelected(previous);
+    i18n.changeLanguage(previous); 
   }
 };
 
