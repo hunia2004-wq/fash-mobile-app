@@ -9,28 +9,35 @@ export function CartProvider({ children }) {
   const [cartItems, setCartItems] = useState([]);
   const [loading,   setLoading]   = useState(false);
 
-  const normalize = (item) => ({
+  // Normalize a backend item — never used for rental items
+  const normalizeBackend = (item) => ({
     _id:       item._id,
     itemId:    item.itemId,
     itemType:  item.itemType,
     title:     item.title,
     price:     item.price,
-    image:     item.image  ?? null,
-    size:      item.size   ?? null,
-    quantity:  item.quantity ?? 1,
-    brand:     item.brand  ?? null,
+    image:     item.image     ?? null,
+    size:      item.size      ?? null,
+    quantity:  item.quantity  ?? 1,
+    brand:     item.brand     ?? null,
     condition: item.condition ?? null,
+    isRental:  false,
   });
 
-  //  load cart on mount 
+  // ── load cart on mount ──────────────────────────────────────────
   const fetchCart = useCallback(async () => {
     try {
       setLoading(true);
       const token = await getToken();
       if (!token) return;
       const data = await getCart(token);
-      const items = (data.cart?.items ?? data.items ?? []).map(normalize);
-      setCartItems(items);
+      const backendItems = (data.cart?.items ?? data.items ?? []).map(normalizeBackend);
+
+      // Merge: keep local-only rental items, replace backend items
+      setCartItems(prev => {
+        const rentalItems = prev.filter(i => i.isRental);
+        return [...rentalItems, ...backendItems];
+      });
     } catch (err) {
       console.error('Failed to fetch cart:', err.message);
     } finally {
@@ -38,26 +45,56 @@ export function CartProvider({ children }) {
     }
   }, [getToken]);
 
-
-  useEffect(() => { 
+  useEffect(() => {
     const delay = setTimeout(() => fetchCart(), 3000);
     return () => clearTimeout(delay);
   }, [fetchCart]);
-  
-  //  sync helper — updates state from backend response 
+
+  // ── sync helper — only reconciles non-rental items ─────────────
   const syncFromResponse = (data) => {
-    const items = (data.cart?.items ?? data.items ?? []).map(normalize);
-    setCartItems(items);
-    return items;
+    const backendItems = (data.cart?.items ?? data.items ?? []).map(normalizeBackend);
+    setCartItems(prev => {
+      const rentalItems = prev.filter(i => i.isRental);
+      return [...rentalItems, ...backendItems];
+    });
   };
 
-  //  add 
+  // ── add ─────────────────────────────────────────────────────────
   const addToCart = useCallback(async (item, itemType = 'marketplace', options = {}) => {
-    // Optimistic — add immediately so UI feels instant
+
+    // ── Rental path: local-only, no backend call ─────────────────
+    if (item.isRental) {
+      setCartItems(prev => [...prev, {
+        // Unique cart ID so multiple rentals of same item coexist
+        _id:            item._id,
+        itemId:         item.itemId ?? item._id,
+        itemType:       itemType,
+        isRental:       true,
+        title:          item.title,
+        brand:          item.brand        ?? null,
+        image:          item.image        ?? null,
+        condition:      item.condition    ?? null,
+        size:           item.rentalSize   ?? options.size ?? null,
+        quantity:       1,
+        // ── Rental-specific fields (all preserved) ───────────────
+        price:          item.price,           // already = totalPrice
+        rentalDays:     item.rentalDays,
+        rentalLabel:    item.rentalLabel,
+        rentalStartDate:item.rentalStartDate,
+        rentalEndDate:  item.rentalEndDate,
+        rentalSize:     item.rentalSize,
+        rentalColor:    item.rentalColor,
+      }]);
+      return;
+    }
+
+    // ── Regular path: optimistic + backend ───────────────────────
     setCartItems(prev => {
-      const exists = prev.find(i => i.itemId?.toString() === item._id?.toString());
+      const exists = prev.find(
+        i => !i.isRental && i.itemId?.toString() === item._id?.toString()
+      );
       if (exists) return prev;
-      return [...prev, normalize({
+      return [...prev, normalizeBackend({
         _id: item._id, itemId: item._id, itemType,
         title: item.title, price: item.price,
         image: item.image, size: options.size ?? null, quantity: 1,
@@ -68,18 +105,24 @@ export function CartProvider({ children }) {
     try {
       const token = await getToken();
       const data = await addToCartAPI(token, item._id, itemType, options);
-      syncFromResponse(data); // reconcile with backend
+      syncFromResponse(data);
     } catch (err) {
-      // Revert optimistic update on failure
-      setCartItems(prev => prev.filter(i => i.itemId?.toString() !== item._id?.toString()));
+      setCartItems(prev =>
+        prev.filter(i => i.isRental || i.itemId?.toString() !== item._id?.toString())
+      );
       console.error('Add to cart failed:', err.message);
     }
   }, [getToken]);
 
-  //  remove 
+  // ── remove ──────────────────────────────────────────────────────
   const removeFromCart = useCallback(async (cartItemId) => {
-    // Optimistic remove
+    // Check if it's a rental (local-only remove)
+    const target = cartItems.find(i => i._id?.toString() === cartItemId?.toString());
+
+    // Optimistic remove from state in both cases
     setCartItems(prev => prev.filter(i => i._id?.toString() !== cartItemId?.toString()));
+
+    if (target?.isRental) return; // no backend call needed
 
     try {
       const token = await getToken();
@@ -87,13 +130,13 @@ export function CartProvider({ children }) {
       syncFromResponse(data);
     } catch (err) {
       console.error('Remove from cart failed:', err.message);
-      fetchCart(); // re-fetch to restore correct state
+      fetchCart();
     }
-  }, [getToken]);
+  }, [getToken, cartItems]);
 
-  //  clear 
+  // ── clear ───────────────────────────────────────────────────────
   const clearCart = useCallback(async () => {
-    setCartItems([]); // optimistic
+    setCartItems([]);
     try {
       const token = await getToken();
       await clearCartAPI(token);
@@ -103,10 +146,10 @@ export function CartProvider({ children }) {
     }
   }, [getToken]);
 
-  // helpers 
+  // ── helpers ─────────────────────────────────────────────────────
   const isInCart = useCallback((id) =>
     cartItems.some(i =>
-      i._id?.toString() === id?.toString() ||
+      i._id?.toString()    === id?.toString() ||
       i.itemId?.toString() === id?.toString()
     ),
   [cartItems]);
