@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {View, Text, TouchableOpacity, ScrollView, StyleSheet, TextInput, Image, Dimensions,} from 'react-native';
 import { FontAwesome, Ionicons, Feather } from '@expo/vector-icons';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -10,6 +10,8 @@ import UploadScreen from '../uploading/upload';
 import SavedScreen from '../favorites/wishlist';
 
 import { useTranslation } from 'react-i18next';
+
+import { getAllAuctions } from '../../services/authService';
 
  
 const { width } = Dimensions.get('window');
@@ -39,6 +41,21 @@ function HomeContent() {
   ];
 
   const [searchQuery, setSearchQuery] = useState('');
+
+  const [liveAuctions, setLiveAuctions] = useState([]);
+
+useEffect(() => {
+  getAllAuctions()
+    .then(data => {
+      const all = (data.auctions ?? data ?? []);
+      // show only auctions ending within 1 hour
+      const live = all.filter(a =>
+        a.title === 'YSL Tribute Heels' || a.title === 'miu min brown bag'
+      );
+      setLiveAuctions(live);
+    })
+    .catch(err => console.warn('Auction fetch failed:', err.message));
+}, []);
 
 
   return (
@@ -170,20 +187,43 @@ function HomeContent() {
         <Text style={styles.biddingSubtitle}>{t('live_bidding_sub')}</Text>
 
         <View style={styles.auctionRow}>
-          <TouchableOpacity style={styles.auctionCard} onPress={() => navigation.navigate('AuctionRoomScreen')}>
-            <Image source={require('../../source/assets/images/shoes.png')} style={styles.auctionImage} resizeMode="contain" />
-            <Text style={styles.itemName}>YSL Tribute Heels</Text>
-            <Text style={styles.bidPrice}>Current bid: EGP 400</Text>
-            <Text style={styles.bidTime}>1h left</Text>
-          </TouchableOpacity>
+  {liveAuctions.length === 0 ? (
+    <Text style={{ color: '#888', fontSize: 13, paddingVertical: 10 }}>
+      No live auctions right now
+    </Text>
+  ) : (
+    liveAuctions.map(auction => {
+      const diff = new Date(auction.endTime) - new Date();
+      const h = Math.floor(diff / 3600000);
+      const m = Math.floor((diff % 3600000) / 60000);
+      const timeLabel = h > 0 ? `${h}h ${m}m left` : `${m}m left`;
 
-          <TouchableOpacity style={styles.auctionCard}>
-            <Image source={require('../../source/assets/images/bag.png')} style={styles.auctionImage} resizeMode="contain" />
-            <Text style={styles.itemName}>Miu Miu Bag</Text>
-            <Text style={styles.bidPrice}>Current bid: EGP 345</Text>
-            <Text style={styles.bidTime}>2h left</Text>
-          </TouchableOpacity>
-        </View>
+      return (
+        <TouchableOpacity
+          key={auction._id}
+          style={styles.auctionCard}
+          onPress={() => navigation.navigate('AuctionRoomScreen', { auctionId: auction._id })}
+          activeOpacity={0.88}
+        >
+          {auction.images?.[0] ? (
+            <Image
+              source={{ uri: auction.images[0] }}
+              style={styles.auctionImage}
+              resizeMode="cover"
+            />
+          ) : (
+            <View style={[styles.auctionImage, { backgroundColor: '#f0f0f0', alignItems: 'center', justifyContent: 'center' }]}>
+              <Ionicons name="shirt-outline" size={32} color="#C17C74" />
+            </View>
+          )}
+          <Text style={styles.itemName} numberOfLines={1}>{auction.title}</Text>
+          <Text style={styles.bidPrice}>EGP {auction.currentBid}</Text>
+          <Text style={styles.bidTime}>{timeLabel}</Text>
+        </TouchableOpacity>
+      );
+    })
+  )}
+</View>
 
         <TouchableOpacity
           style={styles.bidButton}

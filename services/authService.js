@@ -505,7 +505,7 @@ export const contactSupport = async (token, { subject, orderNumber, message, ima
 
 //FAQ
 export const getFaqs = (token) => {
-  return request("/support/faqs", {
+  return request("/faqs", {
     method: "GET",
     headers: {
       Authorization: `Bearer ${token}`,
@@ -690,12 +690,27 @@ export async function cancelRental(token, rentalId) {
 }
 
 // CREATE AUCTION
-export async function createAuction(token, payload) {
-  return request('/auctions', {
+export async function createAuction(token, formData) {
+  const response = await fetch(`${BASE_URL}/auctions`, {
     method: 'POST',
-    headers: { Authorization: `Bearer ${token}` },
-    body: payload,  // ← pass FormData directly, not JSON.stringify
+    headers: {
+      Authorization: `Bearer ${token}`,
+      // NO Content-Type — let fetch set multipart/form-data + boundary automatically
+    },
+    body: formData,
   });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(
+      data?.error?.message ||
+      data?.message ||
+      `Request failed: ${response.status}`
+    );
+  }
+
+  return data.data || data;
 }
 
 // DONATIONS

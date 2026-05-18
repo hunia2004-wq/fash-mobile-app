@@ -84,7 +84,7 @@ const FAQScreen = ({ navigation }) => {
                 <Text style={styles.questionText}>{item.question}</Text>
                 <Text style={styles.chevron}>{openId === item._id ? '˄' : '›'}</Text>
               </TouchableOpacity>
-              {openId === item.id && (
+              {openId === item._id && (
                 <Text style={styles.answerText}>{item.answer}</Text>
               )}
             </View>
