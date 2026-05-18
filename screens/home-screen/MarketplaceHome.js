@@ -29,7 +29,7 @@ const ConditionBadge = ({ condition }) => (
 );
 
 export default function MarketplaceScreen({ navigation, route }) {
-  const { getToken, user } = useAuth();
+  const { getToken, userId: currentUserId } = useAuth();
   const { t } = useTranslation();
 
   const [listings, setListings] = useState([]);
@@ -167,6 +167,13 @@ export default function MarketplaceScreen({ navigation, route }) {
     loadSavedState();
   }, []);
 
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('focus', () => {
+      fetchListings();
+    });
+    return unsubscribe;
+  }, [navigation, fetchListings]);
+
   return (
     <SafeAreaView style={styles.safe}>
       <StatusBar barStyle="dark-content" backgroundColor={COLORS.white} />
@@ -276,7 +283,12 @@ export default function MarketplaceScreen({ navigation, route }) {
         ) : (
           <View style={styles.grid}>
             {listings.map((item) => {
-              const isOwner = item.sellerId === user?._id;
+              const resolvedSellerId =
+              item.seller?.userId?.toString() ??
+              item.seller?._id?.toString() ??
+              item.sellerId?.toString() ??
+              null;
+            const isOwner = !!(currentUserId && resolvedSellerId && resolvedSellerId === currentUserId);
               return (
                 <TouchableOpacity
                   key={item._id}

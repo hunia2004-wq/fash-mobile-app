@@ -530,11 +530,23 @@ export async function getListingById(id) {
   return request(`/listings/${id}`);
 }
 
-export async function createListing(token, listingData) {
+export async function createListing(token, formData) {
+  // Extract fields from FormData back into a plain JSON object
+  const body = {
+    title:         formData.get('title'),
+    price:         parseFloat(formData.get('price')),
+    description:   formData.get('description'),
+    category:      formData.get('category'),
+    condition:     formData.get('condition'),
+    size:          formData.get('size') || null,
+    brand:         formData.get('brand') || null,
+    location:      formData.get('location') || null,
+  };
+
   return request('/listings', {
     method: 'POST',
     headers: { Authorization: `Bearer ${token}` },
-    body: listingData,  
+    body: JSON.stringify(body),
   });
 }
 

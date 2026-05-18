@@ -44,7 +44,7 @@ const StarRating = ({ rating }) => {
 
 export default function ProductDetailScreen({ navigation, route }) {
   const { item } = route.params;
-  const { user, getToken } = useAuth();
+  const { userId: currentUserId, getToken } = useAuth();
 
   const [saved, setSaved] = useState(false);
   const [activeImage, setActiveImage] = useState(0);
@@ -59,11 +59,18 @@ export default function ProductDetailScreen({ navigation, route }) {
   const sellerSales = seller.totalSales ?? 0;
 
   // Resolve seller ID regardless of shape backend returns
-  const resolvedSellerId = typeof item.seller === 'string'
-    ? item.seller
-    : item.seller?._id ?? item.seller?.userId ?? item.seller?.id ?? item.sellerId;
-
-  const isOwnListing = !!(resolvedSellerId && user?._id && resolvedSellerId === user._id);
+  const resolvedSellerId = (() => {
+    if (typeof item.seller === 'string') return item.seller;
+    return (
+      item.seller?.userId?.toString() ??
+      item.seller?._id?.toString() ??
+      item.seller?.id?.toString() ??
+      item.sellerId?.toString() ??
+      null
+    );
+  })();
+  
+  const isOwnListing = !!(resolvedSellerId && currentUserId && resolvedSellerId === currentUserId);
 
   const getInitial = () => {
     const trimmed = sellerName.trim();
@@ -121,21 +128,19 @@ export default function ProductDetailScreen({ navigation, route }) {
           <Ionicons name="arrow-back" size={20} color={COLORS.text} />
         </TouchableOpacity>
         <Text style={styles.navTitle}>Item Details</Text>
-        {!isOwnListing ? (
-          <TouchableOpacity
-            style={styles.navBtn}
-            onPress={() => setSaved((v) => !v)}
-            activeOpacity={0.8}
-          >
-            <Ionicons
-              name={saved ? 'heart' : 'heart-outline'}
-              size={20}
-              color={saved ? '#E05C5C' : COLORS.text}
-            />
-          </TouchableOpacity>
-        ) : (
-          <View style={styles.navBtn} />
-        )}
+        {!isOwnListing && (
+  <TouchableOpacity
+    style={styles.navBtn}
+    onPress={() => setSaved((v) => !v)}
+    activeOpacity={0.8}
+  >
+    <Ionicons
+      name={saved ? 'heart' : 'heart-outline'}
+      size={20}
+      color={saved ? '#E05C5C' : COLORS.text}
+    />
+  </TouchableOpacity>
+)}
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
