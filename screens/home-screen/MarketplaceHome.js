@@ -1,15 +1,14 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity,
-  StatusBar, Image, TextInput, Dimensions, ActivityIndicator, Modal,
+  StatusBar, Image, TextInput, Dimensions, ActivityIndicator, Modal, Alert,
 } from 'react-native';
 import { Ionicons, Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { COLORS, CATEGORIES } from './marketplacedata';
-import { getAllListings } from '../../services/authService';
+import { getAllListings, getSaved, saveNewItem, removeSaved, deleteListing } from '../../services/authService';
 import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../context/AuthContext';
-import { getSaved, saveNewItem, removeSaved } from '../../services/authService';
 import { useTranslation } from 'react-i18next';
 
 const { width } = Dimensions.get('window');
@@ -30,7 +29,7 @@ const ConditionBadge = ({ condition }) => (
 );
 
 export default function MarketplaceScreen({ navigation, route }) {
-  const { getToken } = useAuth();
+  const { getToken, user } = useAuth();
   const { t } = useTranslation();
 
   const [listings, setListings] = useState([]);
@@ -76,6 +75,29 @@ export default function MarketplaceScreen({ navigation, route }) {
       });
       console.error('Save failed:', err.message);
     }
+  };
+
+  const handleDeleteListing = async (id) => {
+    Alert.alert(
+      'Delete Listing',
+      'Are you sure you want to remove this listing?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              const token = await getToken();
+              await deleteListing(token, id);
+              setListings(prev => prev.filter(item => item._id !== id));
+            } catch (err) {
+              Alert.alert('Error', 'Could not delete listing.');
+            }
+          },
+        },
+      ]
+    );
   };
 
   useEffect(() => {
@@ -253,71 +275,87 @@ export default function MarketplaceScreen({ navigation, route }) {
           <Text style={styles.emptyText}>{t('no_items_found')}</Text>
         ) : (
           <View style={styles.grid}>
-            {listings.map((item) => (
-              <TouchableOpacity
-                key={item._id}
-                style={styles.itemCard}
-                activeOpacity={0.88}
-                onPress={() => navigation.navigate('ProductDetails', { item })}
-              >
-                <View style={styles.itemImageBox}>
-                  {item.image ? (
-                    <Image
-                      source={{ uri: item.image }}
-                      style={styles.itemImage}
-                      onError={() => console.log('Image failed')}
-                    />
-                  ) : (
-                    <MaterialCommunityIcons name="hanger" size={40} color={COLORS.accent} />
-                  )}
+            {listings.map((item) => {
+              const isOwner = item.sellerId === user?._id;
+              return (
+                <TouchableOpacity
+                  key={item._id}
+                  style={styles.itemCard}
+                  activeOpacity={0.88}
+                  onPress={() => navigation.navigate('ProductDetails', { item })}
+                >
+                  <View style={styles.itemImageBox}>
+                    {item.image ? (
+                      <Image
+                        source={{ uri: item.image }}
+                        style={styles.itemImage}
+                        onError={() => console.log('Image failed')}
+                      />
+                    ) : (
+                      <MaterialCommunityIcons name="hanger" size={40} color={COLORS.accent} />
+                    )}
 
-                  <View style={styles.badgeWrap}>
-                    <ConditionBadge condition={item.condition} />
-                  </View>
+                    <View style={styles.badgeWrap}>
+                      <ConditionBadge condition={item.condition} />
+                    </View>
 
-                  <TouchableOpacity
-                    style={styles.heartBtn}
-                    onPress={(e) => toggleHeart(item._id, e)}
-                    activeOpacity={0.8}
-                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                  >
-                    <Ionicons
-                      name={savedItems[item._id] ? 'heart' : 'heart-outline'}
-                      size={16}
-                      color={savedItems[item._id] ? '#E05C5C' : '#C17C74'}
-                    />
-                  </TouchableOpacity>
-                </View>
-
-                <View style={styles.itemInfo}>
-                  <Text style={styles.itemTitle} numberOfLines={1}>{item.title}</Text>
-                  <Text style={styles.itemBrand}>{item.brand || t('no_brand')} · {item.size || 'N/A'}</Text>
-                  <Text style={styles.itemDescription} numberOfLines={2}>{item.description}</Text>
-                  <View style={styles.priceRow}>
-                    <Text style={styles.itemPrice}>EGP {item.price}</Text>
-                    {item.originalPrice && (
-                      <Text style={styles.itemOriginalPrice}>EGP {item.originalPrice}</Text>
+                    {isOwner ? (
+                      <TouchableOpacity
+                        style={styles.deleteBtn}
+                        onPress={(e) => { e.stopPropagation(); handleDeleteListing(item._id); }}
+                        activeOpacity={0.8}
+                        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                      >
+                        <Ionicons name="trash-outline" size={15} color="#E05C5C" />
+                      </TouchableOpacity>
+                    ) : (
+                      <TouchableOpacity
+                        style={styles.heartBtn}
+                        onPress={(e) => toggleHeart(item._id, e)}
+                        activeOpacity={0.8}
+                        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                      >
+                        <Ionicons
+                          name={savedItems[item._id] ? 'heart' : 'heart-outline'}
+                          size={16}
+                          color={savedItems[item._id] ? '#E05C5C' : '#C17C74'}
+                        />
+                      </TouchableOpacity>
                     )}
                   </View>
 
-                  <TouchableOpacity
-                    style={[styles.cartBtn, isInCart(item._id) && styles.cartBtnActive]}
-                    onPress={() => addToCart(item, 'marketplace')}
-                    activeOpacity={0.85}
-                  >
-                    <Ionicons
-                      name={isInCart(item._id) ? 'cart' : 'cart-outline'}
-                      size={13}
-                      color={isInCart(item._id) ? COLORS.white : COLORS.accent}
-                      style={{ marginRight: 5 }}
-                    />
-                    <Text style={[styles.cartBtnText, isInCart(item._id) && styles.cartBtnTextActive]}>
-                      {isInCart(item._id) ? t('in_cart') : t('add_to_cart')}
-                    </Text>
-                  </TouchableOpacity>
-                </View>
-              </TouchableOpacity>
-            ))}
+                  <View style={styles.itemInfo}>
+                    <Text style={styles.itemTitle} numberOfLines={1}>{item.title}</Text>
+                    <Text style={styles.itemBrand}>{item.brand || t('no_brand')} · {item.size || 'N/A'}</Text>
+                    <Text style={styles.itemDescription} numberOfLines={2}>{item.description}</Text>
+                    <View style={styles.priceRow}>
+                      <Text style={styles.itemPrice}>EGP {item.price}</Text>
+                      {item.originalPrice && (
+                        <Text style={styles.itemOriginalPrice}>EGP {item.originalPrice}</Text>
+                      )}
+                    </View>
+
+                    {!isOwner && (
+                      <TouchableOpacity
+                        style={[styles.cartBtn, isInCart(item._id) && styles.cartBtnActive]}
+                        onPress={() => addToCart(item, 'marketplace')}
+                        activeOpacity={0.85}
+                      >
+                        <Ionicons
+                          name={isInCart(item._id) ? 'cart' : 'cart-outline'}
+                          size={13}
+                          color={isInCart(item._id) ? COLORS.white : COLORS.accent}
+                          style={{ marginRight: 5 }}
+                        />
+                        <Text style={[styles.cartBtnText, isInCart(item._id) && styles.cartBtnTextActive]}>
+                          {isInCart(item._id) ? t('in_cart') : t('add_to_cart')}
+                        </Text>
+                      </TouchableOpacity>
+                    )}
+                  </View>
+                </TouchableOpacity>
+              );
+            })}
           </View>
         )}
       </ScrollView>
@@ -460,6 +498,7 @@ const styles = StyleSheet.create({
   conditionBadge: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8 },
   conditionText: { fontSize: 10, fontWeight: '700' },
   heartBtn: { position: 'absolute', top: 10, right: 10, width: 30, height: 30, borderRadius: 15, backgroundColor: COLORS.white, alignItems: 'center', justifyContent: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 3, elevation: 2 },
+  deleteBtn: { position: 'absolute', top: 10, right: 10, width: 30, height: 30, borderRadius: 15, backgroundColor: COLORS.white, alignItems: 'center', justifyContent: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 3, elevation: 2 },
   itemInfo: { padding: 10 },
   itemTitle: { fontSize: 13, fontWeight: '700', color: COLORS.text },
   itemBrand: { fontSize: 11, color: COLORS.accent, fontWeight: '600', marginTop: 2 },

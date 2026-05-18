@@ -13,6 +13,8 @@ import {
 import { Ionicons, Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { COLORS } from './marketplacedata';
+import { useAuth } from '../../context/AuthContext';
+import { deleteListing } from '../../services/authService';
 
 const { width } = Dimensions.get('window');
 
@@ -42,6 +44,8 @@ const StarRating = ({ rating }) => {
 
 export default function ProductDetailScreen({ navigation, route }) {
   const { item } = route.params;
+  const { user, getToken } = useAuth();
+
   const [saved, setSaved] = useState(false);
   const [activeImage, setActiveImage] = useState(0);
   const imageCount = item.images?.length || 1;
@@ -54,14 +58,12 @@ export default function ProductDetailScreen({ navigation, route }) {
   const sellerRating = seller.rating ?? 0;
   const sellerSales = seller.totalSales ?? 0;
 
-  console.log('seller field:', JSON.stringify(item.seller, null, 2));
+  // Resolve seller ID regardless of shape backend returns
+  const resolvedSellerId = typeof item.seller === 'string'
+    ? item.seller
+    : item.seller?._id ?? item.seller?.userId ?? item.seller?.id ?? item.sellerId;
 
-  console.log('FULL ITEM:', JSON.stringify({
-    sellerId: item.sellerId,
-    seller: item.seller,
-    sellerType: typeof item.seller,
-  }, null, 2));
-
+  const isOwnListing = !!(resolvedSellerId && user?._id && resolvedSellerId === user._id);
 
   const getInitial = () => {
     const trimmed = sellerName.trim();
@@ -86,29 +88,54 @@ export default function ProductDetailScreen({ navigation, route }) {
     Alert.alert('Make an Offer', 'This feature is coming soon!');
   };
 
-  console.log('seller object:', JSON.stringify(item.seller, null, 2));
+  const handleDeleteListing = () => {
+    Alert.alert(
+      'Delete Listing',
+      'Are you sure you want to remove this listing?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              const token = await getToken();
+              await deleteListing(token, item._id);
+              navigation.goBack();
+            } catch (err) {
+              Alert.alert('Error', 'Could not delete listing.');
+            }
+          },
+        },
+      ]
+    );
+  };
 
   return (
     <SafeAreaView style={styles.safe} edges={['bottom']}>
       <StatusBar barStyle="dark-content" backgroundColor={COLORS.white} />
 
-      {/* Sticky top nav */}
+      {/* Top nav */}
       <View style={styles.topNav}>
-      <TouchableOpacity style={styles.navBtn} onPress={() => navigation.goBack()} activeOpacity={0.8}>
-              <Ionicons name="arrow-back" size={20} color={COLORS.text} />
-            </TouchableOpacity>
-        <Text style={styles.navTitle}>Item Details</Text>
-        <TouchableOpacity
-          style={styles.navBtn}
-          onPress={() => setSaved((v) => !v)}
-          activeOpacity={0.8}
-        >
-          <Ionicons
-            name={saved ? 'heart' : 'heart-outline'}
-            size={20}
-            color={saved ? '#E05C5C' : COLORS.text}
-          />
+        <TouchableOpacity style={styles.navBtn} onPress={() => navigation.goBack()} activeOpacity={0.8}>
+          <Ionicons name="arrow-back" size={20} color={COLORS.text} />
         </TouchableOpacity>
+        <Text style={styles.navTitle}>Item Details</Text>
+        {!isOwnListing ? (
+          <TouchableOpacity
+            style={styles.navBtn}
+            onPress={() => setSaved((v) => !v)}
+            activeOpacity={0.8}
+          >
+            <Ionicons
+              name={saved ? 'heart' : 'heart-outline'}
+              size={20}
+              color={saved ? '#E05C5C' : COLORS.text}
+            />
+          </TouchableOpacity>
+        ) : (
+          <View style={styles.navBtn} />
+        )}
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
@@ -125,19 +152,14 @@ export default function ProductDetailScreen({ navigation, route }) {
               </View>
             )}
 
-            {/* Image dots */}
             {imageCount > 1 && (
               <View style={styles.dotsRow}>
                 {Array.from({ length: imageCount }).map((_, i) => (
-                  <View
-                    key={i}
-                    style={[styles.dot, i === activeImage && styles.dotActive]}
-                  />
+                  <View key={i} style={[styles.dot, i === activeImage && styles.dotActive]} />
                 ))}
               </View>
             )}
 
-            {/* Condition badge */}
             {item.condition ? (
               <View style={styles.conditionBadge}>
                 <View style={[
@@ -172,7 +194,6 @@ export default function ProductDetailScreen({ navigation, route }) {
             </View>
           ) : null}
 
-          {/* Location */}
           <View style={styles.locationRow}>
             <Ionicons name="location-outline" size={14} color={COLORS.accent} />
             <Text style={styles.locationText}>{item.location ?? ''}</Text>
@@ -210,16 +231,10 @@ export default function ProductDetailScreen({ navigation, route }) {
             style={styles.sellerCard}
             activeOpacity={0.88}
             onPress={() => {
-              const sellerId = typeof item.seller === 'string'
-                ? item.seller
-                : item.seller?._id ?? item.seller?.userId ?? item.seller?.id ?? item.sellerId;  // ← add userId here
-            
-              if (!sellerId) return Alert.alert('Seller not available');
-              navigation.navigate('SellerProfileScreen', { sellerId });
+              if (!resolvedSellerId) return Alert.alert('Seller not available');
+              navigation.navigate('SellerProfileScreen', { sellerId: resolvedSellerId });
             }}
-            
           >
-            {/* Avatar */}
             <View style={styles.avatar}>
               {sellerAvatar ? (
                 <Image source={{ uri: sellerAvatar }} style={styles.avatarImg} />
@@ -254,67 +269,66 @@ export default function ProductDetailScreen({ navigation, route }) {
         <View style={{ height: 100 }} />
       </ScrollView>
 
-      {/* Sticky CTA */}
+      {/* Sticky CTA — single bar, message hidden for own listings */}
       <View style={styles.ctaBar}>
-        <TouchableOpacity style={styles.offerBtn} onPress={handleOffer} activeOpacity={0.85}>
-          <Text style={styles.offerBtnText}>Make Offer</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.messageBtn} onPress={handleMessage} activeOpacity={0.85}>
-          <Ionicons name="chatbubble-outline" size={16} color={COLORS.white} style={{ marginRight: 6 }} />
-          <Text style={styles.messageBtnText}>Message Seller</Text>
-        </TouchableOpacity>
-      </View>
+  {isOwnListing ? (
+    <TouchableOpacity style={styles.deleteListingBtn} onPress={handleDeleteListing} activeOpacity={0.85}>
+      <Ionicons name="trash-outline" size={16} color={COLORS.white} style={{ marginRight: 8 }} />
+      <Text style={styles.deleteListingBtnText}>Delete Listing</Text>
+    </TouchableOpacity>
+  ) : (
+    <>
+      <TouchableOpacity style={styles.offerBtn} onPress={handleOffer} activeOpacity={0.85}>
+        <Text style={styles.offerBtnText}>Make Offer</Text>
+      </TouchableOpacity>
+      <TouchableOpacity style={styles.messageBtn} onPress={handleMessage} activeOpacity={0.85}>
+        <Ionicons name="chatbubble-outline" size={16} color={COLORS.white} style={{ marginRight: 6 }} />
+        <Text style={styles.messageBtnText}>Message Seller</Text>
+      </TouchableOpacity>
+    </>
+  )}
+
+  
+</View>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: { 
-    flex: 1, 
-    backgroundColor: COLORS.bg 
+  safe: {
+    flex: 1,
+    backgroundColor: COLORS.bg,
   },
-
   topNav: {
-    flexDirection: 'row', 
-    alignItems: 'center', 
+    flexDirection: 'row',
+    alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 16, 
+    paddingHorizontal: 16,
     paddingVertical: 12,
-    backgroundColor: COLORS.white, 
-    borderBottomWidth: 1, 
+    backgroundColor: COLORS.white,
+    borderBottomWidth: 1,
     borderBottomColor: COLORS.border,
     marginTop: 55,
   },
-
   navBtn: {
-    width: 40, 
-    height: 40, 
+    width: 40,
+    height: 40,
     borderRadius: 12,
-    backgroundColor: COLORS.card, 
-    alignItems: 'center', 
+    backgroundColor: COLORS.card,
+    alignItems: 'center',
     justifyContent: 'center',
   },
-
-  navTitle: { 
-    fontSize: 16, 
-    fontWeight: '700', 
-    color: '#C17C74' 
-  },
-
   navTitle: {
     fontSize: 16,
     fontWeight: '700',
     color: '#C17C74',
   },
-
-  scrollContent: { 
-    paddingBottom: 20 
+  scrollContent: {
+    paddingBottom: 20,
   },
-
-  imageGallery: { 
-    marginBottom: 4 
+  imageGallery: {
+    marginBottom: 4,
   },
-
   mainImage: {
     width: width,
     height: width * 1.05,
@@ -322,22 +336,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-
-  mainImageImg: { 
-    width: '100%', 
-    height: '100%' 
+  mainImageImg: {
+    width: '100%',
+    height: '100%',
   },
-
-  imagePlaceholder: { 
-    alignItems: 'center', 
-    gap: 8 
+  imagePlaceholder: {
+    alignItems: 'center',
+    gap: 8,
   },
-
-  imagePlaceholderText: { 
-    fontSize: 13, 
-    color: COLORS.muted 
+  imagePlaceholderText: {
+    fontSize: 13,
+    color: COLORS.muted,
   },
-
   dotsRow: {
     position: 'absolute',
     bottom: 14,
@@ -345,67 +355,93 @@ const styles = StyleSheet.create({
     gap: 6,
     alignSelf: 'center',
   },
-
-  dot: { 
-    width: 6, 
-    height: 6, 
-    borderRadius: 3, 
-    backgroundColor: 'rgba(255,255,255,0.5)' 
+  dot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: 'rgba(255,255,255,0.5)',
   },
-
-  dotActive: { 
-    backgroundColor: COLORS.white, 
-    width: 18 
+  dotActive: {
+    backgroundColor: COLORS.white,
+    width: 18,
   },
-
-  conditionBadge: { 
-    position: 'absolute', 
-    top: 14, 
-    left: 14 
+  conditionBadge: {
+    position: 'absolute',
+    top: 14,
+    left: 14,
   },
-
-  conditionInner: { 
-    paddingHorizontal: 10, 
-    paddingVertical: 4, 
-    borderRadius: 10 
+  conditionInner: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 10,
   },
-
-  conditionText: { fontSize: 11, fontWeight: '700' },
-
-  section: { paddingHorizontal: 20, paddingVertical: 18 },
-
+  conditionText: {
+    fontSize: 11,
+    fontWeight: '700',
+  },
+  section: {
+    paddingHorizontal: 20,
+    paddingVertical: 18,
+  },
   titleRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
     marginBottom: 6,
   },
-
-  itemTitle: { 
-    fontSize: 20, 
-    fontWeight: '800', 
-    color: COLORS.text, 
-    flex: 1, 
-    marginRight: 12 
+  itemTitle: {
+    fontSize: 20,
+    fontWeight: '800',
+    color: COLORS.text,
+    flex: 1,
+    marginRight: 12,
   },
-
-  itemPrice: { 
-    fontSize: 22, 
-    fontWeight: '800', 
-    color: COLORS.accent 
+  itemPrice: {
+    fontSize: 22,
+    fontWeight: '800',
+    color: COLORS.accent,
   },
-
-  savingsRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 10 },
-  originalPrice: { fontSize: 13, color: COLORS.muted, textDecorationLine: 'line-through' },
-  savingsBadge: { backgroundColor: '#fce4ec', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8 },
-  savingsText: { fontSize: 11, fontWeight: '700', color: '#c2185b' },
-
-  locationRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  locationText: { fontSize: 13, color: COLORS.accent, fontWeight: '600' },
-  postedAt: { fontSize: 12, color: COLORS.muted },
-
-  divider: { height: 1, backgroundColor: COLORS.border, marginHorizontal: 20 },
-
+  savingsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 10,
+  },
+  originalPrice: {
+    fontSize: 13,
+    color: COLORS.muted,
+    textDecorationLine: 'line-through',
+  },
+  savingsBadge: {
+    backgroundColor: '#fce4ec',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 8,
+  },
+  savingsText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#c2185b',
+  },
+  locationRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  locationText: {
+    fontSize: 13,
+    color: COLORS.accent,
+    fontWeight: '600',
+  },
+  postedAt: {
+    fontSize: 12,
+    color: COLORS.muted,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: COLORS.border,
+    marginHorizontal: 20,
+  },
   sectionLabel: {
     fontSize: 11,
     fontWeight: '700',
@@ -414,9 +450,11 @@ const styles = StyleSheet.create({
     letterSpacing: 0.9,
     marginBottom: 14,
   },
-
-  pillsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
-
+  pillsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+  },
   infoPill: {
     backgroundColor: COLORS.card,
     borderRadius: 12,
@@ -425,11 +463,22 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     minWidth: 72,
   },
-  infoPillLabel: { fontSize: 10, color: COLORS.muted, fontWeight: '600', marginBottom: 3 },
-  infoPillValue: { fontSize: 13, color: COLORS.text, fontWeight: '700' },
-
-  description: { fontSize: 14, color: COLORS.text, lineHeight: 22 },
-
+  infoPillLabel: {
+    fontSize: 10,
+    color: COLORS.muted,
+    fontWeight: '600',
+    marginBottom: 3,
+  },
+  infoPillValue: {
+    fontSize: 13,
+    color: COLORS.text,
+    fontWeight: '700',
+  },
+  description: {
+    fontSize: 14,
+    color: COLORS.text,
+    lineHeight: 22,
+  },
   sellerCard: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -446,17 +495,52 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  avatarImg: { width: 48, height: 48, borderRadius: 24 },
-  avatarInitial: { fontSize: 20, fontWeight: '700', color: COLORS.white },
-  sellerInfo: { flex: 1 },
-  sellerName: { fontSize: 14, fontWeight: '700', color: COLORS.text },
-  sellerHandle: { fontSize: 12, color: COLORS.muted, marginBottom: 4 },
-  starRow: { flexDirection: 'row', alignItems: 'center', gap: 2 },
-  ratingText: { fontSize: 11, color: COLORS.muted, marginLeft: 4, fontWeight: '600' },
-  sellerMeta: { alignItems: 'center' },
-  sellerSalesCount: { fontSize: 16, fontWeight: '800', color: COLORS.accent },
-  sellerSalesLabel: { fontSize: 10, color: COLORS.muted },
-
+  avatarImg: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+  },
+  avatarInitial: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: COLORS.white,
+  },
+  sellerInfo: {
+    flex: 1,
+  },
+  sellerName: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: COLORS.text,
+  },
+  sellerHandle: {
+    fontSize: 12,
+    color: COLORS.muted,
+    marginBottom: 4,
+  },
+  starRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 2,
+  },
+  ratingText: {
+    fontSize: 11,
+    color: COLORS.muted,
+    marginLeft: 4,
+    fontWeight: '600',
+  },
+  sellerMeta: {
+    alignItems: 'center',
+  },
+  sellerSalesCount: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: COLORS.accent,
+  },
+  sellerSalesLabel: {
+    fontSize: 10,
+    color: COLORS.muted,
+  },
   safetyTip: {
     flexDirection: 'row',
     alignItems: 'flex-start',
@@ -466,8 +550,12 @@ const styles = StyleSheet.create({
     padding: 14,
     gap: 10,
   },
-  safetyText: { flex: 1, fontSize: 12, color: COLORS.muted, lineHeight: 18 },
-
+  safetyText: {
+    flex: 1,
+    fontSize: 12,
+    color: COLORS.muted,
+    lineHeight: 18,
+  },
   ctaBar: {
     position: 'absolute',
     bottom: 0,
@@ -491,7 +579,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  offerBtnText: { color: COLORS.accent, fontSize: 15, fontWeight: '700' },
+  offerBtnText: {
+    color: COLORS.accent,
+    fontSize: 15,
+    fontWeight: '700',
+  },
   messageBtn: {
     flex: 2,
     flexDirection: 'row',
@@ -501,5 +593,24 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  messageBtnText: { color: COLORS.white, fontSize: 15, fontWeight: '700' },
+  messageBtnText: {
+    color: COLORS.white,
+    fontSize: 15,
+    fontWeight: '700',
+  },
+
+  deleteListingBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    backgroundColor: '#E05C5C',
+    borderRadius: 14,
+    paddingVertical: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  deleteListingBtnText: {
+    color: COLORS.white,
+    fontSize: 15,
+    fontWeight: '700',
+  },
 });
