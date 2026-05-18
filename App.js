@@ -74,8 +74,6 @@ import Fashproductsdetails from './screens/home-screen/fashproductsdetails';
 
 import { logout, warmupServer } from './services/authService';
 
-
-
 const Stack = createNativeStackNavigator();
 
 function SplashScreen() {
@@ -92,48 +90,67 @@ export default function App() {
     (prevState, action) => {
       switch (action.type) {
         case 'RESTORE_TOKEN':
-          return { ...prevState, userToken: action.token, isLoading: false };
+          return {
+            ...prevState,
+            userToken: action.token,
+            userId: action.userId,
+            isLoading: false,
+          };
         case 'LOG_IN':
-          return { ...prevState, isLogOut: false, userToken: action.token };
+          return {
+            ...prevState,
+            isLogOut: false,
+            userToken: action.token,
+            userId: action.userId,
+          };
         case 'LOG_OUT':
-          return { ...prevState, isLogOut: true, userToken: null };
+          return {
+            ...prevState,
+            isLogOut: true,
+            userToken: null,
+            userId: null,
+          };
         default:
           return prevState;
       }
     },
-    { isLoading: true, isLogOut: false, userToken: null }
+    { isLoading: true, isLogOut: false, userToken: null, userId: null }
   );
 
   React.useEffect(() => {
-    // Fire warmup immediately — doesn't block auth restore
     warmupServer();
 
     const bootstrapAsync = async () => {
       let userToken = null;
+      let userId = null;
       try {
         userToken = await SecureStore.getItemAsync('userToken');
+        userId = await SecureStore.getItemAsync('userId');
       } catch (e) {
         console.warn('Failed to restore token:', e);
       }
-      dispatch({ type: 'RESTORE_TOKEN', token: userToken });
+      dispatch({ type: 'RESTORE_TOKEN', token: userToken, userId });
     };
     bootstrapAsync();
   }, []);
 
   const authContext = React.useMemo(() => ({
-    logIn: async (token) => {
+    // Call logIn(token, userId) from your login screen after a successful login
+    logIn: async (token, userId) => {
       try {
         await SecureStore.setItemAsync('userToken', token);
+        if (userId) await SecureStore.setItemAsync('userId', userId);
       } catch (e) {
         console.warn('Failed to save token:', e);
       }
-      dispatch({ type: 'LOG_IN', token });
+      dispatch({ type: 'LOG_IN', token, userId });
     },
     logOut: async () => {
       try {
         const token = await SecureStore.getItemAsync('userToken');
         if (token) await logout(token);
         await SecureStore.deleteItemAsync('userToken');
+        await SecureStore.deleteItemAsync('userId');
       } catch (e) {
         console.warn('Logout error:', e);
       } finally {
@@ -147,7 +164,8 @@ export default function App() {
         return null;
       }
     },
-  }), []);
+    userId: state.userId,
+  }), [state.userId]);
 
   if (state.isLoading) return <SplashScreen />;
 
@@ -219,13 +237,12 @@ export default function App() {
                     <Stack.Screen name="CreateAuction" component={CreateAuction} options={{ animation: 'slide_from_bottom' }} />
 
                     <Stack.Screen name="MainCart" component={MainCart} />
-                    
+
                     <Stack.Screen name="SellerProfileScreen" component={SellerProfileScreen} />
 
-                    <Stack.Screen name="ARscreen" component={ARscreen} options={{ headerShown: false }}/>
+                    <Stack.Screen name="ARscreen" component={ARscreen} options={{ headerShown: false }} />
 
                     <Stack.Screen name="Fashproductsdetails" component={Fashproductsdetails} />
-
                   </>
                 )}
               </Stack.Navigator>

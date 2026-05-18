@@ -13,7 +13,6 @@ export default function LoginScreen({ navigation }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-
   const handleLogin = async () => {
     setError("");
     if (!email || !password) {
@@ -21,14 +20,14 @@ export default function LoginScreen({ navigation }) {
       return;
     }
     setLoading(true);
-    try{
-      const data = await login({email, password});
-      await logIn(data.access_token);
-    }
-    catch (err){
+    try {
+      const data = await login({ email, password });
+      // Extract user ID from whichever field the backend returns it on
+      const userId = data.user?._id ?? data.user?.id ?? data.userId ?? data._id ?? null;
+      await logIn(data.access_token, userId);
+    } catch (err) {
       setError(err.message || "Login failed. Please try again.");
-    }
-    finally{
+    } finally {
       setLoading(false);
     }
   };
@@ -39,8 +38,8 @@ export default function LoginScreen({ navigation }) {
         <StatusBar style="dark" />
 
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-        <FontAwesome name="arrow-left" size={18} color="#C17C74" />
-        <Text style={styles.backText}>Back</Text>
+          <FontAwesome name="arrow-left" size={18} color="#C17C74" />
+          <Text style={styles.backText}>Back</Text>
         </TouchableOpacity>
 
         <Image
@@ -78,9 +77,11 @@ export default function LoginScreen({ navigation }) {
 
           {error ? <Text style={styles.errorText}>{error}</Text> : null}
 
-
           <TouchableOpacity style={styles.button} onPress={handleLogin}>
-            <Text style={styles.buttonText}>Log In</Text>
+            {loading
+              ? <ActivityIndicator size="small" color="#fff" />
+              : <Text style={styles.buttonText}>Log In</Text>
+            }
           </TouchableOpacity>
         </View>
 
@@ -160,11 +161,11 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: 10,
   },
-  errorText: { 
-    color: '#c0392b', 
-    fontSize: 13, 
-    marginBottom: 10, 
-    textAlign: 'center' 
+  errorText: {
+    color: '#c0392b',
+    fontSize: 13,
+    marginBottom: 10,
+    textAlign: 'center',
   },
   button: {
     backgroundColor: '#C17C74',
@@ -176,16 +177,16 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: '600',
   },
-  backButton: { 
-    flexDirection: 'row', 
-    alignItems: 'center', 
-    marginBottom: 10, 
-    gap: 6 
+  backButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 10,
+    gap: 6,
   },
-backText: { 
-  color: '#C17C74', 
-  fontSize: 16 
-},
+  backText: {
+    color: '#C17C74',
+    fontSize: 16,
+  },
   forgot: {
     marginTop: 15,
     textDecorationLine: 'underline',

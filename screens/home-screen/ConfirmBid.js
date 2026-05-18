@@ -38,23 +38,30 @@ export default function ConfirmBid({ navigation, route }) {
           You'll be notified if you're outbid or if you win the auction.
         </Text>
 
-        {/* Actions */}
+        {/* Back to Auction — pops ConfirmBid off the stack, returning to AuctionRoom */}
         <TouchableOpacity
           style={styles.btnPrimary}
-          onPress={() => navigation.navigate('AuctionListScreen', { auctionId })}
+          onPress={() => navigation.pop()}
           activeOpacity={0.85}
         >
           <Ionicons name="hammer-outline" size={16} color={COLORS.white} style={{ marginRight: 8 }} />
           <Text style={styles.btnPrimaryText}>Back to Auction</Text>
         </TouchableOpacity>
 
+        {/* Browse More — pops back to AuctionListScreen (root of auction stack) */}
         <TouchableOpacity
-          style={styles.btnOutline}
-          onPress={() => navigation.navigate('AuctionListScreen')}
-          activeOpacity={0.85}
-        >
-          <Text style={styles.btnOutlineText}>Browse More Auctions</Text>
-        </TouchableOpacity>
+  style={styles.btnOutline}
+  onPress={() => navigation.reset({
+    index: 1,
+    routes: [
+      { name: 'Home' },
+      { name: 'AuctionListScreen' },
+    ],
+  })}
+  activeOpacity={0.85}
+>
+  <Text style={styles.btnOutlineText}>Browse More Auctions</Text>
+</TouchableOpacity>
       </View>
     </SafeAreaView>
   );
