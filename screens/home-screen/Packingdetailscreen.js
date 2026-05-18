@@ -5,24 +5,28 @@ import {
 } from 'react-native';
 import { Ionicons, Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { COLORS, WARDROBE_ITEMS } from './Packingdata';
-
+import { COLORS } from './Packingdata';
+ 
 const { width } = Dimensions.get('window');
-
+ 
+const CATEGORY_EMOJIS = {
+  Tops: '👕', Bottoms: '👖', Dresses: '👗', Shoes: '👟',
+  Bags: '👜', Accessories: '✨', Outerwear: '🧥',
+};
+ 
 export default function OutfitDetailScreen({ navigation, route }) {
   const { outfit, collection } = route.params;
   const [saved, setSaved] = useState(false);
-
-  const items = outfit.items
-    .map((id) => WARDROBE_ITEMS.find((w) => w.id === id))
-    .filter(Boolean);
-
+ 
+  // items come fully populated from the backend — no static lookup needed
+  const items = outfit.items ?? [];
+ 
   const handleStyleWithAI = () => {
     const itemNames = items.map((i) => i.name).join(', ');
-    const message = `I'm wearing this outfit: ${itemNames}. The occasion is ${outfit.occasion}. Can you give me styling tips and suggest what accessories to add?`;
-    navigation.navigate('AIStylist', { prefillMessage: message });
+    const message = `I'm wearing this outfit: ${itemNames}. The occasion is ${outfit.occasion || 'casual'}. Can you give me styling tips and suggest what accessories to add?`;
+    navigation.navigate('AIStylingScreen', { prefillMessage: message });
   };
-
+ 
   const categoryColors = {
     Tops: '#e3f2fd',
     Bottoms: '#f3e5f5',
@@ -32,11 +36,11 @@ export default function OutfitDetailScreen({ navigation, route }) {
     Accessories: '#fff3e0',
     Outerwear: '#e0f2f1',
   };
-
+ 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
       <StatusBar barStyle="dark-content" />
-
+ 
       {/* Top nav */}
       <View style={styles.topNav}>
         <TouchableOpacity style={styles.navBtn} onPress={() => navigation.goBack()} activeOpacity={0.8}>
@@ -51,51 +55,67 @@ export default function OutfitDetailScreen({ navigation, route }) {
           />
         </TouchableOpacity>
       </View>
-
+ 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-
-        {/* Hero */}
-        <View style={[styles.hero, { backgroundColor: collection.color }]}>
-          <Text style={styles.heroEmoji}>{collection.emoji}</Text>
-          <View style={styles.heroItemsRow}>
-            {items.map((item, i) => (
-              <View key={item.id} style={[styles.heroItemBubble, { marginLeft: i > 0 ? -8 : 0 }]}>
-                <Text style={styles.heroItemEmoji}>{item.emoji}</Text>
-              </View>
-            ))}
+ 
+        {/* Hero — uses collection if passed, gracefully falls back */}
+        {collection && (
+          <View style={[styles.hero, { backgroundColor: collection.color ?? COLORS.accentLight }]}>
+            <Text style={styles.heroEmoji}>{collection.emoji ?? '👗'}</Text>
+            <View style={styles.heroItemsRow}>
+              {items.map((item, i) => (
+                <View key={item._id ?? i} style={[styles.heroItemBubble, { marginLeft: i > 0 ? -8 : 0 }]}>
+                  {item.image ? (
+                    <Image source={{ uri: item.image }} style={{ width: 44, height: 44, borderRadius: 22 }} resizeMode="cover" />
+                  ) : (
+                    <Text style={styles.heroItemEmoji}>{CATEGORY_EMOJIS[item.category] || '👕'}</Text>
+                  )}
+                </View>
+              ))}
+            </View>
+            <Text style={styles.heroCollection}>{collection.name}</Text>
           </View>
-          <Text style={styles.heroCollection}>{collection.name}</Text>
-        </View>
-
+        )}
+ 
         {/* Info */}
         <View style={styles.section}>
           <Text style={styles.outfitTitle}>{outfit.name}</Text>
           <View style={styles.tagRow}>
-            <View style={styles.tag}>
-              <Text style={styles.tagText}>{outfit.occasion}</Text>
-            </View>
-            <View style={styles.tag}>
-              <Text style={styles.tagText}>{outfit.vibe}</Text>
-            </View>
+            {outfit.occasion && (
+              <View style={styles.tag}>
+                <Text style={styles.tagText}>{outfit.occasion}</Text>
+              </View>
+            )}
+            {outfit.season && (
+              <View style={styles.tag}>
+                <Text style={styles.tagText}>{outfit.season}</Text>
+              </View>
+            )}
           </View>
         </View>
-
+ 
         <View style={styles.divider} />
-
+ 
         {/* Items */}
         <View style={styles.section}>
           <Text style={styles.sectionLabel}>Outfit Items · {items.length} pieces</Text>
-          {items.map((item) => (
+          {items.map((item, i) => (
             <View
-              key={item.id}
+              key={item._id ?? i}
               style={[styles.itemRow, { backgroundColor: categoryColors[item.category] || COLORS.card }]}
             >
               <View style={styles.itemEmojiWrap}>
-                <Text style={styles.itemEmoji}>{item.emoji}</Text>
+                {item.image ? (
+                  <Image source={{ uri: item.image }} style={{ width: 44, height: 44, borderRadius: 22 }} resizeMode="cover" />
+                ) : (
+                  <Text style={styles.itemEmoji}>{CATEGORY_EMOJIS[item.category] || '👕'}</Text>
+                )}
               </View>
               <View style={styles.itemInfo}>
                 <Text style={styles.itemName}>{item.name}</Text>
-                <Text style={styles.itemMeta}>{item.brand} · {item.color}</Text>
+                <Text style={styles.itemMeta}>
+                  {[item.brand, item.color, item.size].filter(Boolean).join(' · ')}
+                </Text>
               </View>
               <View style={styles.categoryTag}>
                 <Text style={styles.categoryTagText}>{item.category}</Text>
@@ -103,20 +123,23 @@ export default function OutfitDetailScreen({ navigation, route }) {
             </View>
           ))}
         </View>
-
+ 
         <View style={styles.divider} />
-
-        {/* Styling tip */}
-        <View style={styles.section}>
-          <Text style={styles.sectionLabel}>Stylist Tip</Text>
-          <View style={styles.tipCard}>
-            <Ionicons name="sparkles" size={18} color={COLORS.accent} style={{ marginTop: 1 }} />
-            <Text style={styles.tipText}>{outfit.tip}</Text>
-          </View>
-        </View>
-
-        <View style={styles.divider} />
-
+ 
+        {/* Styling tip — only shown if outfit has one */}
+        {outfit.tip && (
+          <>
+            <View style={styles.section}>
+              <Text style={styles.sectionLabel}>Stylist Tip</Text>
+              <View style={styles.tipCard}>
+                <Ionicons name="sparkles" size={18} color={COLORS.accent} style={{ marginTop: 1 }} />
+                <Text style={styles.tipText}>{outfit.tip}</Text>
+              </View>
+            </View>
+            <View style={styles.divider} />
+          </>
+        )}
+ 
         {/* AI section */}
         <View style={styles.section}>
           <Text style={styles.sectionLabel}>Want more ideas?</Text>
@@ -131,10 +154,10 @@ export default function OutfitDetailScreen({ navigation, route }) {
             <Ionicons name="arrow-forward" size={18} color={COLORS.accent} />
           </TouchableOpacity>
         </View>
-
+ 
         <View style={{ height: 100 }} />
       </ScrollView>
-
+ 
       {/* Bottom CTA */}
       <View style={styles.ctaBar}>
         <TouchableOpacity style={styles.wearBtn} onPress={() => Alert.alert('Outfit saved!', 'This outfit has been added to your diary.')} activeOpacity={0.85}>
