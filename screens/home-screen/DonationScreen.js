@@ -95,7 +95,6 @@ export default function DonationScreen({ navigation }) {
 
   // ── fetch nearby centers — plain async function, no useCallback ──
   const fetchCenters = async () => {
-    console.log('fetchCenters called');
     try {
       setCentersLoading(true);
       setCentersError(null);
@@ -115,8 +114,6 @@ export default function DonationScreen({ navigation }) {
       }
 
       const data = await getNearbyCenters(lat, lng);
-      console.log('centers raw response:', JSON.stringify(data));
-
       setCenters(data.data ?? data ?? []);
       setCentersFetched(true);
     } catch (err) {
@@ -376,7 +373,7 @@ export default function DonationScreen({ navigation }) {
             <>
               {centers.length > 0 && (
                 <Text style={styles.sectionLabel}>
-                  Donation Centers· {centers.length} found
+                  Donation Centers Near You · {centers.length} found
                 </Text>
               )}
               {centers.map(center => (
