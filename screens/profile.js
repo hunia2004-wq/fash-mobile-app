@@ -1,5 +1,5 @@
 import React, { useContext, useState, useCallback } from "react";
-import {View, Text, StyleSheet, Image, TouchableOpacity, ActivityIndicator, ScrollView, Dimensions,} from "react-native";
+import { View, Text, StyleSheet, Image, TouchableOpacity, ActivityIndicator, ScrollView, Dimensions, } from "react-native";
 import { AuthContext } from "../context/AuthContext";
 import { getProfile } from "../services/authService";
 import * as ImagePicker from "expo-image-picker";
@@ -36,21 +36,21 @@ export default function ProfileScreen({ navigation }) {
 
   const fetchUser = async () => {
     try {
-      setLoading(true); 
-  
+      setLoading(true);
+
       const token = await getToken();
-  
+
       if (!token) {
         console.warn("No token found");
         setUser(null);
         return;
       }
-  
+
       const profile = await getProfile(token);
-  
+
       setUser(profile?.data || profile);
     } catch (e) {
-      console.warn("FULL ERROR:", e); 
+      console.warn("FULL ERROR:", e);
       setUser(null);
     } finally {
       setLoading(false);
@@ -100,10 +100,10 @@ export default function ProfileScreen({ navigation }) {
   const fullName = `${user.firstName || ""} ${user.lastName || ""}`.trim();
   const joinedDate = user.createdAt
     ? new Date(user.createdAt).toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-      })
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    })
     : "—";
 
   return (
@@ -117,8 +117,8 @@ export default function ProfileScreen({ navigation }) {
               avatar
                 ? { uri: avatar }
                 : user.avatar
-                ? { uri: user.avatar }
-                : require("../source/assets/images/avatar.jpg")
+                  ? { uri: user.avatar }
+                  : require("../source/assets/images/avatar.jpg")
             }
             style={styles.avatar}
           />
@@ -135,7 +135,7 @@ export default function ProfileScreen({ navigation }) {
           style={styles.editButton}
           onPress={() =>
             navigation.navigate("EditProfileScreen", {
-              user, 
+              user,
               refresh: fetchUser,
             })
           }

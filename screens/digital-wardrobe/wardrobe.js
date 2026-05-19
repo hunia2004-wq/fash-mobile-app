@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import {View, Text, ScrollView, StyleSheet, TouchableOpacity, StatusBar, Dimensions, Image, ActivityIndicator, TextInput, Alert} from 'react-native';
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity, StatusBar, Dimensions, Image, ActivityIndicator, TextInput, Alert } from 'react-native';
 import { Feather, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
@@ -276,7 +276,7 @@ const styles = StyleSheet.create({
     paddingTop: 10,
     paddingBottom: 4,
   },
-  
+
   statBox: {
     flex: 1,
     backgroundColor: '#F2E6E3',
@@ -388,21 +388,21 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
 
-deleteBtn: {
-  position: 'absolute',
-  top: 8,
-  left: 8,
-  width: 36,
-  height: 36,
-  borderRadius: 18,
-  backgroundColor: '#C17C74',
-  alignItems: 'center',
-  justifyContent: 'center',
-  shadowColor: '#000',
-  shadowOpacity: 0.15,
-  shadowRadius: 4,
-  elevation: 4,
-},
+  deleteBtn: {
+    position: 'absolute',
+    top: 8,
+    left: 8,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#C17C74',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    elevation: 4,
+  },
 
   wCardInfo: {
     padding: 10,
@@ -437,8 +437,8 @@ deleteBtn: {
     fontWeight: '600',
   },
 
-  emptyState:   { alignItems: 'center', marginTop: 60, gap: 10 },
-  emptyText:    { color: '#888', fontSize: 14, textAlign: 'center', paddingHorizontal: 20 },
-  retryBtn:     { marginTop: 6, paddingHorizontal: 20, paddingVertical: 8, backgroundColor: '#C17C74', borderRadius: 12 },
-  retryText:    { color: 'white', fontSize: 13, fontWeight: '600' },
+  emptyState: { alignItems: 'center', marginTop: 60, gap: 10 },
+  emptyText: { color: '#888', fontSize: 14, textAlign: 'center', paddingHorizontal: 20 },
+  retryBtn: { marginTop: 6, paddingHorizontal: 20, paddingVertical: 8, backgroundColor: '#C17C74', borderRadius: 12 },
+  retryText: { color: 'white', fontSize: 13, fontWeight: '600' },
 });

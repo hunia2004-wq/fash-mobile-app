@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
-import {View, Text, TouchableOpacity, ScrollView, StyleSheet, TextInput, Image, Dimensions,} from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, StyleSheet, TextInput, Image, Dimensions, } from 'react-native';
 import { FontAwesome, Ionicons, Feather } from '@expo/vector-icons';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import ProfileScreen from '../profile'; 
+import ProfileScreen from '../profile';
 import { useNavigation } from "@react-navigation/native";
 
 import WardrobeScreen from '../digital-wardrobe/wardrobe';
@@ -13,10 +13,10 @@ import { useTranslation } from 'react-i18next';
 
 import { getAllAuctions } from '../../services/authService';
 
- 
+
 const { width } = Dimensions.get('window');
 const Tab = createBottomTabNavigator();
- 
+
 function HomeContent() {
   const navigation = useNavigation();
   const { t } = useTranslation();
@@ -28,13 +28,13 @@ function HomeContent() {
   ];
 
   const sustainabilityItems = [
-    { 
-      id: '1', 
+    {
+      id: '1',
       image: require('../../source/assets/images/packing.png'),
       screen: 'PackingBuilderscreen'
     },
-    { 
-      id: '2', 
+    {
+      id: '2',
       image: require('../../source/assets/images/donations.png'),
       screen: 'DonationScreen'
     },
@@ -44,18 +44,18 @@ function HomeContent() {
 
   const [liveAuctions, setLiveAuctions] = useState([]);
 
-useEffect(() => {
-  getAllAuctions()
-    .then(data => {
-      const all = (data.auctions ?? data ?? []);
-      // show only auctions ending within 1 hour
-      const live = all.filter(a =>
-        a.title === 'YSL Tribute Heels' || a.title === 'miu min brown bag'
-      );
-      setLiveAuctions(live);
-    })
-    .catch(err => console.warn('Auction fetch failed:', err.message));
-}, []);
+  useEffect(() => {
+    getAllAuctions()
+      .then(data => {
+        const all = (data.auctions ?? data ?? []);
+        // show only auctions ending within 1 hour
+        const live = all.filter(a =>
+          a.title === 'YSL Tribute Heels' || a.title === 'miu min brown bag'
+        );
+        setLiveAuctions(live);
+      })
+      .catch(err => console.warn('Auction fetch failed:', err.message));
+  }, []);
 
 
   return (
@@ -64,8 +64,8 @@ useEffect(() => {
       {/* Header */}
       <View style={styles.header}>
         <Image source={require('../../source/assets/images/Blacklogo.png')}
-        style={styles.logo}
-        resizeMode="contain" />
+          style={styles.logo}
+          resizeMode="contain" />
       </View>
 
       {/* Search */}
@@ -187,43 +187,43 @@ useEffect(() => {
         <Text style={styles.biddingSubtitle}>{t('live_bidding_sub')}</Text>
 
         <View style={styles.auctionRow}>
-  {liveAuctions.length === 0 ? (
-    <Text style={{ color: '#888', fontSize: 13, paddingVertical: 10 }}>
-      No live auctions right now
-    </Text>
-  ) : (
-    liveAuctions.map(auction => {
-      const diff = new Date(auction.endTime) - new Date();
-      const h = Math.floor(diff / 3600000);
-      const m = Math.floor((diff % 3600000) / 60000);
-      const timeLabel = h > 0 ? `${h}h ${m}m left` : `${m}m left`;
-
-      return (
-        <TouchableOpacity
-          key={auction._id}
-          style={styles.auctionCard}
-          onPress={() => navigation.navigate('AuctionRoomScreen', { auctionId: auction._id })}
-          activeOpacity={0.88}
-        >
-          {auction.images?.[0] ? (
-            <Image
-              source={{ uri: auction.images[0] }}
-              style={styles.auctionImage}
-              resizeMode="cover"
-            />
+          {liveAuctions.length === 0 ? (
+            <Text style={{ color: '#888', fontSize: 13, paddingVertical: 10 }}>
+              No live auctions right now
+            </Text>
           ) : (
-            <View style={[styles.auctionImage, { backgroundColor: '#f0f0f0', alignItems: 'center', justifyContent: 'center' }]}>
-              <Ionicons name="shirt-outline" size={32} color="#C17C74" />
-            </View>
+            liveAuctions.map(auction => {
+              const diff = new Date(auction.endTime) - new Date();
+              const h = Math.floor(diff / 3600000);
+              const m = Math.floor((diff % 3600000) / 60000);
+              const timeLabel = h > 0 ? `${h}h ${m}m left` : `${m}m left`;
+
+              return (
+                <TouchableOpacity
+                  key={auction._id}
+                  style={styles.auctionCard}
+                  onPress={() => navigation.navigate('AuctionRoomScreen', { auctionId: auction._id })}
+                  activeOpacity={0.88}
+                >
+                  {auction.images?.[0] ? (
+                    <Image
+                      source={{ uri: auction.images[0] }}
+                      style={styles.auctionImage}
+                      resizeMode="cover"
+                    />
+                  ) : (
+                    <View style={[styles.auctionImage, { backgroundColor: '#f0f0f0', alignItems: 'center', justifyContent: 'center' }]}>
+                      <Ionicons name="shirt-outline" size={32} color="#C17C74" />
+                    </View>
+                  )}
+                  <Text style={styles.itemName} numberOfLines={1}>{auction.title}</Text>
+                  <Text style={styles.bidPrice}>EGP {auction.currentBid}</Text>
+                  <Text style={styles.bidTime}>{timeLabel}</Text>
+                </TouchableOpacity>
+              );
+            })
           )}
-          <Text style={styles.itemName} numberOfLines={1}>{auction.title}</Text>
-          <Text style={styles.bidPrice}>EGP {auction.currentBid}</Text>
-          <Text style={styles.bidTime}>{timeLabel}</Text>
-        </TouchableOpacity>
-      );
-    })
-  )}
-</View>
+        </View>
 
         <TouchableOpacity
           style={styles.bidButton}
@@ -252,7 +252,7 @@ useEffect(() => {
     </ScrollView>
   );
 }
- 
+
 export default function HomeScreen() {
   return (
     <Tab.Navigator
@@ -274,7 +274,7 @@ export default function HomeScreen() {
           ),
         }}
       />
- 
+
       {/* Tab 2 — Wardrobe */}
       <Tab.Screen
         name="WardrobeTab"
@@ -285,7 +285,7 @@ export default function HomeScreen() {
           ),
         }}
       />
- 
+
       {/* Tab 3 — Upload */}
       <Tab.Screen
         name="UploadTab"
@@ -296,7 +296,7 @@ export default function HomeScreen() {
           ),
         }}
       />
- 
+
       {/* Tab 4 — Saved / Wishlist */}
       <Tab.Screen
         name="SavedTab"
@@ -307,7 +307,7 @@ export default function HomeScreen() {
           ),
         }}
       />
- 
+
       {/* Tab 5 — Profile */}
       <Tab.Screen
         name="Profile"
@@ -321,61 +321,61 @@ export default function HomeScreen() {
     </Tab.Navigator>
   );
 }
- 
+
 const boxSize = width * 0.45;
 
 const styles = StyleSheet.create({
 
-  screen:{
-    flex:1,
-    backgroundColor:'#F5F5F5'
+  screen: {
+    flex: 1,
+    backgroundColor: '#F5F5F5'
   },
 
-  placeholder:{
-    flex:1,
-    justifyContent:'center',
-    alignItems:'center'
+  placeholder: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center'
   },
 
-  header:{
-    paddingTop:60,
-    paddingBottom:10,
-    alignItems:'center'
+  header: {
+    paddingTop: 60,
+    paddingBottom: 10,
+    alignItems: 'center'
   },
 
-  logo:{
-    width:120,
-    height:50,
+  logo: {
+    width: 120,
+    height: 50,
   },
 
-  searchRow:{
-    flexDirection:'row',
-    alignItems:'center',
-    paddingHorizontal:20,
-    marginBottom:16,
-    gap:10
+  searchRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    marginBottom: 16,
+    gap: 10
   },
 
-  searchBar:{
-    flex:1,
-    flexDirection:'row',
-    alignItems:'center',
-    backgroundColor:'#f0f0f0',
-    borderRadius:12,
-    paddingHorizontal:14,
-    paddingVertical:10
+  searchBar: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f0f0f0',
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 10
   },
 
-  searchInput:{
-    flex:1,
-    fontSize:15,
-    color:'#333'
+  searchInput: {
+    flex: 1,
+    fontSize: 15,
+    color: '#333'
   },
 
-  filterBtn:{
-    backgroundColor:'#f0f0f0',
-    padding:10,
-    borderRadius:12
+  filterBtn: {
+    backgroundColor: '#f0f0f0',
+    padding: 10,
+    borderRadius: 12
   },
 
   banner: {
@@ -385,18 +385,18 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     height: 200,
   },
-  
+
   bannerImage: {
     width: '100%',
     height: '100%',
     position: 'absolute',
   },
-  
+
   bannerOverlay: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: 'rgba(0,0,0,0.45)',
   },
-  
+
   arLiveBadge: {
     position: 'absolute',
     top: 14,
@@ -411,39 +411,39 @@ const styles = StyleSheet.create({
     paddingVertical: 5,
     borderRadius: 20,
   },
-  
+
   arLiveDot: {
     width: 7,
     height: 7,
     borderRadius: 4,
     backgroundColor: '#FF4D4D',
   },
-  
+
   arLiveText: {
     color: 'white',
     fontWeight: '700',
     fontSize: 12,
   },
-  
+
   bannerContent: {
     position: 'absolute',
     bottom: 18,
     left: 18,
   },
-  
+
   bannerTitle: {
     color: 'white',
     fontSize: 22,
     fontWeight: '700',
     marginBottom: 4,
   },
-  
+
   bannerSub: {
     color: 'rgba(255,255,255,0.85)',
     fontSize: 12,
     marginBottom: 12,
   },
-  
+
   bannerBtn: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -454,57 +454,57 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     alignSelf: 'flex-start',
   },
-  
+
   bannerBtnText: {
     color: 'white',
     fontWeight: '700',
     fontSize: 13,
   },
 
-  sectionTitle:{
-    fontSize:18,
-    fontWeight:'600',
-    color:'#C17C74',
-    marginBottom:14,
-    paddingHorizontal:20
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#C17C74',
+    marginBottom: 14,
+    paddingHorizontal: 20
   },
 
-  closetRow:{
-    flexDirection:'row',
-    paddingHorizontal:20,
-    justifyContent:'space-between',
-    marginBottom:24
+  closetRow: {
+    flexDirection: 'row',
+    paddingHorizontal: 20,
+    justifyContent: 'space-between',
+    marginBottom: 24
   },
 
-  closetCard:{
+  closetCard: {
     width: width * 0.43,
-    backgroundColor:'white',
-    borderRadius:16,
-    padding:16,
-    minHeight:90,
-    flexDirection:'row',
-    justifyContent:'space-between',
-    alignItems:'center',
-    shadowColor:'#000',
-    shadowOpacity:0.05,
-    shadowRadius:6,
-    elevation:3,
+    backgroundColor: 'white',
+    borderRadius: 16,
+    padding: 16,
+    minHeight: 90,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
+    elevation: 3,
     borderColor: '#F2E6E3',
     borderWidth: 4,
     overflow: 'hidden',
   },
 
-  closetCardTitle:{
-    fontSize:15,
-    fontWeight:'600',
-    color:'#111',
-    marginBottom:4
+  closetCardTitle: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#111',
+    marginBottom: 4
   },
 
-  closetCardSub:{
-    fontSize:12,
-    color:'gray',
-    lineHeight:18
+  closetCardSub: {
+    fontSize: 12,
+    color: 'gray',
+    lineHeight: 18
   },
 
   aiImageWrapper: {
@@ -530,64 +530,64 @@ const styles = StyleSheet.create({
     marginRight: 12,
     backgroundColor: 'white',
   },
-  
+
   boutiqueImage: {
     width: '100%',
     height: 155.5,
   },
-  
+
   boutiqueLabelBtn: {
     backgroundColor: '#F6E9E6',
     paddingVertical: 10,
     paddingHorizontal: 12,
-    flexDirection: 'row',        
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     borderTopWidth: 1,
-    borderTopColor: '#E8D0CC',   
+    borderTopColor: '#E8D0CC',
   },
-  
+
   boutiqueLabel: {
     color: 'black',
     fontWeight: '600',
     fontSize: 12,
     textAlign: 'center',
   },
-  
-  sustainCard:{
-    width:140,
-    height:120,
-    borderRadius:18,
-    marginRight:12,
-    overflow:'hidden',
-    justifyContent:'center',
-    alignItems:'center'
+
+  sustainCard: {
+    width: 140,
+    height: 120,
+    borderRadius: 18,
+    marginRight: 12,
+    overflow: 'hidden',
+    justifyContent: 'center',
+    alignItems: 'center'
   },
 
-  sustainImage:{
-    position:'absolute',
-    width:'100%',
-    height:'100%'
+  sustainImage: {
+    position: 'absolute',
+    width: '100%',
+    height: '100%'
   },
 
-  sustainLabel:{
-    color:'white',
-    fontWeight:'bold',
-    fontSize:16,
-    textAlign:'center'
+  sustainLabel: {
+    color: 'white',
+    fontWeight: 'bold',
+    fontSize: 16,
+    textAlign: 'center'
   },
 
-  tabBar:{
-    height:70,
-    paddingBottom:10,
-    paddingTop:10,
-    backgroundColor:'white',
-    borderTopWidth:0,
-    elevation:10,
-    shadowColor:'#000',
-    shadowOffset:{ width:0,height:-2 },
-    shadowOpacity:0.08,
-    shadowRadius:8
+  tabBar: {
+    height: 70,
+    paddingBottom: 10,
+    paddingTop: 10,
+    backgroundColor: 'white',
+    borderTopWidth: 0,
+    elevation: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8
   },
 
   biddingSection: {
@@ -597,13 +597,13 @@ const styles = StyleSheet.create({
     marginVertical: 20,
     marginTop: 50,
   },
-  
+
   biddingHeader: {
     flexDirection: "row",
     alignItems: "center",
     marginBottom: 5
   },
-  
+
   liveDot: {
     width: 8,
     height: 8,
@@ -611,56 +611,56 @@ const styles = StyleSheet.create({
     backgroundColor: "red",
     marginRight: 6
   },
-  
+
   biddingTitle: {
     fontSize: 18,
     fontWeight: "bold"
   },
-  
+
   biddingSubtitle: {
     color: "#666",
     marginBottom: 15
   },
-  
+
   auctionRow: {
     flexDirection: "row",
     justifyContent: "space-between",
   },
-  
+
   auctionCard: {
     width: boxSize,
     borderRadius: 12,
     backgroundColor: "#F5F5F5",
-    overflow: "hidden",      
+    overflow: "hidden",
     marginBottom: 20,
   },
-  
+
   auctionImage: {
-    width: "100%",            
-    height: boxSize * 0.65,   
+    width: "100%",
+    height: boxSize * 0.65,
     borderTopLeftRadius: 12,
     borderTopRightRadius: 12,
   },
-  
+
   itemName: {
     fontWeight: "600",
     marginTop: 6,
     textAlign: "center",
   },
-  
+
   bidPrice: {
     fontWeight: "bold",
     color: "#C17C74",
     textAlign: "center",
   },
-  
+
   bidTime: {
     fontSize: 12,
     color: "#888",
     marginBottom: 20,
     textAlign: "center",
   },
-  
+
   bidButton: {
     borderRadius: 10,
     overflow: 'hidden',

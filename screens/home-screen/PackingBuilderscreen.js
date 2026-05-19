@@ -8,18 +8,18 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { COLORS, ITEM_CATEGORIES } from './Packingdata';
 import { useAuth } from '../../context/AuthContext';
 import { getBuilderItems, createOutfit } from '../../services/authService';
- 
+
 const { width } = Dimensions.get('window');
- 
+
 const CATEGORY_EMOJIS = {
   Tops: '👕', Bottoms: '👖', Dresses: '👗', Shoes: '👟',
   Bags: '👜', Accessories: '✨', Outerwear: '🧥',
   'Soirée': '✨', 'Umrah & Hajj': '🕌', Kids: '👶', Suits: '👔',
 };
- 
+
 const OCCASIONS = ['Casual', 'Work', 'Evening', 'Sport', 'Formal'];
-const SEASONS   = ['Spring', 'Summer', 'Autumn', 'Winter', 'All-season'];
- 
+const SEASONS = ['Spring', 'Summer', 'Autumn', 'Winter', 'All-season'];
+
 // Real image or emoji fallback
 const ItemThumbnail = ({ item, style, emojiSize = 24 }) => {
   if (item.image) {
@@ -37,19 +37,19 @@ const ItemThumbnail = ({ item, style, emojiSize = 24 }) => {
     </View>
   );
 };
- 
+
 export default function OutfitBuilderScreen({ navigation }) {
   const { getToken } = useAuth();
- 
-  const [items,          setItems]          = useState([]);
-  const [selectedItems,  setSelectedItems]  = useState([]);
+
+  const [items, setItems] = useState([]);
+  const [selectedItems, setSelectedItems] = useState([]);
   const [activeCategory, setActiveCategory] = useState('All');
-  const [outfitName,     setOutfitName]     = useState('');
-  const [occasion,       setOccasion]       = useState('');
-  const [season,         setSeason]         = useState('');
-  const [loading,        setLoading]        = useState(true);
-  const [saving,         setSaving]         = useState(false);
- 
+  const [outfitName, setOutfitName] = useState('');
+  const [occasion, setOccasion] = useState('');
+  const [season, setSeason] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+
   // Fetches items from both wardrobe + FASH collection via /outfits/builder
   useEffect(() => {
     const fetchItems = async () => {
@@ -66,9 +66,9 @@ export default function OutfitBuilderScreen({ navigation }) {
     };
     fetchItems();
   }, [activeCategory]);
- 
+
   const filteredItems = items;
- 
+
   const toggleItem = (item) => {
     const id = item.itemId.toString();
     const isSelected = selectedItems.find(i => i.itemId.toString() === id);
@@ -88,9 +88,9 @@ export default function OutfitBuilderScreen({ navigation }) {
       }
     }
   };
- 
+
   const isSelected = (id) => !!selectedItems.find(i => i.itemId.toString() === id.toString());
- 
+
   const handleSendToAI = () => {
     if (selectedItems.length === 0) {
       Alert.alert('No items selected', 'Please pick at least one item first.');
@@ -100,7 +100,7 @@ export default function OutfitBuilderScreen({ navigation }) {
     const message = `I've put together this outfit: ${itemNames}. Can you tell me how it looks and suggest any improvements or accessories?`;
     navigation.navigate('AIStylingScreen', { prefillMessage: message });
   };
- 
+
   const handleSaveOutfit = async () => {
     if (selectedItems.length < 2) {
       Alert.alert('Add more items', 'Pick at least 2 items to save an outfit.');
@@ -128,18 +128,18 @@ export default function OutfitBuilderScreen({ navigation }) {
       setSaving(false);
     }
   };
- 
+
   const categoryGroups = [
     'Tops', 'Bottoms', 'Dresses', 'Shoes', 'Outerwear', 'Bags', 'Accessories',
   ].map(label => ({
     label,
     items: selectedItems.filter(i => i.category === label),
   })).filter(g => g.items.length > 0);
- 
+
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
       <StatusBar barStyle="dark-content" />
- 
+
       <View style={styles.topNav}>
         <TouchableOpacity style={styles.navBtn} onPress={() => navigation.goBack()} activeOpacity={0.8}>
           <Ionicons name="arrow-back" size={20} color={COLORS.text} />
@@ -157,7 +157,7 @@ export default function OutfitBuilderScreen({ navigation }) {
           }
         </TouchableOpacity>
       </View>
- 
+
       <View style={styles.previewBar}>
         {selectedItems.length === 0 ? (
           <Text style={styles.previewEmpty}>Tap items below to build your outfit</Text>
@@ -188,7 +188,7 @@ export default function OutfitBuilderScreen({ navigation }) {
           </ScrollView>
         )}
       </View>
- 
+
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
@@ -207,9 +207,9 @@ export default function OutfitBuilderScreen({ navigation }) {
           </TouchableOpacity>
         ))}
       </ScrollView>
- 
+
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
- 
+
         {selectedItems.length > 0 && (
           <View style={styles.structureCard}>
             <Text style={styles.structureTitle}>Your Outfit</Text>
@@ -223,7 +223,7 @@ export default function OutfitBuilderScreen({ navigation }) {
             ))}
           </View>
         )}
- 
+
         {/* Outfit name input — shown when 2+ items selected */}
         {selectedItems.length >= 2 && (
           <View style={{ marginBottom: 12 }}>
@@ -236,11 +236,11 @@ export default function OutfitBuilderScreen({ navigation }) {
             />
           </View>
         )}
- 
+
         <Text style={styles.sectionLabel}>
           {activeCategory === 'All' ? 'All Items' : activeCategory} · {filteredItems.length}
         </Text>
- 
+
         {loading ? (
           <ActivityIndicator size="large" color={COLORS.accent} style={{ marginTop: 40 }} />
         ) : filteredItems.length === 0 ? (
@@ -265,14 +265,14 @@ export default function OutfitBuilderScreen({ navigation }) {
                       <Ionicons name="checkmark" size={12} color={COLORS.white} />
                     </View>
                   )}
-                  
- 
+
+
                   <ItemThumbnail
                     item={item}
                     style={[styles.itemEmojiBox, selected && styles.itemEmojiBoxSelected]}
                     emojiSize={24}
                   />
- 
+
                   <Text style={[styles.itemName, selected && styles.itemNameSelected]} numberOfLines={2}>
                     {item.name}
                   </Text>
@@ -286,7 +286,7 @@ export default function OutfitBuilderScreen({ navigation }) {
           </View>
         )}
       </ScrollView>
- 
+
       {selectedItems.length > 0 && (
         <View style={styles.ctaBar}>
           <TouchableOpacity style={styles.clearBtn} onPress={() => setSelectedItems([])} activeOpacity={0.8}>
@@ -301,7 +301,7 @@ export default function OutfitBuilderScreen({ navigation }) {
     </SafeAreaView>
   );
 }
- 
+
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: COLORS.bg },
@@ -350,7 +350,7 @@ const styles = StyleSheet.create({
   },
   previewAIText: { fontSize: 10, fontWeight: '700', color: COLORS.white },
 
-  
+
   categoryRow: {
     paddingHorizontal: 16, paddingVertical: 10,
     alignItems: 'center', height: 52,
@@ -382,7 +382,7 @@ const styles = StyleSheet.create({
     marginBottom: 12, marginTop: 4,
   },
 
- 
+
   itemsGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
   itemCard: {
     width: (width - 52) / 3,

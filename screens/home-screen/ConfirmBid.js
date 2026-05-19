@@ -50,36 +50,36 @@ export default function ConfirmBid({ navigation, route }) {
 
         {/* Browse More — pops back to AuctionListScreen (root of auction stack) */}
         <TouchableOpacity
-  style={styles.btnOutline}
-  onPress={() => navigation.reset({
-    index: 1,
-    routes: [
-      { name: 'Home' },
-      { name: 'AuctionListScreen' },
-    ],
-  })}
-  activeOpacity={0.85}
->
-  <Text style={styles.btnOutlineText}>Browse More Auctions</Text>
-</TouchableOpacity>
+          style={styles.btnOutline}
+          onPress={() => navigation.reset({
+            index: 1,
+            routes: [
+              { name: 'Home' },
+              { name: 'AuctionListScreen' },
+            ],
+          })}
+          activeOpacity={0.85}
+        >
+          <Text style={styles.btnOutlineText}>Browse More Auctions</Text>
+        </TouchableOpacity>
       </View>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  safe:           { flex: 1, backgroundColor: COLORS.bg },
-  container:      { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 32, gap: 16 },
-  iconWrap:       { width: 120, height: 120, borderRadius: 60, backgroundColor: COLORS.successLight, alignItems: 'center', justifyContent: 'center', marginBottom: 8 },
-  title:          { fontSize: 28, fontWeight: '900', color: COLORS.text },
-  sub:            { fontSize: 15, color: COLORS.muted },
-  auctionName:    { fontSize: 16, fontWeight: '700', color: COLORS.accent, textAlign: 'center' },
-  bidCard:        { backgroundColor: COLORS.card, borderRadius: 20, paddingHorizontal: 40, paddingVertical: 20, alignItems: 'center', marginVertical: 8 },
-  bidLabel:       { fontSize: 12, color: COLORS.muted, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.5 },
-  bidAmount:      { fontSize: 40, fontWeight: '900', color: COLORS.accent, marginTop: 4 },
-  note:           { fontSize: 13, color: COLORS.muted, textAlign: 'center', lineHeight: 20 },
-  btnPrimary:     { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: COLORS.accent, borderRadius: 16, paddingVertical: 16, width: '100%' },
+  safe: { flex: 1, backgroundColor: COLORS.bg },
+  container: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 32, gap: 16 },
+  iconWrap: { width: 120, height: 120, borderRadius: 60, backgroundColor: COLORS.successLight, alignItems: 'center', justifyContent: 'center', marginBottom: 8 },
+  title: { fontSize: 28, fontWeight: '900', color: COLORS.text },
+  sub: { fontSize: 15, color: COLORS.muted },
+  auctionName: { fontSize: 16, fontWeight: '700', color: COLORS.accent, textAlign: 'center' },
+  bidCard: { backgroundColor: COLORS.card, borderRadius: 20, paddingHorizontal: 40, paddingVertical: 20, alignItems: 'center', marginVertical: 8 },
+  bidLabel: { fontSize: 12, color: COLORS.muted, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.5 },
+  bidAmount: { fontSize: 40, fontWeight: '900', color: COLORS.accent, marginTop: 4 },
+  note: { fontSize: 13, color: COLORS.muted, textAlign: 'center', lineHeight: 20 },
+  btnPrimary: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: COLORS.accent, borderRadius: 16, paddingVertical: 16, width: '100%' },
   btnPrimaryText: { fontSize: 15, fontWeight: '700', color: COLORS.white },
-  btnOutline:     { alignItems: 'center', justifyContent: 'center', borderWidth: 1.5, borderColor: COLORS.accent, borderRadius: 16, paddingVertical: 15, width: '100%' },
+  btnOutline: { alignItems: 'center', justifyContent: 'center', borderWidth: 1.5, borderColor: COLORS.accent, borderRadius: 16, paddingVertical: 15, width: '100%' },
   btnOutlineText: { fontSize: 15, fontWeight: '700', color: COLORS.accent },
 });

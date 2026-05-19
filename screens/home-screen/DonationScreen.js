@@ -30,8 +30,8 @@ const CATEGORY_EMOJIS = {
 
 const CONDITION_STYLES = {
   'Like New': { bg: '#e8f5e9', text: '#388e3c' },
-  'Good':     { bg: '#fff8e1', text: '#f9a825' },
-  'Fair':     { bg: '#fce4ec', text: '#c2185b' },
+  'Good': { bg: '#fff8e1', text: '#f9a825' },
+  'Fair': { bg: '#fce4ec', text: '#c2185b' },
 };
 
 // Generate next 7 days for date picker
@@ -93,30 +93,30 @@ export default function DonationScreen({ navigation }) {
   const { getToken } = useAuth();
 
   // Data
-  const [wardrobeItems,  setWardrobeItems]  = useState([]);
-  const [centers,        setCenters]        = useState([]);
-  const [pointsGuide,    setPointsGuide]    = useState({ 'Like New': 50, 'Good': 30, 'Fair': 15 });
+  const [wardrobeItems, setWardrobeItems] = useState([]);
+  const [centers, setCenters] = useState([]);
+  const [pointsGuide, setPointsGuide] = useState({ 'Like New': 50, 'Good': 30, 'Fair': 15 });
   const [savedAddresses, setSavedAddresses] = useState([]);
 
   // Selection
-  const [selectedItems,  setSelectedItems]  = useState([]);
+  const [selectedItems, setSelectedItems] = useState([]);
   const [selectedCenter, setSelectedCenter] = useState(null);
 
   // Pickup form
-  const [pickupAddress,  setPickupAddress]  = useState('');
-  const [selectedDate,   setSelectedDate]   = useState(null);
-  const [selectedSlot,   setSelectedSlot]   = useState(null);
-  const [showAddresses,  setShowAddresses]  = useState(false);
+  const [pickupAddress, setPickupAddress] = useState('');
+  const [selectedDate, setSelectedDate] = useState(null);
+  const [selectedSlot, setSelectedSlot] = useState(null);
+  const [showAddresses, setShowAddresses] = useState(false);
 
   // UI state
-  const [activeTab,      setActiveTab]      = useState('items');
-  const [step,           setStep]           = useState(1);
-  const [loading,        setLoading]        = useState(true);
+  const [activeTab, setActiveTab] = useState('items');
+  const [step, setStep] = useState(1);
+  const [loading, setLoading] = useState(true);
   const [centersLoading, setCentersLoading] = useState(false);
-  const [centersLoaded,  setCentersLoaded]  = useState(false);
-  const [submitting,     setSubmitting]     = useState(false);
-  const [submitted,      setSubmitted]      = useState(false);
-  const [earnedPoints,   setEarnedPoints]   = useState(0);
+  const [centersLoaded, setCentersLoaded] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const [earnedPoints, setEarnedPoints] = useState(0);
 
   const DATES = generateDates();
 
@@ -157,7 +157,7 @@ export default function DonationScreen({ navigation }) {
           lat = loc.coords.latitude;
           lng = loc.coords.longitude;
         }
-      } catch {}
+      } catch { }
       const data = await getNearbyCenters(lat, lng);
       setCenters(data.data ?? data ?? []);
       setCentersLoaded(true);
@@ -687,135 +687,135 @@ export default function DonationScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  safe:                  { flex: 1, backgroundColor: COLORS.bg },
-  topNav:                { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 12, backgroundColor: COLORS.white, borderBottomWidth: 1, borderBottomColor: COLORS.border },
-  navBtn:                { width: 40, height: 40, borderRadius: 12, backgroundColor: COLORS.card, alignItems: 'center', justifyContent: 'center' },
-  navTitle:              { fontSize: 16, fontWeight: '700', color: COLORS.text },
+  safe: { flex: 1, backgroundColor: COLORS.bg },
+  topNav: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 12, backgroundColor: COLORS.white, borderBottomWidth: 1, borderBottomColor: COLORS.border },
+  navBtn: { width: 40, height: 40, borderRadius: 12, backgroundColor: COLORS.card, alignItems: 'center', justifyContent: 'center' },
+  navTitle: { fontSize: 16, fontWeight: '700', color: COLORS.text },
 
-  stepWrap:              { paddingHorizontal: 16, paddingVertical: 16, backgroundColor: COLORS.white, borderBottomWidth: 1, borderBottomColor: COLORS.border },
-  stepRow:               { flexDirection: 'row', alignItems: 'center' },
-  stepItem:              { alignItems: 'center', gap: 4 },
-  stepCircle:            { width: 28, height: 28, borderRadius: 14, backgroundColor: COLORS.card, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: COLORS.border },
-  stepCircleActive:      { backgroundColor: COLORS.accent, borderColor: COLORS.accent },
-  stepNum:               { fontSize: 12, fontWeight: '700', color: COLORS.muted },
-  stepNumActive:         { color: COLORS.white },
-  stepLabel:             { fontSize: 10, fontWeight: '600', color: COLORS.muted },
-  stepLabelActive:       { color: COLORS.accent },
-  stepLine:              { flex: 1, height: 2, backgroundColor: COLORS.border, marginBottom: 14 },
-  stepLineActive:        { backgroundColor: COLORS.accent },
+  stepWrap: { paddingHorizontal: 16, paddingVertical: 16, backgroundColor: COLORS.white, borderBottomWidth: 1, borderBottomColor: COLORS.border },
+  stepRow: { flexDirection: 'row', alignItems: 'center' },
+  stepItem: { alignItems: 'center', gap: 4 },
+  stepCircle: { width: 28, height: 28, borderRadius: 14, backgroundColor: COLORS.card, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: COLORS.border },
+  stepCircleActive: { backgroundColor: COLORS.accent, borderColor: COLORS.accent },
+  stepNum: { fontSize: 12, fontWeight: '700', color: COLORS.muted },
+  stepNumActive: { color: COLORS.white },
+  stepLabel: { fontSize: 10, fontWeight: '600', color: COLORS.muted },
+  stepLabelActive: { color: COLORS.accent },
+  stepLine: { flex: 1, height: 2, backgroundColor: COLORS.border, marginBottom: 14 },
+  stepLineActive: { backgroundColor: COLORS.accent },
 
-  pointsBanner:          { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: COLORS.goldLight, marginHorizontal: 16, marginTop: 12, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 10, borderWidth: 1, borderColor: '#f9e0a0' },
-  pointsBannerEmoji:     { fontSize: 16 },
-  pointsBannerText:      { flex: 1, fontSize: 11, fontWeight: '600', color: '#7a5c00' },
+  pointsBanner: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: COLORS.goldLight, marginHorizontal: 16, marginTop: 12, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 10, borderWidth: 1, borderColor: '#f9e0a0' },
+  pointsBannerEmoji: { fontSize: 16 },
+  pointsBannerText: { flex: 1, fontSize: 11, fontWeight: '600', color: '#7a5c00' },
 
-  tabRow:                { flexDirection: 'row', marginHorizontal: 16, marginTop: 12, backgroundColor: COLORS.card, borderRadius: 14, padding: 4 },
-  tab:                   { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 10, borderRadius: 12 },
-  tabActive:             { backgroundColor: COLORS.accent },
-  tabText:               { fontSize: 13, fontWeight: '700', color: COLORS.muted },
-  tabTextActive:         { color: COLORS.white },
+  tabRow: { flexDirection: 'row', marginHorizontal: 16, marginTop: 12, backgroundColor: COLORS.card, borderRadius: 14, padding: 4 },
+  tab: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 10, borderRadius: 12 },
+  tabActive: { backgroundColor: COLORS.accent },
+  tabText: { fontSize: 13, fontWeight: '700', color: COLORS.muted },
+  tabTextActive: { color: COLORS.white },
 
-  scrollContent:         { paddingHorizontal: 16, paddingTop: 14, paddingBottom: 20 },
-  sectionLabel:          { fontSize: 11, fontWeight: '700', color: COLORS.accent, textTransform: 'uppercase', letterSpacing: 0.9, marginBottom: 12 },
+  scrollContent: { paddingHorizontal: 16, paddingTop: 14, paddingBottom: 20 },
+  sectionLabel: { fontSize: 11, fontWeight: '700', color: COLORS.accent, textTransform: 'uppercase', letterSpacing: 0.9, marginBottom: 12 },
 
-  centerSelectedBanner:  { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: COLORS.accentLight, borderRadius: 14, padding: 14, marginBottom: 14, borderWidth: 1, borderColor: COLORS.border },
-  centerSelectedLabel:   { fontSize: 10, fontWeight: '700', color: COLORS.muted, textTransform: 'uppercase' },
-  centerSelectedName:    { fontSize: 14, fontWeight: '700', color: COLORS.accent, marginTop: 2 },
-  changeCenter:          { fontSize: 12, fontWeight: '700', color: COLORS.accent },
+  centerSelectedBanner: { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: COLORS.accentLight, borderRadius: 14, padding: 14, marginBottom: 14, borderWidth: 1, borderColor: COLORS.border },
+  centerSelectedLabel: { fontSize: 10, fontWeight: '700', color: COLORS.muted, textTransform: 'uppercase' },
+  centerSelectedName: { fontSize: 14, fontWeight: '700', color: COLORS.accent, marginTop: 2 },
+  changeCenter: { fontSize: 12, fontWeight: '700', color: COLORS.accent },
 
-  pickCenterPrompt:      { flexDirection: 'row', alignItems: 'flex-start', gap: 10, backgroundColor: COLORS.accentLight, borderRadius: 12, padding: 14, marginBottom: 14, borderWidth: 1, borderColor: COLORS.border },
-  pickCenterPromptText:  { flex: 1, fontSize: 13, color: COLORS.accent, fontWeight: '600', lineHeight: 19 },
+  pickCenterPrompt: { flexDirection: 'row', alignItems: 'flex-start', gap: 10, backgroundColor: COLORS.accentLight, borderRadius: 12, padding: 14, marginBottom: 14, borderWidth: 1, borderColor: COLORS.border },
+  pickCenterPromptText: { flex: 1, fontSize: 13, color: COLORS.accent, fontWeight: '600', lineHeight: 19 },
 
-  emptyState:            { alignItems: 'center', paddingTop: 60, gap: 10 },
-  emptyTitle:            { fontSize: 17, fontWeight: '600', color: COLORS.text },
-  emptySub:              { fontSize: 13, color: COLORS.muted, textAlign: 'center' },
-  retryBtn:              { marginTop: 6, backgroundColor: COLORS.accent, borderRadius: 12, paddingHorizontal: 20, paddingVertical: 10 },
-  retryBtnText:          { color: COLORS.white, fontSize: 13, fontWeight: '700' },
+  emptyState: { alignItems: 'center', paddingTop: 60, gap: 10 },
+  emptyTitle: { fontSize: 17, fontWeight: '600', color: COLORS.text },
+  emptySub: { fontSize: 13, color: COLORS.muted, textAlign: 'center' },
+  retryBtn: { marginTop: 6, backgroundColor: COLORS.accent, borderRadius: 12, paddingHorizontal: 20, paddingVertical: 10 },
+  retryBtnText: { color: COLORS.white, fontSize: 13, fontWeight: '700' },
 
-  itemRow:               { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: COLORS.white, borderRadius: 16, padding: 14, marginBottom: 10, borderWidth: 1.5, borderColor: COLORS.border },
-  itemRowSelected:       { borderColor: COLORS.accent, backgroundColor: COLORS.accentLight },
-  itemThumb:             { width: 56, height: 56, borderRadius: 12, backgroundColor: COLORS.card },
-  emojiFallback:         { alignItems: 'center', justifyContent: 'center' },
-  emojiFallbackText:     { fontSize: 26 },
-  itemInfo:              { flex: 1 },
-  itemName:              { fontSize: 14, fontWeight: '700', color: COLORS.text },
-  itemMeta:              { fontSize: 11, color: COLORS.muted, marginTop: 2 },
-  itemTagRow:            { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 6 },
-  conditionTag:          { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 7 },
-  conditionText:         { fontSize: 10, fontWeight: '700' },
-  pointsTag:             { backgroundColor: COLORS.goldLight, paddingHorizontal: 8, paddingVertical: 3, borderRadius: 7 },
-  pointsTagText:         { fontSize: 10, fontWeight: '700', color: COLORS.gold },
-  checkbox:              { width: 26, height: 26, borderRadius: 13, borderWidth: 2, borderColor: COLORS.border, alignItems: 'center', justifyContent: 'center' },
-  checkboxSelected:      { backgroundColor: COLORS.accent, borderColor: COLORS.accent },
+  itemRow: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: COLORS.white, borderRadius: 16, padding: 14, marginBottom: 10, borderWidth: 1.5, borderColor: COLORS.border },
+  itemRowSelected: { borderColor: COLORS.accent, backgroundColor: COLORS.accentLight },
+  itemThumb: { width: 56, height: 56, borderRadius: 12, backgroundColor: COLORS.card },
+  emojiFallback: { alignItems: 'center', justifyContent: 'center' },
+  emojiFallbackText: { fontSize: 26 },
+  itemInfo: { flex: 1 },
+  itemName: { fontSize: 14, fontWeight: '700', color: COLORS.text },
+  itemMeta: { fontSize: 11, color: COLORS.muted, marginTop: 2 },
+  itemTagRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 6 },
+  conditionTag: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 7 },
+  conditionText: { fontSize: 10, fontWeight: '700' },
+  pointsTag: { backgroundColor: COLORS.goldLight, paddingHorizontal: 8, paddingVertical: 3, borderRadius: 7 },
+  pointsTagText: { fontSize: 10, fontWeight: '700', color: COLORS.gold },
+  checkbox: { width: 26, height: 26, borderRadius: 13, borderWidth: 2, borderColor: COLORS.border, alignItems: 'center', justifyContent: 'center' },
+  checkboxSelected: { backgroundColor: COLORS.accent, borderColor: COLORS.accent },
 
-  centerCard:            { backgroundColor: COLORS.white, borderRadius: 18, padding: 16, marginBottom: 12, borderWidth: 1, borderColor: COLORS.border },
-  centerHeader:          { flexDirection: 'row', gap: 12, marginBottom: 12 },
-  centerIconWrap:        { width: 44, height: 44, borderRadius: 22, backgroundColor: COLORS.accentLight, alignItems: 'center', justifyContent: 'center' },
-  centerInfo:            { flex: 1 },
-  centerTitleRow:        { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  centerName:            { fontSize: 14, fontWeight: '700', color: COLORS.text, flex: 1 },
-  verifiedBadge:         { flexDirection: 'row', alignItems: 'center', gap: 3, backgroundColor: COLORS.accent, borderRadius: 7, paddingHorizontal: 7, paddingVertical: 2 },
-  verifiedText:          { fontSize: 9, fontWeight: '700', color: COLORS.white },
-  centerAddress:         { fontSize: 12, color: COLORS.muted, marginTop: 2 },
-  centerDetails:         { gap: 6, marginBottom: 12 },
-  centerDetailRow:       { flexDirection: 'row', alignItems: 'center', gap: 7 },
-  centerDetailText:      { fontSize: 12, color: COLORS.muted },
-  acceptsRow:            { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 12 },
-  acceptTag:             { backgroundColor: COLORS.card, borderRadius: 8, paddingHorizontal: 10, paddingVertical: 4 },
-  acceptTagText:         { fontSize: 11, fontWeight: '600', color: COLORS.accent },
-  selectCenterBtn:       { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: COLORS.accent, borderRadius: 12, paddingVertical: 12 },
-  selectCenterBtnText:   { fontSize: 13, fontWeight: '700', color: COLORS.white },
+  centerCard: { backgroundColor: COLORS.white, borderRadius: 18, padding: 16, marginBottom: 12, borderWidth: 1, borderColor: COLORS.border },
+  centerHeader: { flexDirection: 'row', gap: 12, marginBottom: 12 },
+  centerIconWrap: { width: 44, height: 44, borderRadius: 22, backgroundColor: COLORS.accentLight, alignItems: 'center', justifyContent: 'center' },
+  centerInfo: { flex: 1 },
+  centerTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  centerName: { fontSize: 14, fontWeight: '700', color: COLORS.text, flex: 1 },
+  verifiedBadge: { flexDirection: 'row', alignItems: 'center', gap: 3, backgroundColor: COLORS.accent, borderRadius: 7, paddingHorizontal: 7, paddingVertical: 2 },
+  verifiedText: { fontSize: 9, fontWeight: '700', color: COLORS.white },
+  centerAddress: { fontSize: 12, color: COLORS.muted, marginTop: 2 },
+  centerDetails: { gap: 6, marginBottom: 12 },
+  centerDetailRow: { flexDirection: 'row', alignItems: 'center', gap: 7 },
+  centerDetailText: { fontSize: 12, color: COLORS.muted },
+  acceptsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 12 },
+  acceptTag: { backgroundColor: COLORS.card, borderRadius: 8, paddingHorizontal: 10, paddingVertical: 4 },
+  acceptTagText: { fontSize: 11, fontWeight: '600', color: COLORS.accent },
+  selectCenterBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: COLORS.accent, borderRadius: 12, paddingVertical: 12 },
+  selectCenterBtnText: { fontSize: 13, fontWeight: '700', color: COLORS.white },
 
   // Pickup address
-  savedAddressToggle:    { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: COLORS.white, borderRadius: 12, padding: 14, marginBottom: 8, borderWidth: 1, borderColor: COLORS.border },
-  savedAddressToggleText:{ flex: 1, fontSize: 13, fontWeight: '600', color: COLORS.accent },
-  savedAddressList:      { backgroundColor: COLORS.white, borderRadius: 12, marginBottom: 10, borderWidth: 1, borderColor: COLORS.border, overflow: 'hidden' },
-  savedAddressItem:      { flexDirection: 'row', alignItems: 'center', padding: 14, borderBottomWidth: 1, borderBottomColor: COLORS.border },
-  savedAddressItemActive:{ backgroundColor: COLORS.accentLight },
-  savedAddressLabel:     { fontSize: 11, fontWeight: '700', color: COLORS.accent, marginBottom: 2 },
-  savedAddressText:      { fontSize: 13, color: COLORS.text },
-  addressInput:          { backgroundColor: COLORS.white, borderRadius: 14, padding: 14, fontSize: 14, color: COLORS.text, borderWidth: 1, borderColor: COLORS.border, minHeight: 70 },
+  savedAddressToggle: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: COLORS.white, borderRadius: 12, padding: 14, marginBottom: 8, borderWidth: 1, borderColor: COLORS.border },
+  savedAddressToggleText: { flex: 1, fontSize: 13, fontWeight: '600', color: COLORS.accent },
+  savedAddressList: { backgroundColor: COLORS.white, borderRadius: 12, marginBottom: 10, borderWidth: 1, borderColor: COLORS.border, overflow: 'hidden' },
+  savedAddressItem: { flexDirection: 'row', alignItems: 'center', padding: 14, borderBottomWidth: 1, borderBottomColor: COLORS.border },
+  savedAddressItemActive: { backgroundColor: COLORS.accentLight },
+  savedAddressLabel: { fontSize: 11, fontWeight: '700', color: COLORS.accent, marginBottom: 2 },
+  savedAddressText: { fontSize: 13, color: COLORS.text },
+  addressInput: { backgroundColor: COLORS.white, borderRadius: 14, padding: 14, fontSize: 14, color: COLORS.text, borderWidth: 1, borderColor: COLORS.border, minHeight: 70 },
 
   // Date picker
-  datesRow:              { gap: 10, paddingVertical: 4 },
-  dateCard:              { alignItems: 'center', backgroundColor: COLORS.white, borderRadius: 14, paddingVertical: 12, paddingHorizontal: 14, borderWidth: 1.5, borderColor: COLORS.border, minWidth: 64 },
-  dateCardActive:        { backgroundColor: COLORS.accent, borderColor: COLORS.accent },
-  dateDayText:           { fontSize: 11, fontWeight: '600', color: COLORS.muted },
-  dateDateText:          { fontSize: 20, fontWeight: '800', color: COLORS.text, marginVertical: 2 },
-  dateMonthText:         { fontSize: 11, color: COLORS.muted },
-  dateTextActive:        { color: COLORS.white },
+  datesRow: { gap: 10, paddingVertical: 4 },
+  dateCard: { alignItems: 'center', backgroundColor: COLORS.white, borderRadius: 14, paddingVertical: 12, paddingHorizontal: 14, borderWidth: 1.5, borderColor: COLORS.border, minWidth: 64 },
+  dateCardActive: { backgroundColor: COLORS.accent, borderColor: COLORS.accent },
+  dateDayText: { fontSize: 11, fontWeight: '600', color: COLORS.muted },
+  dateDateText: { fontSize: 20, fontWeight: '800', color: COLORS.text, marginVertical: 2 },
+  dateMonthText: { fontSize: 11, color: COLORS.muted },
+  dateTextActive: { color: COLORS.white },
 
   // Time slots
-  timeSlot:              { flexDirection: 'row', alignItems: 'center', backgroundColor: COLORS.white, borderRadius: 14, padding: 16, marginBottom: 10, borderWidth: 1.5, borderColor: COLORS.border },
-  timeSlotActive:        { backgroundColor: COLORS.accent, borderColor: COLORS.accent },
-  timeSlotText:          { fontSize: 14, fontWeight: '600', color: COLORS.text },
-  timeSlotTextActive:    { color: COLORS.white },
+  timeSlot: { flexDirection: 'row', alignItems: 'center', backgroundColor: COLORS.white, borderRadius: 14, padding: 16, marginBottom: 10, borderWidth: 1.5, borderColor: COLORS.border },
+  timeSlotActive: { backgroundColor: COLORS.accent, borderColor: COLORS.accent },
+  timeSlotText: { fontSize: 14, fontWeight: '600', color: COLORS.text },
+  timeSlotTextActive: { color: COLORS.white },
 
   // Summary card
-  summaryCard:           { backgroundColor: COLORS.white, borderRadius: 16, padding: 16, marginTop: 20, borderWidth: 1, borderColor: COLORS.border },
-  summaryTitle:          { fontSize: 13, fontWeight: '700', color: COLORS.text, marginBottom: 12 },
-  summaryRow:            { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
-  summaryLabel:          { fontSize: 13, color: COLORS.muted },
-  summaryValue:          { fontSize: 13, fontWeight: '700', color: COLORS.text, maxWidth: '60%', textAlign: 'right' },
+  summaryCard: { backgroundColor: COLORS.white, borderRadius: 16, padding: 16, marginTop: 20, borderWidth: 1, borderColor: COLORS.border },
+  summaryTitle: { fontSize: 13, fontWeight: '700', color: COLORS.text, marginBottom: 12 },
+  summaryRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
+  summaryLabel: { fontSize: 13, color: COLORS.muted },
+  summaryValue: { fontSize: 13, fontWeight: '700', color: COLORS.text, maxWidth: '60%', textAlign: 'right' },
 
   // CTA
-  ctaBar:                { position: 'absolute', bottom: 0, left: 0, right: 0, paddingHorizontal: 20, paddingVertical: 14, paddingBottom: 28, backgroundColor: COLORS.white, borderTopWidth: 1, borderTopColor: COLORS.border },
-  ctaBtn:                { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: COLORS.accent, borderRadius: 14, paddingVertical: 15 },
-  ctaBtnDisabled:        { backgroundColor: COLORS.card },
-  ctaBtnText:            { fontSize: 15, fontWeight: '700', color: COLORS.white },
+  ctaBar: { position: 'absolute', bottom: 0, left: 0, right: 0, paddingHorizontal: 20, paddingVertical: 14, paddingBottom: 28, backgroundColor: COLORS.white, borderTopWidth: 1, borderTopColor: COLORS.border },
+  ctaBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: COLORS.accent, borderRadius: 14, paddingVertical: 15 },
+  ctaBtnDisabled: { backgroundColor: COLORS.card },
+  ctaBtnText: { fontSize: 15, fontWeight: '700', color: COLORS.white },
 
   // Success
-  successScreen:         { alignItems: 'center', justifyContent: 'center', paddingHorizontal: 32, paddingTop: 40, paddingBottom: 60 },
-  successIconWrap:       { width: 100, height: 100, borderRadius: 50, backgroundColor: COLORS.accentLight, alignItems: 'center', justifyContent: 'center', marginBottom: 20 },
-  successTitle:          { fontSize: 24, fontWeight: '800', color: COLORS.text, marginBottom: 10 },
-  successSub:            { fontSize: 14, color: COLORS.muted, textAlign: 'center', lineHeight: 22, marginBottom: 24 },
-  pickupSummaryCard:     { backgroundColor: COLORS.white, borderRadius: 16, padding: 18, width: '100%', marginBottom: 20, borderWidth: 1, borderColor: COLORS.border, gap: 12 },
-  pickupSummaryTitle:    { fontSize: 13, fontWeight: '700', color: COLORS.text, marginBottom: 4 },
-  pickupSummaryRow:      { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  pickupSummaryText:     { fontSize: 13, color: COLORS.text, flex: 1 },
-  pointsEarnedCard:      { alignItems: 'center', backgroundColor: COLORS.goldLight, borderRadius: 20, padding: 24, width: '100%', marginBottom: 24, borderWidth: 1, borderColor: '#f9e0a0' },
-  pointsEarnedEmoji:     { fontSize: 36, marginBottom: 6 },
-  pointsEarnedValue:     { fontSize: 48, fontWeight: '900', color: COLORS.gold },
-  pointsEarnedLabel:     { fontSize: 16, fontWeight: '700', color: '#7a5c00', marginTop: 4 },
-  doneBtn:               { backgroundColor: COLORS.accent, borderRadius: 16, paddingVertical: 16, paddingHorizontal: 40 },
-  doneBtnText:           { fontSize: 15, fontWeight: '700', color: COLORS.white },
+  successScreen: { alignItems: 'center', justifyContent: 'center', paddingHorizontal: 32, paddingTop: 40, paddingBottom: 60 },
+  successIconWrap: { width: 100, height: 100, borderRadius: 50, backgroundColor: COLORS.accentLight, alignItems: 'center', justifyContent: 'center', marginBottom: 20 },
+  successTitle: { fontSize: 24, fontWeight: '800', color: COLORS.text, marginBottom: 10 },
+  successSub: { fontSize: 14, color: COLORS.muted, textAlign: 'center', lineHeight: 22, marginBottom: 24 },
+  pickupSummaryCard: { backgroundColor: COLORS.white, borderRadius: 16, padding: 18, width: '100%', marginBottom: 20, borderWidth: 1, borderColor: COLORS.border, gap: 12 },
+  pickupSummaryTitle: { fontSize: 13, fontWeight: '700', color: COLORS.text, marginBottom: 4 },
+  pickupSummaryRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  pickupSummaryText: { fontSize: 13, color: COLORS.text, flex: 1 },
+  pointsEarnedCard: { alignItems: 'center', backgroundColor: COLORS.goldLight, borderRadius: 20, padding: 24, width: '100%', marginBottom: 24, borderWidth: 1, borderColor: '#f9e0a0' },
+  pointsEarnedEmoji: { fontSize: 36, marginBottom: 6 },
+  pointsEarnedValue: { fontSize: 48, fontWeight: '900', color: COLORS.gold },
+  pointsEarnedLabel: { fontSize: 16, fontWeight: '700', color: '#7a5c00', marginTop: 4 },
+  doneBtn: { backgroundColor: COLORS.accent, borderRadius: 16, paddingVertical: 16, paddingHorizontal: 40 },
+  doneBtnText: { fontSize: 15, fontWeight: '700', color: COLORS.white },
 });

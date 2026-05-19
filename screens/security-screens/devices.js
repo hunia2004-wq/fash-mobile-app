@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { AuthContext } from '../../context/AuthContext';
 import { getLoginDevices, removeDevice } from '../../services/authService';
 import { logoutAllDevices } from '../../services/authService';
-import { Ionicons} from '@expo/vector-icons';
+import { Ionicons } from '@expo/vector-icons';
 
 
 
@@ -16,7 +16,7 @@ const LoginDevicesScreen = ({ navigation }) => {
   const [removingId, setRemovingId] = useState(null);
   const [currentDeviceId, setCurrentDeviceId] = useState(null);
 
-  
+
 
   useEffect(() => {
     const fetchDevices = async () => {
@@ -24,8 +24,8 @@ const LoginDevicesScreen = ({ navigation }) => {
         const token = await getToken();
         const data = await getLoginDevices(token);
 
-        setDevices(data.devices || []); 
-        setCurrentDeviceId(data.currentDeviceId); 
+        setDevices(data.devices || []);
+        setCurrentDeviceId(data.currentDeviceId);
       } catch (e) {
         Alert.alert('Error', 'Failed to load devices.');
       } finally {
@@ -45,11 +45,11 @@ const LoginDevicesScreen = ({ navigation }) => {
         onPress: async () => {
           try {
             const token = await getToken();
-  
+
             setRemovingId(id);
-  
+
             await removeDevice(token, id);
-  
+
             setDevices((prev) => prev.filter((d) => d._id !== id));
           } catch (e) {
             Alert.alert('Error', 'Failed to remove device.');
@@ -65,11 +65,11 @@ const LoginDevicesScreen = ({ navigation }) => {
   const handleSignOutAll = async () => {
     try {
       setActionLoading(true);
-  
+
       const token = await getToken();
       await logoutAllDevices(token);
       setDevices([]);
-  
+
     } catch (e) {
       Alert.alert('Error', 'Failed to sign out devices.');
     } finally {
@@ -92,21 +92,21 @@ const LoginDevicesScreen = ({ navigation }) => {
       </SafeAreaView>
     );
   }
-  
-  
+
+
   return (
 
     <SafeAreaView style={styles.container}>
 
       {/* header */}
       <View style={styles.header}>
-      <TouchableOpacity
-  style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: '#F2E6E3', alignItems: 'center', justifyContent: 'center' }}
-  onPress={() => navigation.goBack()}
-  activeOpacity={0.8}
->
-  <Ionicons name="arrow-back" size={20} color="#2c2c2c" />
-</TouchableOpacity>
+        <TouchableOpacity
+          style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: '#F2E6E3', alignItems: 'center', justifyContent: 'center' }}
+          onPress={() => navigation.goBack()}
+          activeOpacity={0.8}
+        >
+          <Ionicons name="arrow-back" size={20} color="#2c2c2c" />
+        </TouchableOpacity>
         <Text style={styles.headerTitle}>Active Devices</Text>
       </View>
 
@@ -126,7 +126,7 @@ const LoginDevicesScreen = ({ navigation }) => {
 
               <Text style={styles.deviceMeta}>{device.deviceType} · {device.ip}</Text>
 
-              <Text>Last active: {device.lastActive ? new Date(device.lastActive).toLocaleString(): 'Unknown'}</Text>
+              <Text>Last active: {device.lastActive ? new Date(device.lastActive).toLocaleString() : 'Unknown'}</Text>
 
               {device._id === currentDeviceId ? (
                 <Text>This device</Text>

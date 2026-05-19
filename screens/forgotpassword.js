@@ -9,21 +9,21 @@ export default function ForgotPasswordScreen({ navigation }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const handleSendReset = async() => {
+  const handleSendReset = async () => {
     setError('');
     if (!email) {
       setError('Please enter your email');
       return;
     }
     setLoading(true);
-    try{
-      await forgotPassword({email});
-      navigation.navigate("Verification", {email, mode: "reset"});
+    try {
+      await forgotPassword({ email });
+      navigation.navigate("Verification", { email, mode: "reset" });
     }
     catch (err) {
       setError(err.message || 'Failed to send reset email. Please try again.');
     }
-    finally{
+    finally {
       setLoading(false);
     }
   };
@@ -59,13 +59,13 @@ export default function ForgotPasswordScreen({ navigation }) {
             autoCorrect={false}
           />
 
-        {error ? <Text style={styles.errorText}>{error}</Text> : null} 
+          {error ? <Text style={styles.errorText}>{error}</Text> : null}
 
           <TouchableOpacity style={styles.button} onPress={handleSendReset} disabled={loading}>
-          {loading
-            ? <ActivityIndicator color="#fff" />
-            : <Text style={styles.buttonText}>Send Reset Link</Text>
-          }
+            {loading
+              ? <ActivityIndicator color="#fff" />
+              : <Text style={styles.buttonText}>Send Reset Link</Text>
+            }
           </TouchableOpacity>
         </View>
 
@@ -134,11 +134,11 @@ const styles = StyleSheet.create({
     padding: 10,
     marginBottom: 15,
   },
-  errorText: { 
-    color: '#c0392b', 
-    fontSize: 13, 
-    marginBottom: 10, 
-    textAlign: 'center' 
+  errorText: {
+    color: '#c0392b',
+    fontSize: 13,
+    marginBottom: 10,
+    textAlign: 'center'
   },
   button: {
     backgroundColor: '#C17C74',

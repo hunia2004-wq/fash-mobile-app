@@ -18,23 +18,23 @@ const COLORS = {
 };
 
 const STEPS = [
-  { key: 'pending',    label: 'Order Placed',    icon: '📋' },
-  { key: 'confirmed',  label: 'Confirmed',        icon: '✅' },
-  { key: 'preparing',  label: 'Preparing',        icon: '📦' },
-  { key: 'shipped',    label: 'Out for Delivery', icon: '🚚' },
-  { key: 'delivered',  label: 'Delivered',        icon: '🎉' },
+  { key: 'pending', label: 'Order Placed', icon: '📋' },
+  { key: 'confirmed', label: 'Confirmed', icon: '✅' },
+  { key: 'preparing', label: 'Preparing', icon: '📦' },
+  { key: 'shipped', label: 'Out for Delivery', icon: '🚚' },
+  { key: 'delivered', label: 'Delivered', icon: '🎉' },
 ];
 
 const STATUS_ORDER = ['pending', 'confirmed', 'preparing', 'shipped', 'delivered'];
 
 const STATUS_CONFIG = {
-  pending:    { label: 'Pending',     bg: '#FEF3C7', text: '#92400E' },
-  confirmed:  { label: 'Confirmed',   bg: '#DBEAFE', text: '#1E40AF' },
-  preparing:  { label: 'Preparing',   bg: '#FFEDD5', text: '#9A3412' },
-  shipped:    { label: 'Shipped',     bg: '#EDE9FE', text: '#5B21B6' },
-  on_the_way: { label: 'On the Way',  bg: '#EDE9FE', text: '#5B21B6' },
-  delivered:  { label: 'Delivered',   bg: '#D1FAE5', text: '#065F46' },
-  cancelled:  { label: 'Cancelled',   bg: '#FEE2E2', text: '#991B1B' },
+  pending: { label: 'Pending', bg: '#FEF3C7', text: '#92400E' },
+  confirmed: { label: 'Confirmed', bg: '#DBEAFE', text: '#1E40AF' },
+  preparing: { label: 'Preparing', bg: '#FFEDD5', text: '#9A3412' },
+  shipped: { label: 'Shipped', bg: '#EDE9FE', text: '#5B21B6' },
+  on_the_way: { label: 'On the Way', bg: '#EDE9FE', text: '#5B21B6' },
+  delivered: { label: 'Delivered', bg: '#D1FAE5', text: '#065F46' },
+  cancelled: { label: 'Cancelled', bg: '#FEE2E2', text: '#991B1B' },
 };
 
 const formatDate = (dateStr) => {
@@ -64,16 +64,16 @@ const TrackingTimeline = ({ status }) => {
   return (
     <View style={styles.timeline}>
       {STEPS.map((step, index) => {
-        const isDone    = index <= currentIndex;
+        const isDone = index <= currentIndex;
         const isCurrent = index === currentIndex;
-        const isLast    = index === STEPS.length - 1;
+        const isLast = index === STEPS.length - 1;
 
         return (
           <View key={step.key} style={styles.timelineRow}>
             <View style={styles.timelineLeft}>
               <View style={[
                 styles.timelineDot,
-                isDone    && styles.timelineDotDone,
+                isDone && styles.timelineDotDone,
                 isCurrent && styles.timelineDotCurrent,
               ]}>
                 {isDone && <Ionicons name="checkmark" size={11} color={COLORS.white} />}
@@ -89,7 +89,7 @@ const TrackingTimeline = ({ status }) => {
               <Text style={[
                 styles.timelineLabel,
                 isCurrent && styles.timelineLabelCurrent,
-                !isDone   && styles.timelineLabelFuture,
+                !isDone && styles.timelineLabelFuture,
               ]}>
                 {step.icon}  {step.label}
               </Text>
@@ -126,10 +126,10 @@ export default function OrderDetailScreen({ navigation, route }) {
   const { order } = route.params;
   const { addToCart } = useCart();
 
-  const status       = order.status ?? 'pending';
+  const status = order.status ?? 'pending';
   const statusConfig = STATUS_CONFIG[status] ?? STATUS_CONFIG.pending;
-  const items        = order.items ?? [];
-  const canCancel    = ['pending', 'confirmed'].includes(status);
+  const items = order.items ?? [];
+  const canCancel = ['pending', 'confirmed'].includes(status);
 
   const handleReorder = () => {
     Alert.alert('Reorder', 'Add all items from this order to your cart?', [
@@ -266,8 +266,8 @@ export default function OrderDetailScreen({ navigation, route }) {
               {order.paymentMethod === 'cash_on_delivery'
                 ? 'Cash on Delivery'
                 : order.paymentMethod === 'card'
-                ? 'Card (Paymob)'
-                : order.paymentMethod ?? '—'}
+                  ? 'Card (Paymob)'
+                  : order.paymentMethod ?? '—'}
             </Text>
           </View>
         </View>
@@ -302,59 +302,59 @@ export default function OrderDetailScreen({ navigation, route }) {
 }
 
 const styles = StyleSheet.create({
-  safe:                   { flex: 1, backgroundColor: COLORS.bg },
-  logoHeader:             { paddingBottom: 10, alignItems: 'center', backgroundColor: COLORS.bg },
-  logo:                   { width: 120, height: 50 },
-  header:                 { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingBottom: 12 },
-  navBtn:                 { width: 40, height: 40, borderRadius: 12, backgroundColor: COLORS.card, alignItems: 'center', justifyContent: 'center' },
-  headerTitle:            { fontSize: 20, fontWeight: '700', color: COLORS.accent },
-  headerBadge:            { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 20 },
-  headerBadgeText:        { fontSize: 11, fontWeight: '700' },
-  scrollContent:          { padding: 16, paddingBottom: 32 },
-  orderMeta:              { marginBottom: 14 },
-  orderMetaId:            { fontSize: 18, fontWeight: '700', color: COLORS.text },
-  orderMetaDate:          { fontSize: 13, color: COLORS.muted, marginTop: 3 },
-  card:                   { backgroundColor: COLORS.white, borderRadius: 16, padding: 16, marginBottom: 14, borderWidth: 1, borderColor: COLORS.border },
-  sectionTitle:           { fontSize: 11, fontWeight: '700', color: COLORS.accent, letterSpacing: 0.6, textTransform: 'uppercase', marginBottom: 14 },
-  timeline:               { paddingLeft: 4 },
-  timelineRow:            { flexDirection: 'row', minHeight: 56 },
-  timelineLeft:           { alignItems: 'center', width: 28, marginRight: 14 },
-  timelineDot:            { width: 24, height: 24, borderRadius: 12, backgroundColor: COLORS.card, justifyContent: 'center', alignItems: 'center', zIndex: 1 },
-  timelineDotDone:        { backgroundColor: COLORS.accent },
-  timelineDotCurrent:     { backgroundColor: COLORS.accent, borderWidth: 3, borderColor: COLORS.bg, width: 28, height: 28, borderRadius: 14 },
-  timelineLine:           { flex: 1, width: 2, backgroundColor: COLORS.card, marginVertical: 2 },
-  timelineLineDone:       { backgroundColor: COLORS.accent },
-  timelineContent:        { flex: 1, paddingTop: 2, paddingBottom: 16 },
-  timelineLabel:          { fontSize: 14, fontWeight: '500', color: COLORS.text },
-  timelineLabelCurrent:   { fontWeight: '700', color: COLORS.accent },
-  timelineLabelFuture:    { color: COLORS.muted },
-  timelineCurrentTag:     { fontSize: 11, color: COLORS.accent, marginTop: 3, fontWeight: '600' },
-  cancelledBox:           { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FEE2E2', borderRadius: 10, padding: 14 },
-  cancelledText:          { color: '#991B1B', fontWeight: '600', fontSize: 14 },
-  productRow:             { flexDirection: 'row', alignItems: 'center', paddingVertical: 10 },
-  productImage:           { width: 56, height: 56, borderRadius: 10, marginRight: 12 },
-  productImagePlaceholder:{ backgroundColor: COLORS.card, justifyContent: 'center', alignItems: 'center' },
-  productInfo:            { flex: 1 },
-  productName:            { fontSize: 14, fontWeight: '600', color: COLORS.text },
-  productQty:             { fontSize: 12, color: COLORS.muted, marginTop: 3 },
-  productPrice:           { fontSize: 14, fontWeight: '700', color: COLORS.text, marginLeft: 8 },
-  rowDivider:             { height: StyleSheet.hairlineWidth, backgroundColor: COLORS.border },
-  totalDivider:           { height: StyleSheet.hairlineWidth, backgroundColor: COLORS.border, marginVertical: 12 },
-  totalRow:               { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 4 },
-  totalLabel:             { fontSize: 13, color: COLORS.muted },
-  totalValue:             { fontSize: 13, color: COLORS.text, fontWeight: '500' },
-  grandTotalRow:          { marginTop: 6 },
-  grandTotalLabel:        { fontSize: 15, fontWeight: '700', color: COLORS.text },
-  grandTotalValue:        { fontSize: 15, fontWeight: '700', color: COLORS.accent },
-  infoRow:                { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', paddingVertical: 9, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: COLORS.border },
-  infoLabel:              { fontSize: 13, color: COLORS.muted, flex: 1 },
-  infoValue:              { fontSize: 13, color: COLORS.text, fontWeight: '500', flex: 2, textAlign: 'right' },
-  actionsCard:            { gap: 10, marginBottom: 4 },
-  reorderBtn:             { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: COLORS.accent, borderRadius: 14, padding: 15 },
-  reorderBtnText:         { color: COLORS.white, fontWeight: '700', fontSize: 15 },
-  supportBtn:             { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: COLORS.white, borderRadius: 14, padding: 15, borderWidth: 1.5, borderColor: COLORS.accent },
-  supportBtnText:         { color: COLORS.accent, fontWeight: '600', fontSize: 15 },
-  cancelBtn:              { borderRadius: 14, padding: 15, alignItems: 'center', borderWidth: 1.5, borderColor: '#C0444A' },
-  cancelBtnText:          { color: '#C0444A', fontWeight: '600', fontSize: 15 },
-  emptyText:              { color: COLORS.muted, fontSize: 13, textAlign: 'center', padding: 12 },
+  safe: { flex: 1, backgroundColor: COLORS.bg },
+  logoHeader: { paddingBottom: 10, alignItems: 'center', backgroundColor: COLORS.bg },
+  logo: { width: 120, height: 50 },
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingBottom: 12 },
+  navBtn: { width: 40, height: 40, borderRadius: 12, backgroundColor: COLORS.card, alignItems: 'center', justifyContent: 'center' },
+  headerTitle: { fontSize: 20, fontWeight: '700', color: COLORS.accent },
+  headerBadge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 20 },
+  headerBadgeText: { fontSize: 11, fontWeight: '700' },
+  scrollContent: { padding: 16, paddingBottom: 32 },
+  orderMeta: { marginBottom: 14 },
+  orderMetaId: { fontSize: 18, fontWeight: '700', color: COLORS.text },
+  orderMetaDate: { fontSize: 13, color: COLORS.muted, marginTop: 3 },
+  card: { backgroundColor: COLORS.white, borderRadius: 16, padding: 16, marginBottom: 14, borderWidth: 1, borderColor: COLORS.border },
+  sectionTitle: { fontSize: 11, fontWeight: '700', color: COLORS.accent, letterSpacing: 0.6, textTransform: 'uppercase', marginBottom: 14 },
+  timeline: { paddingLeft: 4 },
+  timelineRow: { flexDirection: 'row', minHeight: 56 },
+  timelineLeft: { alignItems: 'center', width: 28, marginRight: 14 },
+  timelineDot: { width: 24, height: 24, borderRadius: 12, backgroundColor: COLORS.card, justifyContent: 'center', alignItems: 'center', zIndex: 1 },
+  timelineDotDone: { backgroundColor: COLORS.accent },
+  timelineDotCurrent: { backgroundColor: COLORS.accent, borderWidth: 3, borderColor: COLORS.bg, width: 28, height: 28, borderRadius: 14 },
+  timelineLine: { flex: 1, width: 2, backgroundColor: COLORS.card, marginVertical: 2 },
+  timelineLineDone: { backgroundColor: COLORS.accent },
+  timelineContent: { flex: 1, paddingTop: 2, paddingBottom: 16 },
+  timelineLabel: { fontSize: 14, fontWeight: '500', color: COLORS.text },
+  timelineLabelCurrent: { fontWeight: '700', color: COLORS.accent },
+  timelineLabelFuture: { color: COLORS.muted },
+  timelineCurrentTag: { fontSize: 11, color: COLORS.accent, marginTop: 3, fontWeight: '600' },
+  cancelledBox: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FEE2E2', borderRadius: 10, padding: 14 },
+  cancelledText: { color: '#991B1B', fontWeight: '600', fontSize: 14 },
+  productRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 10 },
+  productImage: { width: 56, height: 56, borderRadius: 10, marginRight: 12 },
+  productImagePlaceholder: { backgroundColor: COLORS.card, justifyContent: 'center', alignItems: 'center' },
+  productInfo: { flex: 1 },
+  productName: { fontSize: 14, fontWeight: '600', color: COLORS.text },
+  productQty: { fontSize: 12, color: COLORS.muted, marginTop: 3 },
+  productPrice: { fontSize: 14, fontWeight: '700', color: COLORS.text, marginLeft: 8 },
+  rowDivider: { height: StyleSheet.hairlineWidth, backgroundColor: COLORS.border },
+  totalDivider: { height: StyleSheet.hairlineWidth, backgroundColor: COLORS.border, marginVertical: 12 },
+  totalRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 4 },
+  totalLabel: { fontSize: 13, color: COLORS.muted },
+  totalValue: { fontSize: 13, color: COLORS.text, fontWeight: '500' },
+  grandTotalRow: { marginTop: 6 },
+  grandTotalLabel: { fontSize: 15, fontWeight: '700', color: COLORS.text },
+  grandTotalValue: { fontSize: 15, fontWeight: '700', color: COLORS.accent },
+  infoRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', paddingVertical: 9, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: COLORS.border },
+  infoLabel: { fontSize: 13, color: COLORS.muted, flex: 1 },
+  infoValue: { fontSize: 13, color: COLORS.text, fontWeight: '500', flex: 2, textAlign: 'right' },
+  actionsCard: { gap: 10, marginBottom: 4 },
+  reorderBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: COLORS.accent, borderRadius: 14, padding: 15 },
+  reorderBtnText: { color: COLORS.white, fontWeight: '700', fontSize: 15 },
+  supportBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: COLORS.white, borderRadius: 14, padding: 15, borderWidth: 1.5, borderColor: COLORS.accent },
+  supportBtnText: { color: COLORS.accent, fontWeight: '600', fontSize: 15 },
+  cancelBtn: { borderRadius: 14, padding: 15, alignItems: 'center', borderWidth: 1.5, borderColor: '#C0444A' },
+  cancelBtnText: { color: '#C0444A', fontWeight: '600', fontSize: 15 },
+  emptyText: { color: COLORS.muted, fontSize: 13, textAlign: 'center', padding: 12 },
 });

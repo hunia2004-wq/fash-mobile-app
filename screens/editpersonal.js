@@ -1,5 +1,5 @@
 import React, { useContext, useState } from 'react';
-import {View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Image, ActivityIndicator, Alert, Dimensions,} from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Image, ActivityIndicator, Alert, Dimensions, } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { AuthContext } from '../context/AuthContext';
 import { updateProfile, uploadAvatar } from '../services/authService';
@@ -29,9 +29,9 @@ export default function EditProfileScreen({ navigation, route }) {
         const token = await getToken();
         const profile = await getProfile(token);
         const data = profile?.data || profile;
-  
+
         setUserData(data);
-  
+
         // update fields with fresh data
         setFirstName(data.firstName || '');
         setLastName(data.lastName || '');
@@ -40,11 +40,11 @@ export default function EditProfileScreen({ navigation, route }) {
         setPhone(data.phoneNumber || '');
         setAvatar(data.avatar || null);
       };
-  
+
       fetchData();
     }, [])
   );
-  
+
 
   const pickImage = async () => {
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -72,102 +72,102 @@ export default function EditProfileScreen({ navigation, route }) {
 
   const handleSave = async () => {
     setSaving(true);
-  
+
     try {
       const token = await getToken();
-  
+
       const payload = {
         firstName: firstName.trim(),
         lastName: lastName.trim(),
         username: username.trim(),
         bio: bio.trim(),
-        phoneNumber: phone.trim(), 
+        phoneNumber: phone.trim(),
       };
-  
+
       console.log(payload);
       await updateProfile(token, payload);
 
-    Alert.alert("Saved", "Profile updated successfully", [
-      {
-        text: "OK",
-        onPress: () => {
-          if (route.params?.refresh) {
-            route.params.refresh();
-          }
-          navigation.goBack();
+      Alert.alert("Saved", "Profile updated successfully", [
+        {
+          text: "OK",
+          onPress: () => {
+            if (route.params?.refresh) {
+              route.params.refresh();
+            }
+            navigation.goBack();
+          },
         },
-      },
-    ]);
-  } catch (e) {
-    console.warn(e);
-    Alert.alert("Error", e.message || "Failed to save");
-  } finally {
-    setSaving(false);
-  }
-};
+      ]);
+    } catch (e) {
+      console.warn(e);
+      Alert.alert("Error", e.message || "Failed to save");
+    } finally {
+      setSaving(false);
+    }
+  };
 
   const joinedDate = user.createdAt
     ? new Date(user.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
     : '—';
 
-    return (
-      <View style={styles.container}>
+  return (
+    <View style={styles.container}>
 
-        {/* header */}
-        <View style={styles.header}>
-          <TouchableOpacity onPress={() => navigation.goBack()}>
-            <Text style={styles.cancelBtn}>Cancel</Text>
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>Edit Profile</Text>
-          <TouchableOpacity onPress={handleSave} disabled={saving}>
-            {saving
-              ? <ActivityIndicator size="small" color="#C17C74" />
-              : <Text style={styles.saveBtn}>Save</Text>
-            }
-          </TouchableOpacity>
-        </View>
-  
-        <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
-  
-          {/* avatar */}
-          <TouchableOpacity style={styles.avatarContainer} onPress={pickImage}>
-            <Image
-              source={
-                avatar ? { uri: avatar } :
+      {/* header */}
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => navigation.goBack()}>
+          <Text style={styles.cancelBtn}>Cancel</Text>
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Edit Profile</Text>
+        <TouchableOpacity onPress={handleSave} disabled={saving}>
+          {saving
+            ? <ActivityIndicator size="small" color="#C17C74" />
+            : <Text style={styles.saveBtn}>Save</Text>
+          }
+        </TouchableOpacity>
+      </View>
+
+      <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
+
+        {/* avatar */}
+        <TouchableOpacity style={styles.avatarContainer} onPress={pickImage}>
+          <Image
+            source={
+              avatar ? { uri: avatar } :
                 require('../source/assets/images/avatar.jpg')
-              }
-              style={styles.avatar}
-            />
-            <View style={styles.avatarBadge}>
-              <Text style={styles.avatarBadgeText}>+</Text>
-            </View>
-            <Text style={styles.changePhotoText}>Change Photo</Text>
-          </TouchableOpacity>
+            }
+            style={styles.avatar}
+          />
+          <View style={styles.avatarBadge}>
+            <Text style={styles.avatarBadgeText}>+</Text>
+          </View>
+          <Text style={styles.changePhotoText}>Change Photo</Text>
+        </TouchableOpacity>
 
         {/* editable fields */}
         <View style={styles.card}>
           <Text style={styles.sectionLabel}>Edit Profile</Text>
 
           <View style={styles.fieldGroup}>
-          <Text style={styles.fieldLabel}>First Name</Text>
-          <TextInput
-             style={styles.input}
-             value={firstName}
-             onChangeText={setFirstName}
-             placeholder="First name"
-             placeholderTextColor="#B09090"
-          />
+            <Text style={styles.fieldLabel}>First Name</Text>
+            <TextInput
+              style={styles.input}
+              value={firstName}
+              onChangeText={setFirstName}
+              placeholder="First name"
+              placeholderTextColor="#B09090"
+            />
           </View>
 
           <View style={styles.fieldGroup}>
-          <Text style={styles.fieldLabel}>Last Name</Text>
-          <TextInput
-             style={styles.input}
-             value={lastName}
-             onChangeText={setLastName}
-             placeholder="Last name"
-             placeholderTextColor="#B09090"
-          />
+            <Text style={styles.fieldLabel}>Last Name</Text>
+            <TextInput
+              style={styles.input}
+              value={lastName}
+              onChangeText={setLastName}
+              placeholder="Last name"
+              placeholderTextColor="#B09090"
+            />
           </View>
 
 
@@ -195,7 +195,7 @@ export default function EditProfileScreen({ navigation, route }) {
             />
           </View>
 
-          
+
 
           <View style={[styles.fieldGroup]}>
             <Text style={styles.fieldLabel}>Bio</Text>

@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons} from '@expo/vector-icons';
+import { Ionicons } from '@expo/vector-icons';
 
 
 const SettingsScreen = ({ navigation }) => {
@@ -20,13 +20,13 @@ const SettingsScreen = ({ navigation }) => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-      <TouchableOpacity
-  style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: '#F2E6E3', alignItems: 'center', justifyContent: 'center' }}
-  onPress={() => navigation.goBack()}
-  activeOpacity={0.8}
->
-  <Ionicons name="arrow-back" size={20} color="#2c2c2c" />
-</TouchableOpacity>
+        <TouchableOpacity
+          style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: '#F2E6E3', alignItems: 'center', justifyContent: 'center' }}
+          onPress={() => navigation.goBack()}
+          activeOpacity={0.8}
+        >
+          <Ionicons name="arrow-back" size={20} color="#2c2c2c" />
+        </TouchableOpacity>
         <Text style={styles.headerTitle}>Settings</Text>
       </View>
 
@@ -37,7 +37,7 @@ const SettingsScreen = ({ navigation }) => {
               key={item.id}
               style={[styles.listItem, index < options.length - 1 && styles.listItemBorder]}
               onPress={() => navigation.navigate(item.screen)
-}
+              }
             >
               <View style={styles.itemLeft}>
                 <Text style={styles.itemTitle}>{item.title}</Text>

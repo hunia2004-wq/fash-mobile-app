@@ -55,8 +55,8 @@ export default function ARtryonscene({ sceneNavigator }) {
             scale={[0.4 * scale, 0.6 * scale, 1]}
             opacity={opacity}
             resizeMode="ScaleToFill"
-            // No placeholderSource — avoids missing asset crash.
-            // Add one once you have an assets/placeholder.png in your project.
+          // No placeholderSource — avoids missing asset crash.
+          // Add one once you have an assets/placeholder.png in your project.
           />
         </ViroNode>
       ) : null}

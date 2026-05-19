@@ -3,35 +3,35 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Switch, Alert } f
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AuthContext } from '../../context/AuthContext';
 import { updatePrivacy, getSettings } from '../../services/authService';
-import { Ionicons} from '@expo/vector-icons';
+import { Ionicons } from '@expo/vector-icons';
 
 
 const PrivacyScreen = ({ navigation }) => {
   const { getToken } = useContext(AuthContext);
   const [privacy, setPrivacy] = useState({
-  profileVisible: true,
-  showActivity: false,
-  dataCollection: false,
+    profileVisible: true,
+    showActivity: false,
+    dataCollection: false,
   });
 
   const handleToggle = async (key, value) => {
     const token = await getToken();
-  
+
     const previous = { ...privacy }; // ✅ store old state
-  
+
     const updated = {
       ...privacy,
       [key]: value,
     };
-  
+
     setPrivacy(updated);
-  
+
     try {
-      await updatePrivacy(token, updated); 
-      
+      await updatePrivacy(token, updated);
+
     } catch (err) {
       console.log(err.message);
-      setPrivacy(previous); 
+      setPrivacy(previous);
       Alert.alert("Update failed");
     }
   };
@@ -41,7 +41,7 @@ const PrivacyScreen = ({ navigation }) => {
       try {
         const token = await getToken();
         const data = await getSettings(token);
-  
+
         setPrivacy({
           profileVisible: data?.privacy?.profileVisible ?? true,
           showActivity: data?.privacy?.showActivity ?? false,
@@ -51,7 +51,7 @@ const PrivacyScreen = ({ navigation }) => {
         console.log("Failed to load settings", err.message);
       }
     };
-  
+
     loadSettings();
   }, []);
 
@@ -61,7 +61,7 @@ const PrivacyScreen = ({ navigation }) => {
         <Text style={styles.itemTitle}>{label}</Text>
         {subtitle ? <Text style={styles.itemSubtitle}>{subtitle}</Text> : null}
       </View>
-  
+
       <Switch
         value={value}
         onValueChange={onValueChange}
@@ -74,37 +74,37 @@ const PrivacyScreen = ({ navigation }) => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-      <TouchableOpacity
-  style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: '#F2E6E3', alignItems: 'center', justifyContent: 'center' }}
-  onPress={() => navigation.goBack()}
-  activeOpacity={0.8}
->
-  <Ionicons name="arrow-back" size={20} color="#2c2c2c" />
-</TouchableOpacity>
+        <TouchableOpacity
+          style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: '#F2E6E3', alignItems: 'center', justifyContent: 'center' }}
+          onPress={() => navigation.goBack()}
+          activeOpacity={0.8}
+        >
+          <Ionicons name="arrow-back" size={20} color="#2c2c2c" />
+        </TouchableOpacity>
         <Text style={styles.headerTitle}>Privacy Settings</Text>
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.card}>
 
-        <ToggleRow
-  label="Public Profile"
-  value={privacy.profileVisible}
-  onValueChange={(v) => handleToggle('profileVisible', v)}
-/>
+          <ToggleRow
+            label="Public Profile"
+            value={privacy.profileVisible}
+            onValueChange={(v) => handleToggle('profileVisible', v)}
+          />
 
-<ToggleRow
-  label="Show Activity"
-  value={privacy.showActivity}
-  onValueChange={(v) => handleToggle('showActivity', v)}
-/>
+          <ToggleRow
+            label="Show Activity"
+            value={privacy.showActivity}
+            onValueChange={(v) => handleToggle('showActivity', v)}
+          />
 
-<ToggleRow
-  label="Data Collection"
-  value={privacy.dataCollection}
-  onValueChange={(v) => handleToggle('dataCollection', v)}
-  isLast
-/>     
+          <ToggleRow
+            label="Data Collection"
+            value={privacy.dataCollection}
+            onValueChange={(v) => handleToggle('dataCollection', v)}
+            isLast
+          />
         </View>
 
         <View style={styles.infoBox}>

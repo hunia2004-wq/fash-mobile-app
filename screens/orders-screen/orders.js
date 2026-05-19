@@ -17,14 +17,14 @@ const COLORS = {
 };
 
 const STATUS_CONFIG = {
-  pending:          { label: 'Pending',        bg: '#FEF3C7', text: '#92400E' },
-  confirmed:        { label: 'Confirmed',       bg: '#DBEAFE', text: '#1E40AF' },
-  preparing:        { label: 'Preparing',       bg: '#FFEDD5', text: '#9A3412' },
-  shipped:          { label: 'Shipped',         bg: '#EDE9FE', text: '#5B21B6' },
-  on_the_way:       { label: 'On the Way',      bg: '#EDE9FE', text: '#5B21B6' },
-  delivered:        { label: 'Delivered',       bg: '#D1FAE5', text: '#065F46' },
-  cancelled:        { label: 'Cancelled',       bg: '#FEE2E2', text: '#991B1B' },
-  cash_on_delivery: { label: 'Cash on Delivery',bg: '#FEF3C7', text: '#92400E' },
+  pending: { label: 'Pending', bg: '#FEF3C7', text: '#92400E' },
+  confirmed: { label: 'Confirmed', bg: '#DBEAFE', text: '#1E40AF' },
+  preparing: { label: 'Preparing', bg: '#FFEDD5', text: '#9A3412' },
+  shipped: { label: 'Shipped', bg: '#EDE9FE', text: '#5B21B6' },
+  on_the_way: { label: 'On the Way', bg: '#EDE9FE', text: '#5B21B6' },
+  delivered: { label: 'Delivered', bg: '#D1FAE5', text: '#065F46' },
+  cancelled: { label: 'Cancelled', bg: '#FEE2E2', text: '#991B1B' },
+  cash_on_delivery: { label: 'Cash on Delivery', bg: '#FEF3C7', text: '#92400E' },
 };
 
 const StatusBadge = ({ status }) => {
@@ -87,9 +87,9 @@ const EmptyState = ({ onPress }) => (
 
 export default function OrdersScreen({ navigation }) {
   const { getToken } = useContext(AuthContext);
-  const [orders,  setOrders]  = useState([]);
+  const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error,   setError]   = useState(null);
+  const [error, setError] = useState(null);
 
   useFocusEffect(
     useCallback(() => {
@@ -170,33 +170,33 @@ export default function OrdersScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  safe:             { flex: 1, backgroundColor: COLORS.bg },
-  centered:         { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  logoHeader:       { paddingBottom: 10, alignItems: 'center', backgroundColor: COLORS.bg },
-  logo:             { width: 120, height: 50 },
-  header:           { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingBottom: 12 },
-  navBtn:           { width: 40, height: 40, borderRadius: 12, backgroundColor: COLORS.card, alignItems: 'center', justifyContent: 'center' },
-  headerTitle:      { fontSize: 20, fontWeight: '700', color: COLORS.accent },
-  listContent:      { padding: 16, paddingBottom: 32 },
-  card:             { backgroundColor: COLORS.white, borderRadius: 16, padding: 16, borderWidth: 1, borderColor: COLORS.border, shadowColor: COLORS.accent, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.08, shadowRadius: 6, elevation: 2 },
-  cardTop:          { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
-  orderId:          { fontSize: 14, fontWeight: '700', color: COLORS.text },
-  orderDate:        { fontSize: 12, color: COLORS.muted, marginTop: 3 },
-  cardDivider:      { height: StyleSheet.hairlineWidth, backgroundColor: COLORS.border, marginVertical: 12 },
-  cardBottom:       { flexDirection: 'row', alignItems: 'center' },
-  cardStat:         { flex: 1 },
-  cardStatLabel:    { fontSize: 11, color: COLORS.muted, marginBottom: 2 },
-  cardStatValue:    { fontSize: 14, fontWeight: '600', color: COLORS.text },
-  cardStatDivider:  { width: StyleSheet.hairlineWidth, height: 28, backgroundColor: COLORS.border, marginHorizontal: 16 },
-  cardArrow:        { marginLeft: 'auto', paddingLeft: 12 },
-  badge:            { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 20 },
-  badgeText:        { fontSize: 11, fontWeight: '700' },
-  emptyContainer:   { flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 40 },
-  emptyIcon:        { fontSize: 56, marginBottom: 16 },
-  emptyTitle:       { fontSize: 20, fontWeight: '700', color: COLORS.text, marginBottom: 8 },
-  emptySubtitle:    { fontSize: 14, color: COLORS.muted, textAlign: 'center', marginBottom: 28, lineHeight: 20 },
-  emptyBtn:         { backgroundColor: COLORS.accent, paddingHorizontal: 32, paddingVertical: 12, borderRadius: 20 },
-  emptyBtnText:     { color: COLORS.white, fontWeight: '700', fontSize: 14 },
-  errorText:        { color: COLORS.muted, fontSize: 14, marginBottom: 12 },
-  retryText:        { color: COLORS.accent, fontWeight: '600', fontSize: 14 },
+  safe: { flex: 1, backgroundColor: COLORS.bg },
+  centered: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  logoHeader: { paddingBottom: 10, alignItems: 'center', backgroundColor: COLORS.bg },
+  logo: { width: 120, height: 50 },
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingBottom: 12 },
+  navBtn: { width: 40, height: 40, borderRadius: 12, backgroundColor: COLORS.card, alignItems: 'center', justifyContent: 'center' },
+  headerTitle: { fontSize: 20, fontWeight: '700', color: COLORS.accent },
+  listContent: { padding: 16, paddingBottom: 32 },
+  card: { backgroundColor: COLORS.white, borderRadius: 16, padding: 16, borderWidth: 1, borderColor: COLORS.border, shadowColor: COLORS.accent, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.08, shadowRadius: 6, elevation: 2 },
+  cardTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
+  orderId: { fontSize: 14, fontWeight: '700', color: COLORS.text },
+  orderDate: { fontSize: 12, color: COLORS.muted, marginTop: 3 },
+  cardDivider: { height: StyleSheet.hairlineWidth, backgroundColor: COLORS.border, marginVertical: 12 },
+  cardBottom: { flexDirection: 'row', alignItems: 'center' },
+  cardStat: { flex: 1 },
+  cardStatLabel: { fontSize: 11, color: COLORS.muted, marginBottom: 2 },
+  cardStatValue: { fontSize: 14, fontWeight: '600', color: COLORS.text },
+  cardStatDivider: { width: StyleSheet.hairlineWidth, height: 28, backgroundColor: COLORS.border, marginHorizontal: 16 },
+  cardArrow: { marginLeft: 'auto', paddingLeft: 12 },
+  badge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 20 },
+  badgeText: { fontSize: 11, fontWeight: '700' },
+  emptyContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 40 },
+  emptyIcon: { fontSize: 56, marginBottom: 16 },
+  emptyTitle: { fontSize: 20, fontWeight: '700', color: COLORS.text, marginBottom: 8 },
+  emptySubtitle: { fontSize: 14, color: COLORS.muted, textAlign: 'center', marginBottom: 28, lineHeight: 20 },
+  emptyBtn: { backgroundColor: COLORS.accent, paddingHorizontal: 32, paddingVertical: 12, borderRadius: 20 },
+  emptyBtnText: { color: COLORS.white, fontWeight: '700', fontSize: 14 },
+  errorText: { color: COLORS.muted, fontSize: 14, marginBottom: 12 },
+  retryText: { color: COLORS.accent, fontWeight: '600', fontSize: 14 },
 });

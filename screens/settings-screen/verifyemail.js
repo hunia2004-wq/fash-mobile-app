@@ -1,5 +1,5 @@
 import React, { useState, useContext } from 'react';
-import {View, Text, TextInput, TouchableOpacity, Alert, StyleSheet,} from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Alert, StyleSheet, } from 'react-native';
 import { AuthContext } from '../../context/AuthContext';
 import { verifyEmailChange } from '../../services/authService';
 
@@ -15,16 +15,16 @@ const VerifyEmailScreen = ({ navigation, route }) => {
       Alert.alert('Error', 'Enter OTP');
       return;
     }
-  
+
     try {
       setLoading(true);
-  
+
       const token = await getToken();
-  
+
       console.log("VERIFY TOKEN:", token);
-  
+
       const res = await verifyEmailChange(token, otp);
-  
+
       Alert.alert('Success', res.message, [
         {
           text: 'OK',
@@ -32,7 +32,7 @@ const VerifyEmailScreen = ({ navigation, route }) => {
             navigation.getParent()?.navigate('Profile')
         },
       ]);
-      
+
     } catch (err) {
 
       console.log("VERIFY ERROR:", err);
@@ -44,7 +44,7 @@ const VerifyEmailScreen = ({ navigation, route }) => {
     }
   };
 
-  
+
   return (
     <View style={styles.container}>
       <View style={styles.iconCircle}>

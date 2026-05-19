@@ -41,16 +41,16 @@ export default function PaymentScreen({ navigation, route }) {
   const { clearCart } = useCart();
 
   const [paymentMethod, setPaymentMethod] = useState('card');
-  const [placing,       setPlacing]       = useState(false);
-  const [orderSuccess,  setOrderSuccess]  = useState(false);
-  const [orderId,       setOrderId]       = useState(null);
+  const [placing, setPlacing] = useState(false);
+  const [orderSuccess, setOrderSuccess] = useState(false);
+  const [orderId, setOrderId] = useState(null);
 
   const [address, setAddress] = useState('');
-  const [city,    setCity]    = useState('');
-  const [phone,   setPhone]   = useState('');
+  const [city, setCity] = useState('');
+  const [phone, setPhone] = useState('');
 
   const isAddressValid = address && city && phone;
-  const canProceed     = isAddressValid;
+  const canProceed = isAddressValid;
 
   const handlePlaceOrder = async () => {
     if (!canProceed) {
@@ -253,44 +253,44 @@ export default function PaymentScreen({ navigation, route }) {
 }
 
 const styles = StyleSheet.create({
-  safe:             { flex: 1, backgroundColor: COLORS.bg },
-  header:           { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 12, backgroundColor: COLORS.white, borderBottomWidth: 1, borderBottomColor: COLORS.border },
-  navBtn:           { width: 40, height: 40, borderRadius: 12, backgroundColor: COLORS.card, alignItems: 'center', justifyContent: 'center' },
-  headerTitle:      { fontSize: 18, fontWeight: '800', color: COLORS.accent },
-  scrollContent:    { paddingBottom: 20 },
-  section:          { backgroundColor: COLORS.white, marginTop: 12, paddingHorizontal: 20, paddingVertical: 18, borderTopWidth: 1, borderBottomWidth: 1, borderColor: COLORS.border },
-  sectionTitle:     { fontSize: 13, fontWeight: '700', color: COLORS.accent, textTransform: 'uppercase', letterSpacing: 0.7, marginBottom: 14 },
-  orderItem:        { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
-  orderItemTitle:   { fontSize: 13, color: COLORS.text, flex: 1, marginRight: 8 },
-  orderItemPrice:   { fontSize: 13, fontWeight: '700', color: COLORS.text },
-  orderDivider:     { height: 1, backgroundColor: COLORS.border, marginVertical: 10 },
-  orderTotalLabel:  { fontSize: 15, fontWeight: '800', color: COLORS.text },
-  orderTotalValue:  { fontSize: 17, fontWeight: '900', color: COLORS.accent },
-  methodRow:        { flexDirection: 'row', gap: 12 },
-  methodBtn:        { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, borderRadius: 14, paddingVertical: 14, borderWidth: 1.5, borderColor: COLORS.accent, backgroundColor: COLORS.white },
-  methodBtnActive:  { backgroundColor: COLORS.accent },
-  methodText:       { fontSize: 13, fontWeight: '700', color: COLORS.accent },
+  safe: { flex: 1, backgroundColor: COLORS.bg },
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 12, backgroundColor: COLORS.white, borderBottomWidth: 1, borderBottomColor: COLORS.border },
+  navBtn: { width: 40, height: 40, borderRadius: 12, backgroundColor: COLORS.card, alignItems: 'center', justifyContent: 'center' },
+  headerTitle: { fontSize: 18, fontWeight: '800', color: COLORS.accent },
+  scrollContent: { paddingBottom: 20 },
+  section: { backgroundColor: COLORS.white, marginTop: 12, paddingHorizontal: 20, paddingVertical: 18, borderTopWidth: 1, borderBottomWidth: 1, borderColor: COLORS.border },
+  sectionTitle: { fontSize: 13, fontWeight: '700', color: COLORS.accent, textTransform: 'uppercase', letterSpacing: 0.7, marginBottom: 14 },
+  orderItem: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
+  orderItemTitle: { fontSize: 13, color: COLORS.text, flex: 1, marginRight: 8 },
+  orderItemPrice: { fontSize: 13, fontWeight: '700', color: COLORS.text },
+  orderDivider: { height: 1, backgroundColor: COLORS.border, marginVertical: 10 },
+  orderTotalLabel: { fontSize: 15, fontWeight: '800', color: COLORS.text },
+  orderTotalValue: { fontSize: 17, fontWeight: '900', color: COLORS.accent },
+  methodRow: { flexDirection: 'row', gap: 12 },
+  methodBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, borderRadius: 14, paddingVertical: 14, borderWidth: 1.5, borderColor: COLORS.accent, backgroundColor: COLORS.white },
+  methodBtnActive: { backgroundColor: COLORS.accent },
+  methodText: { fontSize: 13, fontWeight: '700', color: COLORS.accent },
   methodTextActive: { color: COLORS.white },
-  paymobInfo:       { flexDirection: 'row', alignItems: 'flex-start', gap: 10, backgroundColor: COLORS.accentLight, borderRadius: 12, padding: 14, marginBottom: 12 },
-  paymobInfoText:   { flex: 1, fontSize: 13, color: COLORS.accent, lineHeight: 20 },
-  secureNote:       { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  secureText:       { fontSize: 11, color: COLORS.muted },
-  inputWrap:        { marginBottom: 14 },
-  inputLabel:       { fontSize: 11, fontWeight: '700', color: COLORS.text, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 7 },
-  input:            { backgroundColor: COLORS.bg, borderWidth: 1, borderColor: COLORS.border, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 13, fontSize: 14, color: COLORS.text },
-  cashInfo:         { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: COLORS.accentLight, borderRadius: 12, padding: 12, marginBottom: 16 },
-  cashInfoText:     { fontSize: 13, color: COLORS.accent, fontWeight: '600' },
-  ctaBar:           { position: 'absolute', bottom: 0, left: 0, right: 0, paddingHorizontal: 20, paddingVertical: 16, paddingBottom: 32, backgroundColor: COLORS.white, borderTopWidth: 1, borderTopColor: COLORS.border },
-  placeOrderBtn:    { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: COLORS.accent, borderRadius: 16, paddingVertical: 16 },
-  placeOrderText:   { fontSize: 16, fontWeight: '800', color: COLORS.white },
-  successScreen:    { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 32 },
-  successIcon:      { width: 110, height: 110, borderRadius: 55, backgroundColor: COLORS.successLight, alignItems: 'center', justifyContent: 'center', marginBottom: 24 },
-  successTitle:     { fontSize: 28, fontWeight: '900', color: COLORS.text, marginBottom: 10 },
-  successSub:       { fontSize: 14, color: COLORS.muted, textAlign: 'center', lineHeight: 22, marginBottom: 28 },
-  successDetails:   { width: '100%', backgroundColor: COLORS.card, borderRadius: 16, padding: 18, gap: 12, marginBottom: 28 },
-  successRow:       { flexDirection: 'row', justifyContent: 'space-between' },
-  successLabel:     { fontSize: 13, color: COLORS.muted },
-  successValue:     { fontSize: 13, fontWeight: '700', color: COLORS.text },
-  backToShopBtn:    { backgroundColor: COLORS.accent, borderRadius: 16, paddingVertical: 16, paddingHorizontal: 40 },
-  backToShopBtnText:{ fontSize: 15, fontWeight: '700', color: COLORS.white },
+  paymobInfo: { flexDirection: 'row', alignItems: 'flex-start', gap: 10, backgroundColor: COLORS.accentLight, borderRadius: 12, padding: 14, marginBottom: 12 },
+  paymobInfoText: { flex: 1, fontSize: 13, color: COLORS.accent, lineHeight: 20 },
+  secureNote: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  secureText: { fontSize: 11, color: COLORS.muted },
+  inputWrap: { marginBottom: 14 },
+  inputLabel: { fontSize: 11, fontWeight: '700', color: COLORS.text, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 7 },
+  input: { backgroundColor: COLORS.bg, borderWidth: 1, borderColor: COLORS.border, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 13, fontSize: 14, color: COLORS.text },
+  cashInfo: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: COLORS.accentLight, borderRadius: 12, padding: 12, marginBottom: 16 },
+  cashInfoText: { fontSize: 13, color: COLORS.accent, fontWeight: '600' },
+  ctaBar: { position: 'absolute', bottom: 0, left: 0, right: 0, paddingHorizontal: 20, paddingVertical: 16, paddingBottom: 32, backgroundColor: COLORS.white, borderTopWidth: 1, borderTopColor: COLORS.border },
+  placeOrderBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: COLORS.accent, borderRadius: 16, paddingVertical: 16 },
+  placeOrderText: { fontSize: 16, fontWeight: '800', color: COLORS.white },
+  successScreen: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 32 },
+  successIcon: { width: 110, height: 110, borderRadius: 55, backgroundColor: COLORS.successLight, alignItems: 'center', justifyContent: 'center', marginBottom: 24 },
+  successTitle: { fontSize: 28, fontWeight: '900', color: COLORS.text, marginBottom: 10 },
+  successSub: { fontSize: 14, color: COLORS.muted, textAlign: 'center', lineHeight: 22, marginBottom: 28 },
+  successDetails: { width: '100%', backgroundColor: COLORS.card, borderRadius: 16, padding: 18, gap: 12, marginBottom: 28 },
+  successRow: { flexDirection: 'row', justifyContent: 'space-between' },
+  successLabel: { fontSize: 13, color: COLORS.muted },
+  successValue: { fontSize: 13, fontWeight: '700', color: COLORS.text },
+  backToShopBtn: { backgroundColor: COLORS.accent, borderRadius: 16, paddingVertical: 16, paddingHorizontal: 40 },
+  backToShopBtnText: { fontSize: 15, fontWeight: '700', color: COLORS.white },
 });

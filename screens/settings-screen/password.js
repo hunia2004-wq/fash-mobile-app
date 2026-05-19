@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Activi
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AuthContext } from '../../context/AuthContext';
 import { changePassword } from '../../services/authService';
-import { Ionicons} from '@expo/vector-icons';
+import { Ionicons } from '@expo/vector-icons';
 
 
 const ChangePasswordScreen = ({ navigation }) => {
@@ -18,8 +18,8 @@ const ChangePasswordScreen = ({ navigation }) => {
 
   const handleSave = async () => {
     console.log("CLICKED SAVE");
-console.log("Old:", oldPassword);
-console.log("New:", newPassword);
+    console.log("Old:", oldPassword);
+    console.log("New:", newPassword);
 
     if (!oldPassword || !newPassword || !confirmPassword) {
       Alert.alert('Validation', 'Please fill in all fields.');
@@ -34,7 +34,7 @@ console.log("New:", newPassword);
       return;
     }
     setSaving(true);
-    
+
     try {
       const token = await getToken();
       console.log("TOKEN:", token);
@@ -46,9 +46,9 @@ console.log("New:", newPassword);
     } catch (e) {
       console.log("FULL ERROR:", e);
       console.log("MESSAGE:", e.message);
-    
+
       Alert.alert('Error', e.message || 'Failed to change password.');
-    } finally{
+    } finally {
       setSaving(false);
     }
   };
@@ -75,13 +75,13 @@ console.log("New:", newPassword);
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-      <TouchableOpacity
-  style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: '#F2E6E3', alignItems: 'center', justifyContent: 'center' }}
-  onPress={() => navigation.goBack()}
-  activeOpacity={0.8}
->
-  <Ionicons name="arrow-back" size={20} color="#2c2c2c" />
-</TouchableOpacity>
+        <TouchableOpacity
+          style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: '#F2E6E3', alignItems: 'center', justifyContent: 'center' }}
+          onPress={() => navigation.goBack()}
+          activeOpacity={0.8}
+        >
+          <Ionicons name="arrow-back" size={20} color="#2c2c2c" />
+        </TouchableOpacity>
         <Text style={styles.headerTitle}>Change Password</Text>
         <TouchableOpacity onPress={handleSave} disabled={saving}>
           {saving

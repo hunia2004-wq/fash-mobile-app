@@ -5,7 +5,7 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 // Fire-and-forget on app start to pre-warm Vercel serverless functions
 export async function warmupServer() {
   const endpoints = ['/listings', '/saved'];
-  
+
   await Promise.allSettled(
     endpoints.map(async (endpoint) => {
       try {
@@ -44,7 +44,7 @@ async function request(endpoint, options = {}, retries = 2, attempt = 0) {
     clearTimeout(timeoutId);
 
     let data = {};
-    try { data = await response.json(); } catch {}
+    try { data = await response.json(); } catch { }
 
     if (!response.ok) {
       throw new Error(
@@ -281,7 +281,7 @@ export const updateCard = async (token, id, payload) => {
 
 export const setDefaultCard = async (token, id) => {
   return request(`/cards/${id}/default`, {
-    method: 'PUT', 
+    method: 'PUT',
     headers: {
       Authorization: `Bearer ${token}`,
       'Content-Type': 'application/json',
@@ -523,7 +523,7 @@ export async function getAllListings(query = {}) {
 
   const res = await request(`/listings${queryString ? `?${queryString}` : ''}`);
 
-  return res.listings; 
+  return res.listings;
 }
 
 export async function getListingById(id) {
@@ -534,7 +534,7 @@ export async function createListing(token, formData) {
   return request('/listings', {
     method: 'POST',
     headers: { Authorization: `Bearer ${token}` },
-    body: formData, 
+    body: formData,
   });
 }
 

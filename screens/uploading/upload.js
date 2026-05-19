@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import {View, Text, ScrollView, StyleSheet, TouchableOpacity, TextInput, StatusBar, Dimensions, Image, Alert, ActivityIndicator} from 'react-native';
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity, TextInput, StatusBar, Dimensions, Image, Alert, ActivityIndicator } from 'react-native';
 import { Feather, Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
@@ -9,7 +9,7 @@ import { createWardrobeItem } from '../../services/authService';
 
 const { width } = Dimensions.get('window');
 
-const SEASONS   = ['Spring', 'Summer', 'Autumn', 'Winter', 'All-season'];
+const SEASONS = ['Spring', 'Summer', 'Autumn', 'Winter', 'All-season'];
 const OCCASIONS = ['Casual', 'Work', 'Evening', 'Sport', 'Formal'];
 const CATEGORIES = ['Tops', 'Bottoms', 'Dresses', 'Outerwear', 'Shoes', 'Bags', 'Accessories'];
 
@@ -114,10 +114,10 @@ export default function UploadScreen({ navigation }) {
       const formData = new FormData();
       formData.append('name', itemName.trim());
       formData.append('category', category);
-      if (size)    formData.append('size', size);
-      if (brand)   formData.append('brand', brand);
-      if (price)   formData.append('price', price);
-      if (seasons.length)   formData.append('season', seasons[0]);
+      if (size) formData.append('size', size);
+      if (brand) formData.append('brand', brand);
+      if (price) formData.append('price', price);
+      if (seasons.length) formData.append('season', seasons[0]);
       if (occasions.length) formData.append('occasion', occasions[0]);
       formData.append('listOnMarketplace', listOnMarketplace ? 'true' : 'false');
 
@@ -325,8 +325,8 @@ export default function UploadScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  safe: { 
-    flex: 1, 
+  safe: {
+    flex: 1,
     backgroundColor: '#F5F5F5'
   },
 
@@ -335,31 +335,31 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#F5F5F5',
   },
-  
+
   logo: {
     width: 120,
     height: 50,
   },
-  
+
   titleHeader: {
     backgroundColor: '#F5F5F5',
     paddingHorizontal: 20,
   },
-  
-  headerTitle: { 
-    fontSize: 20, 
-    fontWeight: '700', 
+
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: '700',
     color: '#C17C74',
   },
-  
-  headerSub: { 
-    fontSize: 13, 
-    color: '#888888', 
-    marginTop: 2 
+
+  headerSub: {
+    fontSize: 13,
+    color: '#888888',
+    marginTop: 2
   },
 
-  scrollContent: { 
-    paddingBottom: 20 
+  scrollContent: {
+    paddingBottom: 20
   },
 
   uploadZone: {
@@ -374,10 +374,10 @@ const styles = StyleSheet.create({
     gap: 10,
   },
 
-  previewImage: { 
-    width: '100%', 
-    height: 220, 
-    borderRadius: 18 
+  previewImage: {
+    width: '100%',
+    height: 220,
+    borderRadius: 18
   },
 
   uploadIconCircle: {
@@ -389,153 +389,153 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
 
-  uploadText: { 
-    fontSize: 14, 
-    fontWeight: '600', 
-    color: '#C17C74' 
+  uploadText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#C17C74'
   },
 
-  uploadSub: { 
-    fontSize: 11, 
+  uploadSub: {
+    fontSize: 11,
     color: '#888888'
   },
 
-  photoRow: { 
-    flexDirection: 'row', 
-    gap: 10, 
-    paddingHorizontal: 16, 
-    marginBottom: 4 
+  photoRow: {
+    flexDirection: 'row',
+    gap: 10,
+    paddingHorizontal: 16,
+    marginBottom: 4
   },
 
   btnOutlineHalf: {
-    flex: 1, 
-    flexDirection: 'row', 
-    alignItems: 'center', 
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1.5, 
-    borderColor: '#C17C74', 
-    borderRadius: 14, 
+    borderWidth: 1.5,
+    borderColor: '#C17C74',
+    borderRadius: 14,
     paddingVertical: 12,
   },
 
-  btnOutlineText: { 
-    color: '#C17C74', 
-    fontSize: 13, 
-    fontWeight: '600' 
+  btnOutlineText: {
+    color: '#C17C74',
+    fontSize: 13,
+    fontWeight: '600'
   },
 
-  divider: { 
-    height: 0.5, 
-    backgroundColor: 'rgba(193,124,116,0.18)', 
-    marginHorizontal: 16, 
-    marginVertical: 12 
+  divider: {
+    height: 0.5,
+    backgroundColor: 'rgba(193,124,116,0.18)',
+    marginHorizontal: 16,
+    marginVertical: 12
   },
 
   sectionLabel: {
-    fontSize: 11, 
-    fontWeight: '700', 
+    fontSize: 11,
+    fontWeight: '700',
     color: '#C17C74',
-    paddingHorizontal: 16, 
+    paddingHorizontal: 16,
     paddingBottom: 8,
-    textTransform: 'uppercase', 
+    textTransform: 'uppercase',
     letterSpacing: 0.9,
   },
 
-  formGroup: { 
-    paddingHorizontal: 16, 
-    marginBottom: 12 
+  formGroup: {
+    paddingHorizontal: 16,
+    marginBottom: 12
   },
 
-  formRow: { 
-    flexDirection: 'row', 
-    gap: 10, 
-    paddingHorizontal: 16, 
-    marginBottom: 12 
+  formRow: {
+    flexDirection: 'row',
+    gap: 10,
+    paddingHorizontal: 16,
+    marginBottom: 12
   },
 
-  formHalf: { 
-    flex: 1 
+  formHalf: {
+    flex: 1
   },
 
   formLabel: {
-    fontSize: 10, 
-    fontWeight: '700', 
+    fontSize: 10,
+    fontWeight: '700',
     color: '#C17C74',
-    marginBottom: 6, 
-    textTransform: 'uppercase', 
+    marginBottom: 6,
+    textTransform: 'uppercase',
     letterSpacing: 0.6,
   },
 
   formInput: {
     backgroundColor: 'white',
-    borderWidth: 1, 
+    borderWidth: 1,
     borderColor: '#e0c8c5',
-    borderRadius: 12, 
-    paddingHorizontal: 14, 
+    borderRadius: 12,
+    paddingHorizontal: 14,
     paddingVertical: 11,
-    fontSize: 14, 
+    fontSize: 14,
     color: '#2c2c2c',
   },
 
-  tagRow: { 
-    flexDirection: 'row', 
-    flexWrap: 'wrap', 
-    gap: 8, 
-    paddingHorizontal: 16, 
-    paddingBottom: 4 
+  tagRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    paddingHorizontal: 16,
+    paddingBottom: 4
   },
 
   tag: {
-    paddingHorizontal: 14, 
-    paddingVertical: 7, 
+    paddingHorizontal: 14,
+    paddingVertical: 7,
     borderRadius: 14,
-    backgroundColor: '#F2E6E3', 
-    borderWidth: 1, 
+    backgroundColor: '#F2E6E3',
+    borderWidth: 1,
     borderColor: 'rgba(193,124,116,0.18)',
   },
 
-  tagActive: { 
-    backgroundColor: '#C17C74', 
-    borderColor: '#C17C74', 
+  tagActive: {
+    backgroundColor: '#C17C74',
+    borderColor: '#C17C74',
   },
 
-  tagText: { 
-    fontSize: 12, 
-    color: '#C17C74', 
-    fontWeight: '500' 
+  tagText: {
+    fontSize: 12,
+    color: '#C17C74',
+    fontWeight: '500'
   },
 
-  tagTextActive: { 
+  tagTextActive: {
     color: 'white',
   },
 
   btnAccent: {
-    flexDirection: 'row', 
-    alignItems: 'center', 
+    flexDirection: 'row',
+    alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#C17C74',
-    marginHorizontal: 16, 
-    marginTop: 12, 
+    marginHorizontal: 16,
+    marginTop: 12,
     marginBottom: 10,
-    borderRadius: 16, 
+    borderRadius: 16,
     paddingVertical: 16,
   },
 
-  btnAccentText: { 
-    color: 'white', 
-    fontSize: 15, 
-    fontWeight: '600' 
+  btnAccentText: {
+    color: 'white',
+    fontSize: 15,
+    fontWeight: '600'
   },
 
   btnOutlineFull: {
-    flexDirection: 'row', 
-    alignItems: 'center', 
+    flexDirection: 'row',
+    alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1.5, 
+    borderWidth: 1.5,
     borderColor: '#C17C74',
     marginHorizontal: 16,
     marginBottom: 4,
-    borderRadius: 16, 
+    borderRadius: 16,
     paddingVertical: 15,
   },
 });

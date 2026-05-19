@@ -24,7 +24,7 @@ const BADGE_ICONS = {
 
 const StarRow = ({ rating, size = 13 }) => (
   <View style={{ flexDirection: 'row', gap: 2 }}>
-    {[1,2,3,4,5].map(s => (
+    {[1, 2, 3, 4, 5].map(s => (
       <Ionicons key={s} name={s <= Math.round(rating) ? 'star' : 'star-outline'} size={size} color={COLORS.primary} />
     ))}
   </View>
@@ -32,7 +32,7 @@ const StarRow = ({ rating, size = 13 }) => (
 
 const StarPicker = ({ value, onChange }) => (
   <View style={{ flexDirection: 'row', gap: 6 }}>
-    {[1,2,3,4,5].map(s => (
+    {[1, 2, 3, 4, 5].map(s => (
       <TouchableOpacity key={s} onPress={() => onChange(s)} activeOpacity={0.7}>
         <Ionicons name={s <= value ? 'star' : 'star-outline'} size={32} color={COLORS.primary} />
       </TouchableOpacity>
@@ -189,22 +189,22 @@ export default function SellerProfileScreen({ navigation, route }) {
   const { sellerId } = route.params ?? {};
   const { getToken } = useAuth();
 
-  const [seller,        setSeller]        = useState(null);
-  const [reviews,       setReviews]       = useState([]);
-  const [followed,      setFollowed]      = useState(false);
-  const [loading,       setLoading]       = useState(true);
+  const [seller, setSeller] = useState(null);
+  const [reviews, setReviews] = useState([]);
+  const [followed, setFollowed] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [followLoading, setFollowLoading] = useState(false);
-  const [error,         setError]         = useState(null);
+  const [error, setError] = useState(null);
   const [showAllReviews, setShowAllReviews] = useState(false);
 
   // Modals
-  const [reviewModal,  setReviewModal]  = useState(false);
+  const [reviewModal, setReviewModal] = useState(false);
   const [messageModal, setMessageModal] = useState(false);
 
   // Review form
-  const [reviewRating,  setReviewRating]  = useState(0);
+  const [reviewRating, setReviewRating] = useState(0);
   const [reviewComment, setReviewComment] = useState('');
-  const [submitting,    setSubmitting]    = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
   const isFollowingRef = useRef(false);
 
@@ -234,7 +234,7 @@ export default function SellerProfileScreen({ navigation, route }) {
   const handleToggleFollow = async () => {
     if (followLoading) return;
     const prevFollowed = followed;
-    const prevCount    = seller?.followersCount ?? 0;
+    const prevCount = seller?.followersCount ?? 0;
     isFollowingRef.current = true;
     setFollowLoading(true);
     setFollowed(!prevFollowed);
@@ -244,7 +244,7 @@ export default function SellerProfileScreen({ navigation, route }) {
     }));
     try {
       const token = await getToken();
-      const data  = await toggleFollowSeller(token, sellerId);
+      const data = await toggleFollowSeller(token, sellerId);
       setFollowed(data.isFollowing);
       setSeller(prev => ({ ...prev, followersCount: data.followersCount }));
     } catch (err) {
@@ -303,7 +303,7 @@ export default function SellerProfileScreen({ navigation, route }) {
       setSubmitting(true);
       const token = await getToken();
       const newReview = await createSellerReview(token, sellerId, {
-        rating:  reviewRating,
+        rating: reviewRating,
         comment: reviewComment.trim() || undefined,
       });
       setReviews(prev => [newReview.review ?? newReview, ...prev]);
@@ -347,17 +347,17 @@ export default function SellerProfileScreen({ navigation, route }) {
     );
   }
 
-  const user         = seller.user ?? {};
-  const sellerName   = `${user.firstName ?? ''} ${user.lastName ?? ''}`.trim() || 'Seller';
-  const initials     = `${user.firstName?.[0] ?? ''}${user.lastName?.[0] ?? ''}`.toUpperCase() || '??';
-  const breakdown    = seller.ratingBreakdown ?? {};
+  const user = seller.user ?? {};
+  const sellerName = `${user.firstName ?? ''} ${user.lastName ?? ''}`.trim() || 'Seller';
+  const initials = `${user.firstName?.[0] ?? ''}${user.lastName?.[0] ?? ''}`.toUpperCase() || '??';
+  const breakdown = seller.ratingBreakdown ?? {};
   const totalReviews = seller.totalReviews ?? reviews.length;
 
   const categories = [
-    { label: 'Quality',       score: seller.qualityRating },
-    { label: 'Shipping',      score: seller.shippingRating },
+    { label: 'Quality', score: seller.qualityRating },
+    { label: 'Shipping', score: seller.shippingRating },
     { label: 'Communication', score: seller.communicationRating },
-    { label: 'As Described',  score: seller.asDescribedRating },
+    { label: 'As Described', score: seller.asDescribedRating },
   ].filter(c => c.score > 0);
 
   const displayedReviews = showAllReviews ? reviews : reviews.slice(0, 3);
@@ -410,9 +410,9 @@ export default function SellerProfileScreen({ navigation, route }) {
           <Divider />
 
           <View style={styles.statsRow}>
-            <StatItem value={seller.totalListings}  label="Listings" />
+            <StatItem value={seller.totalListings} label="Listings" />
             <Divider vertical />
-            <StatItem value={seller.totalSales}     label="Sales" />
+            <StatItem value={seller.totalSales} label="Sales" />
             <Divider vertical />
             <StatItem value={seller.followersCount} label="Followers" />
             <Divider vertical />
@@ -432,16 +432,16 @@ export default function SellerProfileScreen({ navigation, route }) {
             {followLoading
               ? <ActivityIndicator size="small" color={followed ? COLORS.primary : COLORS.white} />
               : <>
-                  <Ionicons
-                    name={followed ? 'checkmark' : 'add'}
-                    size={15}
-                    color={followed ? COLORS.primary : COLORS.white}
-                    style={{ marginRight: 5 }}
-                  />
-                  <Text style={[styles.btnPrimaryText, followed && { color: COLORS.primary }]}>
-                    {followed ? 'Following' : 'Follow'}
-                  </Text>
-                </>
+                <Ionicons
+                  name={followed ? 'checkmark' : 'add'}
+                  size={15}
+                  color={followed ? COLORS.primary : COLORS.white}
+                  style={{ marginRight: 5 }}
+                />
+                <Text style={[styles.btnPrimaryText, followed && { color: COLORS.primary }]}>
+                  {followed ? 'Following' : 'Follow'}
+                </Text>
+              </>
             }
           </TouchableOpacity>
 
@@ -490,7 +490,7 @@ export default function SellerProfileScreen({ navigation, route }) {
                 <Text style={styles.ratingCount}>{totalReviews} reviews</Text>
               </View>
               <View style={styles.ratingBars}>
-                {[5,4,3,2,1].map(star => (
+                {[5, 4, 3, 2, 1].map(star => (
                   <RatingBar key={star} star={star} count={breakdown[star] ?? 0} total={totalReviews} />
                 ))}
               </View>
@@ -620,95 +620,95 @@ export default function SellerProfileScreen({ navigation, route }) {
 }
 
 const styles = StyleSheet.create({
-  safeArea:           { flex: 1, backgroundColor: COLORS.bg },
-  centered:           { flex: 1, justifyContent: 'center', alignItems: 'center', gap: 12 },
-  errorText:          { color: COLORS.muted, fontSize: 14 },
-  retryBtn:           { backgroundColor: COLORS.primary, paddingHorizontal: 20, paddingVertical: 10, borderRadius: 12 },
-  retryText:          { color: COLORS.white, fontWeight: '700', fontSize: 14 },
-  topNav:             { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 12, backgroundColor: COLORS.bg },
-  navTitle:           { fontSize: 16, fontWeight: '600', color: COLORS.dark },
-  iconBtn:            { width: 40, height: 40, borderRadius: 12, backgroundColor: COLORS.card, alignItems: 'center', justifyContent: 'center' },
-  scroll:             { flex: 1 },
-  scrollContent:      { paddingHorizontal: 16, paddingTop: 4 },
-  card:               { backgroundColor: COLORS.white, borderRadius: 20, padding: 18, marginBottom: 12, borderWidth: 0.5, borderColor: COLORS.border },
-  avatarCircle:       { backgroundColor: COLORS.card, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
-  avatarText:         { fontWeight: '600', color: COLORS.primary },
-  avatarWrap:         { marginRight: 14, position: 'relative' },
-  verifiedBadge:      { position: 'absolute', bottom: 0, right: 0, width: 20, height: 20, borderRadius: 10, backgroundColor: COLORS.primary, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: COLORS.white },
-  profileRow:         { flexDirection: 'row', alignItems: 'flex-start', marginBottom: 12 },
-  profileInfo:        { flex: 1 },
-  nameRow:            { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 4 },
-  sellerName:         { fontSize: 18, fontWeight: '600', color: COLORS.dark },
-  rolePill:           { alignSelf: 'flex-start', backgroundColor: COLORS.card, borderRadius: 20, paddingHorizontal: 10, paddingVertical: 3, marginBottom: 6 },
-  roleText:           { fontSize: 12, color: COLORS.primary, fontWeight: '500' },
-  bio:                { fontSize: 13, color: COLORS.textBody, lineHeight: 20, marginTop: 4 },
-  memberSince:        { fontSize: 11, color: COLORS.muted, marginTop: 6 },
-  horizDivider:       { height: 0.5, backgroundColor: COLORS.card, marginBottom: 14 },
-  vertDivider:        { width: 0.5, backgroundColor: COLORS.card },
-  statsRow:           { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around' },
-  statItem:           { alignItems: 'center', paddingVertical: 4 },
-  statValue:          { fontSize: 17, fontWeight: '600', color: COLORS.dark },
-  statLabel:          { fontSize: 11, color: COLORS.muted, marginTop: 2 },
-  actionRow:          { flexDirection: 'row', gap: 10, marginBottom: 10 },
-  btnPrimary:         { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: COLORS.primary, borderRadius: 14, paddingVertical: 13 },
+  safeArea: { flex: 1, backgroundColor: COLORS.bg },
+  centered: { flex: 1, justifyContent: 'center', alignItems: 'center', gap: 12 },
+  errorText: { color: COLORS.muted, fontSize: 14 },
+  retryBtn: { backgroundColor: COLORS.primary, paddingHorizontal: 20, paddingVertical: 10, borderRadius: 12 },
+  retryText: { color: COLORS.white, fontWeight: '700', fontSize: 14 },
+  topNav: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 12, backgroundColor: COLORS.bg },
+  navTitle: { fontSize: 16, fontWeight: '600', color: COLORS.dark },
+  iconBtn: { width: 40, height: 40, borderRadius: 12, backgroundColor: COLORS.card, alignItems: 'center', justifyContent: 'center' },
+  scroll: { flex: 1 },
+  scrollContent: { paddingHorizontal: 16, paddingTop: 4 },
+  card: { backgroundColor: COLORS.white, borderRadius: 20, padding: 18, marginBottom: 12, borderWidth: 0.5, borderColor: COLORS.border },
+  avatarCircle: { backgroundColor: COLORS.card, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
+  avatarText: { fontWeight: '600', color: COLORS.primary },
+  avatarWrap: { marginRight: 14, position: 'relative' },
+  verifiedBadge: { position: 'absolute', bottom: 0, right: 0, width: 20, height: 20, borderRadius: 10, backgroundColor: COLORS.primary, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: COLORS.white },
+  profileRow: { flexDirection: 'row', alignItems: 'flex-start', marginBottom: 12 },
+  profileInfo: { flex: 1 },
+  nameRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 4 },
+  sellerName: { fontSize: 18, fontWeight: '600', color: COLORS.dark },
+  rolePill: { alignSelf: 'flex-start', backgroundColor: COLORS.card, borderRadius: 20, paddingHorizontal: 10, paddingVertical: 3, marginBottom: 6 },
+  roleText: { fontSize: 12, color: COLORS.primary, fontWeight: '500' },
+  bio: { fontSize: 13, color: COLORS.textBody, lineHeight: 20, marginTop: 4 },
+  memberSince: { fontSize: 11, color: COLORS.muted, marginTop: 6 },
+  horizDivider: { height: 0.5, backgroundColor: COLORS.card, marginBottom: 14 },
+  vertDivider: { width: 0.5, backgroundColor: COLORS.card },
+  statsRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around' },
+  statItem: { alignItems: 'center', paddingVertical: 4 },
+  statValue: { fontSize: 17, fontWeight: '600', color: COLORS.dark },
+  statLabel: { fontSize: 11, color: COLORS.muted, marginTop: 2 },
+  actionRow: { flexDirection: 'row', gap: 10, marginBottom: 10 },
+  btnPrimary: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: COLORS.primary, borderRadius: 14, paddingVertical: 13 },
   btnPrimaryFollowed: { backgroundColor: COLORS.card },
-  btnPrimaryText:     { color: COLORS.white, fontSize: 14, fontWeight: '600' },
-  btnOutline:         { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: COLORS.primary, borderRadius: 14, paddingVertical: 13, backgroundColor: COLORS.white },
-  btnOutlineText:     { color: COLORS.primary, fontSize: 14, fontWeight: '600' },
-  btnIcon:            { backgroundColor: COLORS.card, borderRadius: 14, paddingHorizontal: 14, alignItems: 'center', justifyContent: 'center' },
-  contactStrip:       { flexDirection: 'row', gap: 10, marginBottom: 12 },
-  contactBtn:         { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, backgroundColor: COLORS.card, borderRadius: 12, paddingVertical: 10, borderWidth: 1, borderColor: COLORS.border },
-  contactBtnText:     { fontSize: 13, fontWeight: '600', color: COLORS.primary },
-  sectionTitle:       { fontSize: 14, fontWeight: '600', color: COLORS.dark, marginBottom: 14 },
-  ratingMain:         { flexDirection: 'row', gap: 18, alignItems: 'center', marginBottom: 14 },
-  ratingScore:        { alignItems: 'center', flexShrink: 0 },
-  ratingBig:          { fontSize: 42, fontWeight: '600', color: COLORS.dark, lineHeight: 48 },
-  ratingCount:        { fontSize: 11, color: COLORS.muted, marginTop: 3 },
-  ratingBars:         { flex: 1, gap: 5 },
-  ratingBarRow:       { flexDirection: 'row', alignItems: 'center', gap: 7 },
-  ratingBarStar:      { fontSize: 11, color: COLORS.muted, width: 8, textAlign: 'right' },
-  ratingBarTrack:     { flex: 1, height: 6, backgroundColor: COLORS.card, borderRadius: 10, overflow: 'hidden' },
-  ratingBarFill:      { height: 6, backgroundColor: COLORS.primary, borderRadius: 10 },
-  ratingBarPct:       { fontSize: 11, color: COLORS.muted, width: 28 },
-  catRow:             { flexDirection: 'row', justifyContent: 'space-between' },
-  catItem:            { alignItems: 'center' },
-  catScore:           { fontSize: 14, fontWeight: '600', color: COLORS.dark },
-  catLabel:           { fontSize: 10, color: COLORS.muted, marginTop: 2, textAlign: 'center' },
-  badgeRow:           { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  badge:              { flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: COLORS.card, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20 },
-  badgeText:          { fontSize: 12, color: COLORS.primary, fontWeight: '500' },
-  reviewsHeader:      { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 },
-  writeReviewBtn:     { flexDirection: 'row', alignItems: 'center', backgroundColor: COLORS.primary, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 7 },
+  btnPrimaryText: { color: COLORS.white, fontSize: 14, fontWeight: '600' },
+  btnOutline: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: COLORS.primary, borderRadius: 14, paddingVertical: 13, backgroundColor: COLORS.white },
+  btnOutlineText: { color: COLORS.primary, fontSize: 14, fontWeight: '600' },
+  btnIcon: { backgroundColor: COLORS.card, borderRadius: 14, paddingHorizontal: 14, alignItems: 'center', justifyContent: 'center' },
+  contactStrip: { flexDirection: 'row', gap: 10, marginBottom: 12 },
+  contactBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, backgroundColor: COLORS.card, borderRadius: 12, paddingVertical: 10, borderWidth: 1, borderColor: COLORS.border },
+  contactBtnText: { fontSize: 13, fontWeight: '600', color: COLORS.primary },
+  sectionTitle: { fontSize: 14, fontWeight: '600', color: COLORS.dark, marginBottom: 14 },
+  ratingMain: { flexDirection: 'row', gap: 18, alignItems: 'center', marginBottom: 14 },
+  ratingScore: { alignItems: 'center', flexShrink: 0 },
+  ratingBig: { fontSize: 42, fontWeight: '600', color: COLORS.dark, lineHeight: 48 },
+  ratingCount: { fontSize: 11, color: COLORS.muted, marginTop: 3 },
+  ratingBars: { flex: 1, gap: 5 },
+  ratingBarRow: { flexDirection: 'row', alignItems: 'center', gap: 7 },
+  ratingBarStar: { fontSize: 11, color: COLORS.muted, width: 8, textAlign: 'right' },
+  ratingBarTrack: { flex: 1, height: 6, backgroundColor: COLORS.card, borderRadius: 10, overflow: 'hidden' },
+  ratingBarFill: { height: 6, backgroundColor: COLORS.primary, borderRadius: 10 },
+  ratingBarPct: { fontSize: 11, color: COLORS.muted, width: 28 },
+  catRow: { flexDirection: 'row', justifyContent: 'space-between' },
+  catItem: { alignItems: 'center' },
+  catScore: { fontSize: 14, fontWeight: '600', color: COLORS.dark },
+  catLabel: { fontSize: 10, color: COLORS.muted, marginTop: 2, textAlign: 'center' },
+  badgeRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  badge: { flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: COLORS.card, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20 },
+  badgeText: { fontSize: 12, color: COLORS.primary, fontWeight: '500' },
+  reviewsHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 },
+  writeReviewBtn: { flexDirection: 'row', alignItems: 'center', backgroundColor: COLORS.primary, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 7 },
   writeReviewBtnText: { fontSize: 12, fontWeight: '700', color: COLORS.white },
-  reviewCard:         { backgroundColor: COLORS.white, borderRadius: 18, padding: 16, marginBottom: 10, borderWidth: 0.5, borderColor: COLORS.border },
-  reviewHeader:       { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 },
-  reviewLeft:         { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  reviewAvatar:       { width: 36, height: 36, borderRadius: 18, backgroundColor: COLORS.card, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
-  reviewAvatarText:   { fontSize: 13, fontWeight: '600', color: COLORS.primary },
-  reviewName:         { fontSize: 13, fontWeight: '600', color: COLORS.dark },
-  reviewTime:         { fontSize: 11, color: COLORS.muted },
-  reviewText:         { fontSize: 13, color: COLORS.textBody, lineHeight: 20 },
-  reviewProduct:      { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 10, backgroundColor: COLORS.bg, borderRadius: 10, padding: 8 },
+  reviewCard: { backgroundColor: COLORS.white, borderRadius: 18, padding: 16, marginBottom: 10, borderWidth: 0.5, borderColor: COLORS.border },
+  reviewHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 },
+  reviewLeft: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  reviewAvatar: { width: 36, height: 36, borderRadius: 18, backgroundColor: COLORS.card, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
+  reviewAvatarText: { fontSize: 13, fontWeight: '600', color: COLORS.primary },
+  reviewName: { fontSize: 13, fontWeight: '600', color: COLORS.dark },
+  reviewTime: { fontSize: 11, color: COLORS.muted },
+  reviewText: { fontSize: 13, color: COLORS.textBody, lineHeight: 20 },
+  reviewProduct: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 10, backgroundColor: COLORS.bg, borderRadius: 10, padding: 8 },
   reviewProductThumb: { width: 28, height: 28, backgroundColor: COLORS.card, borderRadius: 6 },
-  reviewProductName:  { fontSize: 11, color: COLORS.muted },
-  viewAllBtn:         { borderWidth: 1, borderColor: COLORS.primary, borderRadius: 14, paddingVertical: 13, alignItems: 'center', backgroundColor: COLORS.white, marginTop: 2 },
-  viewAllText:        { color: COLORS.primary, fontSize: 14, fontWeight: '600' },
-  noReviews:          { alignItems: 'center', paddingVertical: 30, gap: 8 },
-  noReviewsText:      { fontSize: 15, fontWeight: '600', color: COLORS.dark },
-  noReviewsSub:       { fontSize: 13, color: COLORS.muted },
-  modalOverlay:       { flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.4)' },
-  modalSheet:         { backgroundColor: COLORS.white, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 24, paddingBottom: Platform.OS === 'ios' ? 40 : 28 },
-  modalHandle:        { width: 40, height: 4, backgroundColor: COLORS.card, borderRadius: 2, alignSelf: 'center', marginBottom: 16 },
-  modalHeader:        { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 },
-  modalTitle:         { fontSize: 18, fontWeight: '700', color: COLORS.dark },
-  modalCloseBtn:      { width: 32, height: 32, borderRadius: 16, backgroundColor: COLORS.card, alignItems: 'center', justifyContent: 'center' },
-  modalSub:           { fontSize: 13, color: COLORS.muted, marginBottom: 20 },
-  modalLabel:         { fontSize: 12, fontWeight: '700', color: COLORS.dark, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 10 },
-  ratingHint:         { fontSize: 13, color: COLORS.primary, fontWeight: '600', marginTop: 6 },
-  commentInput:       { backgroundColor: COLORS.bg, borderRadius: 14, padding: 14, fontSize: 14, color: COLORS.dark, minHeight: 100, borderWidth: 1, borderColor: COLORS.border },
-  charCount:          { fontSize: 11, color: COLORS.muted, textAlign: 'right', marginTop: 4, marginBottom: 4 },
-  templateChip:       { paddingHorizontal: 12, paddingVertical: 8, borderRadius: 12, backgroundColor: COLORS.card, borderWidth: 1, borderColor: COLORS.border },
-  templateChipText:   { fontSize: 12, color: COLORS.primary, fontWeight: '500' },
-  submitReviewBtn:    { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: COLORS.primary, borderRadius: 16, paddingVertical: 16, alignItems: 'center', marginTop: 12 },
-  submitReviewBtnText:{ fontSize: 15, fontWeight: '700', color: COLORS.white },
+  reviewProductName: { fontSize: 11, color: COLORS.muted },
+  viewAllBtn: { borderWidth: 1, borderColor: COLORS.primary, borderRadius: 14, paddingVertical: 13, alignItems: 'center', backgroundColor: COLORS.white, marginTop: 2 },
+  viewAllText: { color: COLORS.primary, fontSize: 14, fontWeight: '600' },
+  noReviews: { alignItems: 'center', paddingVertical: 30, gap: 8 },
+  noReviewsText: { fontSize: 15, fontWeight: '600', color: COLORS.dark },
+  noReviewsSub: { fontSize: 13, color: COLORS.muted },
+  modalOverlay: { flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.4)' },
+  modalSheet: { backgroundColor: COLORS.white, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 24, paddingBottom: Platform.OS === 'ios' ? 40 : 28 },
+  modalHandle: { width: 40, height: 4, backgroundColor: COLORS.card, borderRadius: 2, alignSelf: 'center', marginBottom: 16 },
+  modalHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 },
+  modalTitle: { fontSize: 18, fontWeight: '700', color: COLORS.dark },
+  modalCloseBtn: { width: 32, height: 32, borderRadius: 16, backgroundColor: COLORS.card, alignItems: 'center', justifyContent: 'center' },
+  modalSub: { fontSize: 13, color: COLORS.muted, marginBottom: 20 },
+  modalLabel: { fontSize: 12, fontWeight: '700', color: COLORS.dark, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 10 },
+  ratingHint: { fontSize: 13, color: COLORS.primary, fontWeight: '600', marginTop: 6 },
+  commentInput: { backgroundColor: COLORS.bg, borderRadius: 14, padding: 14, fontSize: 14, color: COLORS.dark, minHeight: 100, borderWidth: 1, borderColor: COLORS.border },
+  charCount: { fontSize: 11, color: COLORS.muted, textAlign: 'right', marginTop: 4, marginBottom: 4 },
+  templateChip: { paddingHorizontal: 12, paddingVertical: 8, borderRadius: 12, backgroundColor: COLORS.card, borderWidth: 1, borderColor: COLORS.border },
+  templateChipText: { fontSize: 12, color: COLORS.primary, fontWeight: '500' },
+  submitReviewBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: COLORS.primary, borderRadius: 16, paddingVertical: 16, alignItems: 'center', marginTop: 12 },
+  submitReviewBtnText: { fontSize: 15, fontWeight: '700', color: COLORS.white },
 });

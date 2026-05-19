@@ -7,21 +7,21 @@ const CartContext = createContext();
 export function CartProvider({ children }) {
   const { getToken } = useAuth();
   const [cartItems, setCartItems] = useState([]);
-  const [loading,   setLoading]   = useState(false);
+  const [loading, setLoading] = useState(false);
 
   // Normalize a backend item — never used for rental items
   const normalizeBackend = (item) => ({
-    _id:       item._id,
-    itemId:    item.itemId,
-    itemType:  item.itemType,
-    title:     item.title,
-    price:     item.price,
-    image:     item.image     ?? null,
-    size:      item.size      ?? null,
-    quantity:  item.quantity  ?? 1,
-    brand:     item.brand     ?? null,
+    _id: item._id,
+    itemId: item.itemId,
+    itemType: item.itemType,
+    title: item.title,
+    price: item.price,
+    image: item.image ?? null,
+    size: item.size ?? null,
+    quantity: item.quantity ?? 1,
+    brand: item.brand ?? null,
     condition: item.condition ?? null,
-    isRental:  false,
+    isRental: false,
   });
 
   // ── load cart on mount ──────────────────────────────────────────
@@ -66,24 +66,24 @@ export function CartProvider({ children }) {
     if (item.isRental) {
       setCartItems(prev => [...prev, {
         // Unique cart ID so multiple rentals of same item coexist
-        _id:            item._id,
-        itemId:         item.itemId ?? item._id,
-        itemType:       itemType,
-        isRental:       true,
-        title:          item.title,
-        brand:          item.brand        ?? null,
-        image:          item.image        ?? null,
-        condition:      item.condition    ?? null,
-        size:           item.rentalSize   ?? options.size ?? null,
-        quantity:       1,
+        _id: item._id,
+        itemId: item.itemId ?? item._id,
+        itemType: itemType,
+        isRental: true,
+        title: item.title,
+        brand: item.brand ?? null,
+        image: item.image ?? null,
+        condition: item.condition ?? null,
+        size: item.rentalSize ?? options.size ?? null,
+        quantity: 1,
         // ── Rental-specific fields (all preserved) ───────────────
-        price:          item.price,           // already = totalPrice
-        rentalDays:     item.rentalDays,
-        rentalLabel:    item.rentalLabel,
-        rentalStartDate:item.rentalStartDate,
-        rentalEndDate:  item.rentalEndDate,
-        rentalSize:     item.rentalSize,
-        rentalColor:    item.rentalColor,
+        price: item.price,           // already = totalPrice
+        rentalDays: item.rentalDays,
+        rentalLabel: item.rentalLabel,
+        rentalStartDate: item.rentalStartDate,
+        rentalEndDate: item.rentalEndDate,
+        rentalSize: item.rentalSize,
+        rentalColor: item.rentalColor,
       }]);
       return;
     }
@@ -149,10 +149,10 @@ export function CartProvider({ children }) {
   // ── helpers ─────────────────────────────────────────────────────
   const isInCart = useCallback((id) =>
     cartItems.some(i =>
-      i._id?.toString()    === id?.toString() ||
+      i._id?.toString() === id?.toString() ||
       i.itemId?.toString() === id?.toString()
     ),
-  [cartItems]);
+    [cartItems]);
 
   const cartCount = cartItems.reduce((sum, i) => sum + (i.quantity ?? 1), 0);
 

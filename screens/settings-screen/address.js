@@ -1,9 +1,9 @@
 import React, { useContext, useEffect, useState } from 'react';
-import {View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Alert, TextInput,} from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Alert, TextInput, } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AuthContext } from '../../context/AuthContext';
-import {getAddresses, addAddress, updateAddress, setDefaultAddress, deleteAddress,} from '../../services/authService';
-import { Ionicons} from '@expo/vector-icons';
+import { getAddresses, addAddress, updateAddress, setDefaultAddress, deleteAddress, } from '../../services/authService';
+import { Ionicons } from '@expo/vector-icons';
 
 
 export default function SavedAddresses({ navigation }) {
@@ -31,15 +31,15 @@ export default function SavedAddresses({ navigation }) {
     try {
       const token = await getToken();
       const res = await getAddresses(token);
-  
+
       console.log("RAW RESPONSE:", res);
-  
+
       const data =
         res?.data?.data ||
         res?.data ||
         res ||
         [];
-  
+
       setAddresses(Array.isArray(data) ? data : []);
     } catch (e) {
       console.log("ADDRESS ERROR:", e.response?.data || e.message);
@@ -82,12 +82,12 @@ export default function SavedAddresses({ navigation }) {
       Alert.alert('Validation', 'Please fill all required fields.');
       return;
     }
-  
+
     setSaving(true);
-  
+
     try {
       const token = await getToken();
-  
+
       const payload = {
         fullName: fullName.trim(),
         phone: phone.trim(),
@@ -96,9 +96,9 @@ export default function SavedAddresses({ navigation }) {
         city: city.trim(),
         country: country.trim(),
       };
-  
+
       console.log("SAVING ADDRESS:", payload);
-  
+
       if (editingId) {
         await updateAddress(token, editingId, payload);
       } else {
@@ -113,7 +113,7 @@ export default function SavedAddresses({ navigation }) {
       if (!editingId) {
         setAddresses((prev) => [savedAddress, ...prev]);
       }
-  
+
       await fetchAddresses();
       resetForm();
     } catch (e) {
@@ -170,18 +170,18 @@ export default function SavedAddresses({ navigation }) {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-  <TouchableOpacity
-    style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: '#F2E6E3', alignItems: 'center', justifyContent: 'center' }}
-    onPress={() => navigation.goBack()}
-    activeOpacity={0.8}
-  >
-    <Ionicons name="arrow-back" size={20} color="#2c2c2c" />
-  </TouchableOpacity>
-  <Text style={styles.headerTitle}>Saved Addresses</Text>
-  <TouchableOpacity onPress={() => { resetForm(); setShowForm(true); }}>
-    <Text style={styles.addBtn}>+ Add</Text>
-  </TouchableOpacity>
-</View>
+        <TouchableOpacity
+          style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: '#F2E6E3', alignItems: 'center', justifyContent: 'center' }}
+          onPress={() => navigation.goBack()}
+          activeOpacity={0.8}
+        >
+          <Ionicons name="arrow-back" size={20} color="#2c2c2c" />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Saved Addresses</Text>
+        <TouchableOpacity onPress={() => { resetForm(); setShowForm(true); }}>
+          <Text style={styles.addBtn}>+ Add</Text>
+        </TouchableOpacity>
+      </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
 

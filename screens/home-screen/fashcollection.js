@@ -81,12 +81,12 @@ export default function FashCollectionScreen({ navigation }) {
   const { t } = useTranslation();
 
   const [activeCategory, setActiveCategory] = useState('All');
-  const [search,         setSearch]         = useState('');
-  const [items,          setItems]          = useState([]);
-  const [loading,        setLoading]        = useState(true);
-  const [savedMap,       setSavedMap]       = useState({});
-  const [showSearch,     setShowSearch]     = useState(false);
-  const [notifyEnabled,  setNotifyEnabled]  = useState(false);
+  const [search, setSearch] = useState('');
+  const [items, setItems] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [savedMap, setSavedMap] = useState({});
+  const [showSearch, setShowSearch] = useState(false);
+  const [notifyEnabled, setNotifyEnabled] = useState(false);
 
   const fetchItems = useCallback(async () => {
     try {
@@ -280,34 +280,34 @@ export default function FashCollectionScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  safe:             { flex: 1, backgroundColor: '#F5F5F5' },
-  logoHeader:       { paddingBottom: 10, alignItems: 'center', backgroundColor: '#F5F5F5' },
-  logo:             { width: 120, height: 50 },
-  backBtn:          { width: 40, height: 40, borderRadius: 12, backgroundColor: '#F2E6E3', alignItems: 'center', justifyContent: 'center' },
-  header:           { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, marginBottom: 14 },
-  headerTitle:      { fontSize: 20, fontWeight: '700', color: '#C17C74' },
-  headerSub:        { fontSize: 13, color: '#888888' },
-  headerActions:    { flexDirection: 'row', gap: 8, alignItems: 'center' },
-  iconBtn:          { width: 40, height: 40, borderRadius: 12, backgroundColor: '#F2E6E3', alignItems: 'center', justifyContent: 'center' },
-  badgeCount:       { position: 'absolute', top: 4, right: 4, width: 16, height: 16, borderRadius: 8, backgroundColor: '#E05C5C', alignItems: 'center', justifyContent: 'center' },
-  badgeCountText:   { fontSize: 9, fontWeight: '800', color: 'white' },
-  searchBarWrap:    { flexDirection: 'row', alignItems: 'center', backgroundColor: '#F2E6E3', borderRadius: 12, paddingHorizontal: 12, height: 40, marginHorizontal: 16, marginBottom: 10, borderWidth: 1, borderColor: 'rgba(193,124,116,0.18)' },
-  searchInput:      { flex: 1, fontSize: 14, color: '#2c2c2c' },
-  scrollContent:    { paddingBottom: 32 },
-  chipsRow:         { paddingHorizontal: 14, paddingTop: 12, paddingBottom: 12, gap: 8, flexDirection: 'row' },
-  chip:             { paddingHorizontal: 16, paddingVertical: 7, borderRadius: 20, borderWidth: 1, borderColor: 'rgba(193,124,116,0.18)', backgroundColor: '#F2E6E3' },
-  chipActive:       { backgroundColor: '#C17C74' },
-  chipText:         { fontSize: 12, color: '#C17C74', fontWeight: '500' },
-  chipTextActive:   { color: '#fff' },
-  grid:             { flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: 14, gap: 10 },
-  gridItem:         { width: CARD_WIDTH },
-  wCard:            { backgroundColor: '#F2E6E3', borderRadius: 18, overflow: 'hidden' },
-  wCardImg:         { width: '100%', aspectRatio: 3 / 4, backgroundColor: '#F2E6E3', alignItems: 'center', justifyContent: 'center', position: 'relative' },
-  fashBadge:        { position: 'absolute', bottom: 8, left: 8, backgroundColor: '#C17C74', borderRadius: 6, paddingHorizontal: 7, paddingVertical: 3 },
-  fashBadgeText:    { color: '#fff', fontSize: 8, fontWeight: '800', letterSpacing: 0.4 },
-  wCardBadge:       { position: 'absolute', top: 10, left: 10, backgroundColor: '#C17C74', borderRadius: 8, paddingHorizontal: 7, paddingVertical: 3 },
-  wCardBadgeText:   { color: '#fff', fontSize: 9, fontWeight: '700' },
-  heartBtn:         {
+  safe: { flex: 1, backgroundColor: '#F5F5F5' },
+  logoHeader: { paddingBottom: 10, alignItems: 'center', backgroundColor: '#F5F5F5' },
+  logo: { width: 120, height: 50 },
+  backBtn: { width: 40, height: 40, borderRadius: 12, backgroundColor: '#F2E6E3', alignItems: 'center', justifyContent: 'center' },
+  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, marginBottom: 14 },
+  headerTitle: { fontSize: 20, fontWeight: '700', color: '#C17C74' },
+  headerSub: { fontSize: 13, color: '#888888' },
+  headerActions: { flexDirection: 'row', gap: 8, alignItems: 'center' },
+  iconBtn: { width: 40, height: 40, borderRadius: 12, backgroundColor: '#F2E6E3', alignItems: 'center', justifyContent: 'center' },
+  badgeCount: { position: 'absolute', top: 4, right: 4, width: 16, height: 16, borderRadius: 8, backgroundColor: '#E05C5C', alignItems: 'center', justifyContent: 'center' },
+  badgeCountText: { fontSize: 9, fontWeight: '800', color: 'white' },
+  searchBarWrap: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#F2E6E3', borderRadius: 12, paddingHorizontal: 12, height: 40, marginHorizontal: 16, marginBottom: 10, borderWidth: 1, borderColor: 'rgba(193,124,116,0.18)' },
+  searchInput: { flex: 1, fontSize: 14, color: '#2c2c2c' },
+  scrollContent: { paddingBottom: 32 },
+  chipsRow: { paddingHorizontal: 14, paddingTop: 12, paddingBottom: 12, gap: 8, flexDirection: 'row' },
+  chip: { paddingHorizontal: 16, paddingVertical: 7, borderRadius: 20, borderWidth: 1, borderColor: 'rgba(193,124,116,0.18)', backgroundColor: '#F2E6E3' },
+  chipActive: { backgroundColor: '#C17C74' },
+  chipText: { fontSize: 12, color: '#C17C74', fontWeight: '500' },
+  chipTextActive: { color: '#fff' },
+  grid: { flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: 14, gap: 10 },
+  gridItem: { width: CARD_WIDTH },
+  wCard: { backgroundColor: '#F2E6E3', borderRadius: 18, overflow: 'hidden' },
+  wCardImg: { width: '100%', aspectRatio: 3 / 4, backgroundColor: '#F2E6E3', alignItems: 'center', justifyContent: 'center', position: 'relative' },
+  fashBadge: { position: 'absolute', bottom: 8, left: 8, backgroundColor: '#C17C74', borderRadius: 6, paddingHorizontal: 7, paddingVertical: 3 },
+  fashBadgeText: { color: '#fff', fontSize: 8, fontWeight: '800', letterSpacing: 0.4 },
+  wCardBadge: { position: 'absolute', top: 10, left: 10, backgroundColor: '#C17C74', borderRadius: 8, paddingHorizontal: 7, paddingVertical: 3 },
+  wCardBadgeText: { color: '#fff', fontSize: 9, fontWeight: '700' },
+  heartBtn: {
     position: 'absolute', top: 10, right: 10,
     width: 32, height: 32, borderRadius: 16,
     backgroundColor: 'white',
@@ -316,20 +316,20 @@ const styles = StyleSheet.create({
     shadowColor: '#000', shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.15, shadowRadius: 4, elevation: 4,
   },
-  wCardInfo:        { padding: 10 },
-  wCardBrand:       { fontSize: 9, fontWeight: '700', color: '#C17C74', textTransform: 'uppercase', letterSpacing: 0.4, marginBottom: 2 },
-  wCardName:        { fontSize: 12, fontWeight: '600', color: '#2c2c2c' },
-  wCardDetail:      { fontSize: 10, color: '#888888', marginTop: 2 },
-  wCardBottom:      { flexDirection: 'row', alignItems: 'baseline', gap: 3, marginTop: 4 },
-  wCardPrice:       { fontSize: 14, fontWeight: '800', color: '#C17C74' },
-  perDay:           { fontSize: 10, color: '#888', fontWeight: '500' },
-  rentBtn:          { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginTop: 8, borderRadius: 10, paddingVertical: 7, backgroundColor: '#C17C74' },
-  rentBtnText:      { fontSize: 11, fontWeight: '700', color: 'white' },
-  emptyState:       { alignItems: 'center', paddingTop: 60, paddingHorizontal: 40, gap: 10 },
-  emptyTitle:       { fontSize: 17, fontWeight: '600', color: '#2c2c2c' },
-  emptySub:         { fontSize: 13, color: '#888888', textAlign: 'center', lineHeight: 20 },
-  promoBanner:      { flexDirection: 'row', alignItems: 'center', backgroundColor: '#F2E6E3', marginHorizontal: 14, marginTop: 20, borderRadius: 14, padding: 14 },
-  promoText:        { flex: 1, fontSize: 13, fontWeight: '600', color: '#2c2c2c' },
-  promoBtn:         { flexDirection: 'row', alignItems: 'center', backgroundColor: '#C17C74', borderRadius: 10, paddingHorizontal: 12, paddingVertical: 8 },
-  promoBtnText:     { fontSize: 12, fontWeight: '700', color: '#fff' },
+  wCardInfo: { padding: 10 },
+  wCardBrand: { fontSize: 9, fontWeight: '700', color: '#C17C74', textTransform: 'uppercase', letterSpacing: 0.4, marginBottom: 2 },
+  wCardName: { fontSize: 12, fontWeight: '600', color: '#2c2c2c' },
+  wCardDetail: { fontSize: 10, color: '#888888', marginTop: 2 },
+  wCardBottom: { flexDirection: 'row', alignItems: 'baseline', gap: 3, marginTop: 4 },
+  wCardPrice: { fontSize: 14, fontWeight: '800', color: '#C17C74' },
+  perDay: { fontSize: 10, color: '#888', fontWeight: '500' },
+  rentBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginTop: 8, borderRadius: 10, paddingVertical: 7, backgroundColor: '#C17C74' },
+  rentBtnText: { fontSize: 11, fontWeight: '700', color: 'white' },
+  emptyState: { alignItems: 'center', paddingTop: 60, paddingHorizontal: 40, gap: 10 },
+  emptyTitle: { fontSize: 17, fontWeight: '600', color: '#2c2c2c' },
+  emptySub: { fontSize: 13, color: '#888888', textAlign: 'center', lineHeight: 20 },
+  promoBanner: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#F2E6E3', marginHorizontal: 14, marginTop: 20, borderRadius: 14, padding: 14 },
+  promoText: { flex: 1, fontSize: 13, fontWeight: '600', color: '#2c2c2c' },
+  promoBtn: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#C17C74', borderRadius: 10, paddingHorizontal: 12, paddingVertical: 8 },
+  promoBtnText: { fontSize: 12, fontWeight: '700', color: '#fff' },
 });

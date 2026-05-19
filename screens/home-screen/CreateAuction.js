@@ -18,7 +18,7 @@ const COLORS = {
 
 const CATEGORIES = ['Shoes', 'Bags', 'Accessories', 'Tops', 'Bottoms', 'Dresses', 'Outerwear'];
 const CONDITIONS = ['Like New', 'Good', 'Fair'];
-const DURATIONS  = ['1 hour', '3 hours', '6 hours', '12 hours', '24 hours', '3 days'];
+const DURATIONS = ['1 hour', '3 hours', '6 hours', '12 hours', '24 hours', '3 days'];
 
 const DURATION_MS = {
   '1 hour': 3600000, '3 hours': 10800000, '6 hours': 21600000,
@@ -53,16 +53,16 @@ const TagRow = ({ options, selected, onSelect }) => (
 export default function CreateAuctionScreen({ navigation }) {
   const { getToken } = useAuth();
 
-  const [title,         setTitle]         = useState('');
-  const [brand,         setBrand]         = useState('');
-  const [description,   setDescription]   = useState('');
-  const [category,      setCategory]      = useState('');
-  const [condition,     setCondition]     = useState('');
-  const [size,          setSize]          = useState('');
+  const [title, setTitle] = useState('');
+  const [brand, setBrand] = useState('');
+  const [description, setDescription] = useState('');
+  const [category, setCategory] = useState('');
+  const [condition, setCondition] = useState('');
+  const [size, setSize] = useState('');
   const [startingPrice, setStartingPrice] = useState('');
-  const [duration,      setDuration]      = useState('');
-  const [images,        setImages]        = useState([]);
-  const [submitting,    setSubmitting]    = useState(false);
+  const [duration, setDuration] = useState('');
+  const [images, setImages] = useState([]);
+  const [submitting, setSubmitting] = useState(false);
 
   const isValid = title && category && condition && startingPrice && duration;
 
@@ -107,24 +107,24 @@ export default function CreateAuctionScreen({ navigation }) {
       Alert.alert('Missing info', 'Please fill in all required fields.');
       return;
     }
-  
+
     try {
       setSubmitting(true);
       const token = await getToken();
-  
+
       const endTime = new Date(Date.now() + DURATION_MS[duration]).toISOString();
-  
+
       // Build FormData instead of plain JSON
       const formData = new FormData();
-      formData.append('title',         title.trim());
-      formData.append('brand',         brand.trim() || 'Unknown');
-      formData.append('description',   description.trim() || `${title} — ${condition}`);
-      formData.append('category',      category);
-      formData.append('condition',     condition);
+      formData.append('title', title.trim());
+      formData.append('brand', brand.trim() || 'Unknown');
+      formData.append('description', description.trim() || `${title} — ${condition}`);
+      formData.append('category', category);
+      formData.append('condition', condition);
       formData.append('startingPrice', parseFloat(startingPrice));
-      formData.append('endTime',       endTime);
+      formData.append('endTime', endTime);
       if (size) formData.append('size', size.trim());
-  
+
       // Append each image
       images.forEach((uri, index) => {
         formData.append('images', {
@@ -133,9 +133,9 @@ export default function CreateAuctionScreen({ navigation }) {
           name: `auction_image_${index}.jpg`,
         });
       });
-  
+
       await createAuction(token, formData);
-  
+
       Alert.alert(
         'Auction Created! 🎉',
         'Your auction is now live. Buyers can start bidding right away.',
@@ -337,57 +337,57 @@ export default function CreateAuctionScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  safe:               { flex: 1, backgroundColor: COLORS.bg },
-  topNav:             { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 12, marginTop: 50 },
-  navBtn:             { width: 40, height: 40, borderRadius: 12, backgroundColor: COLORS.card, alignItems: 'center', justifyContent: 'center' },
-  navTitle:           { fontSize: 16, fontWeight: '700', color: COLORS.text },
-  scrollContent:      { paddingBottom: 20 },
+  safe: { flex: 1, backgroundColor: COLORS.bg },
+  topNav: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 12, marginTop: 50 },
+  navBtn: { width: 40, height: 40, borderRadius: 12, backgroundColor: COLORS.card, alignItems: 'center', justifyContent: 'center' },
+  navTitle: { fontSize: 16, fontWeight: '700', color: COLORS.text },
+  scrollContent: { paddingBottom: 20 },
 
   // Photo section — identical to AddListingScreen
-  photoSection:       { paddingHorizontal: 20, marginBottom: 12 },
-  photoUpload:        { backgroundColor: COLORS.card, borderRadius: 16, borderWidth: 1.5, borderColor: COLORS.border, borderStyle: 'dashed', alignItems: 'center', paddingVertical: 32, gap: 6, marginBottom: 10 },
-  photoIcon:          { width: 60, height: 60, borderRadius: 30, backgroundColor: COLORS.iconBg, alignItems: 'center', justifyContent: 'center', marginBottom: 4 },
-  photoTitle:         { fontSize: 15, fontWeight: '700', color: COLORS.text },
-  photoSub:           { fontSize: 12, color: COLORS.muted },
-  photoRow:           { flexDirection: 'row', gap: 10, marginTop: 4 },
-  photoRowBtn:        { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', borderWidth: 1.5, borderColor: COLORS.accent, borderRadius: 14, paddingVertical: 10 },
-  photoRowBtnText:    { color: COLORS.accent, fontSize: 13, fontWeight: '600' },
-  imagePreviewRow:    { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 10 },
-  imageThumb:         { width: 80, height: 80, borderRadius: 12, overflow: 'visible', position: 'relative' },
-  thumbImg:           { width: 80, height: 80, borderRadius: 12 },
-  coverBadge:         { position: 'absolute', bottom: 4, left: 4, backgroundColor: COLORS.accent, borderRadius: 6, paddingHorizontal: 5, paddingVertical: 2 },
-  coverBadgeText:     { color: COLORS.white, fontSize: 9, fontWeight: '700' },
-  removeImgBtn:       { position: 'absolute', top: -6, right: -6, backgroundColor: COLORS.white, borderRadius: 10 },
-  addMoreBtn:         { width: 80, height: 80, borderRadius: 12, borderWidth: 1.5, borderColor: COLORS.accent, borderStyle: 'dashed', backgroundColor: COLORS.card, alignItems: 'center', justifyContent: 'center' },
+  photoSection: { paddingHorizontal: 20, marginBottom: 12 },
+  photoUpload: { backgroundColor: COLORS.card, borderRadius: 16, borderWidth: 1.5, borderColor: COLORS.border, borderStyle: 'dashed', alignItems: 'center', paddingVertical: 32, gap: 6, marginBottom: 10 },
+  photoIcon: { width: 60, height: 60, borderRadius: 30, backgroundColor: COLORS.iconBg, alignItems: 'center', justifyContent: 'center', marginBottom: 4 },
+  photoTitle: { fontSize: 15, fontWeight: '700', color: COLORS.text },
+  photoSub: { fontSize: 12, color: COLORS.muted },
+  photoRow: { flexDirection: 'row', gap: 10, marginTop: 4 },
+  photoRowBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', borderWidth: 1.5, borderColor: COLORS.accent, borderRadius: 14, paddingVertical: 10 },
+  photoRowBtnText: { color: COLORS.accent, fontSize: 13, fontWeight: '600' },
+  imagePreviewRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 10 },
+  imageThumb: { width: 80, height: 80, borderRadius: 12, overflow: 'visible', position: 'relative' },
+  thumbImg: { width: 80, height: 80, borderRadius: 12 },
+  coverBadge: { position: 'absolute', bottom: 4, left: 4, backgroundColor: COLORS.accent, borderRadius: 6, paddingHorizontal: 5, paddingVertical: 2 },
+  coverBadgeText: { color: COLORS.white, fontSize: 9, fontWeight: '700' },
+  removeImgBtn: { position: 'absolute', top: -6, right: -6, backgroundColor: COLORS.white, borderRadius: 10 },
+  addMoreBtn: { width: 80, height: 80, borderRadius: 12, borderWidth: 1.5, borderColor: COLORS.accent, borderStyle: 'dashed', backgroundColor: COLORS.card, alignItems: 'center', justifyContent: 'center' },
 
   // Form — identical to AddListingScreen
-  form:               { paddingHorizontal: 20 },
-  field:              { marginBottom: 22 },
-  fieldLabel:         { fontSize: 11, fontWeight: '700', color: COLORS.accent, marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.9 },
-  required:           { color: COLORS.accent },
-  input:              { backgroundColor: COLORS.white, borderWidth: 1, borderColor: '#e0c8c5', borderRadius: 12, paddingHorizontal: 14, paddingVertical: 11, fontSize: 14, color: '#2c2c2c' },
-  textArea:           { height: 100, paddingTop: 13 },
-  priceInput:         { flexDirection: 'row', alignItems: 'center', backgroundColor: COLORS.white, borderWidth: 1, borderColor: '#e0c8c5', borderRadius: 12, paddingHorizontal: 14 },
-  currencySign:       { fontSize: 16, fontWeight: '700', color: COLORS.accent },
+  form: { paddingHorizontal: 20 },
+  field: { marginBottom: 22 },
+  fieldLabel: { fontSize: 11, fontWeight: '700', color: COLORS.accent, marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.9 },
+  required: { color: COLORS.accent },
+  input: { backgroundColor: COLORS.white, borderWidth: 1, borderColor: '#e0c8c5', borderRadius: 12, paddingHorizontal: 14, paddingVertical: 11, fontSize: 14, color: '#2c2c2c' },
+  textArea: { height: 100, paddingTop: 13 },
+  priceInput: { flexDirection: 'row', alignItems: 'center', backgroundColor: COLORS.white, borderWidth: 1, borderColor: '#e0c8c5', borderRadius: 12, paddingHorizontal: 14 },
+  currencySign: { fontSize: 16, fontWeight: '700', color: COLORS.accent },
 
   // Tags — wrapping chips same as AddListingScreen
-  tagRow:             { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  tag:                { paddingHorizontal: 14, paddingVertical: 7, borderRadius: 14, backgroundColor: COLORS.card, borderWidth: 1, borderColor: COLORS.border },
-  tagActive:          { backgroundColor: COLORS.accent, borderColor: COLORS.accent },
-  tagText:            { fontSize: 12, color: '#2c2c2c', fontWeight: '500' },
-  tagTextActive:      { color: COLORS.white },
+  tagRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  tag: { paddingHorizontal: 14, paddingVertical: 7, borderRadius: 14, backgroundColor: COLORS.card, borderWidth: 1, borderColor: COLORS.border },
+  tagActive: { backgroundColor: COLORS.accent, borderColor: COLORS.accent },
+  tagText: { fontSize: 12, color: '#2c2c2c', fontWeight: '500' },
+  tagTextActive: { color: COLORS.white },
 
   // Info / reminder cards
-  infoCard:           { flexDirection: 'row', alignItems: 'flex-start', gap: 10, backgroundColor: COLORS.accentLight, borderRadius: 14, padding: 14, marginTop: 4, marginBottom: 12 },
-  infoText:           { flex: 1, fontSize: 13, color: COLORS.accent, lineHeight: 19 },
-  noPhotoNote:        { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: '#fff8e1', borderRadius: 12, padding: 12, marginTop: 4 },
-  noPhotoText:        { fontSize: 12, color: '#7a5c00', flex: 1 },
+  infoCard: { flexDirection: 'row', alignItems: 'flex-start', gap: 10, backgroundColor: COLORS.accentLight, borderRadius: 14, padding: 14, marginTop: 4, marginBottom: 12 },
+  infoText: { flex: 1, fontSize: 13, color: COLORS.accent, lineHeight: 19 },
+  noPhotoNote: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: '#fff8e1', borderRadius: 12, padding: 12, marginTop: 4 },
+  noPhotoText: { fontSize: 12, color: '#7a5c00', flex: 1 },
 
   // CTA bar — identical to AddListingScreen
-  ctaBar:             { position: 'absolute', bottom: 0, left: 0, right: 0, paddingHorizontal: 20, paddingVertical: 12, paddingBottom: Platform.OS === 'ios' ? 32 : 16, backgroundColor: COLORS.white, borderTopWidth: 1, borderTopColor: COLORS.border, gap: 8 },
-  ctaInfo:            { alignItems: 'center' },
-  ctaInfoText:        { fontSize: 12, color: COLORS.muted },
-  submitBtn:          { flexDirection: 'row', backgroundColor: COLORS.accent, borderRadius: 14, paddingVertical: 15, alignItems: 'center', justifyContent: 'center' },
-  submitBtnDisabled:  { opacity: 0.45 },
-  submitBtnText:      { color: COLORS.white, fontSize: 15, fontWeight: '700' },
+  ctaBar: { position: 'absolute', bottom: 0, left: 0, right: 0, paddingHorizontal: 20, paddingVertical: 12, paddingBottom: Platform.OS === 'ios' ? 32 : 16, backgroundColor: COLORS.white, borderTopWidth: 1, borderTopColor: COLORS.border, gap: 8 },
+  ctaInfo: { alignItems: 'center' },
+  ctaInfoText: { fontSize: 12, color: COLORS.muted },
+  submitBtn: { flexDirection: 'row', backgroundColor: COLORS.accent, borderRadius: 14, paddingVertical: 15, alignItems: 'center', justifyContent: 'center' },
+  submitBtnDisabled: { opacity: 0.45 },
+  submitBtnText: { color: COLORS.white, fontSize: 15, fontWeight: '700' },
 });

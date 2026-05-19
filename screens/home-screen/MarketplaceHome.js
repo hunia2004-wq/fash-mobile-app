@@ -284,11 +284,11 @@ export default function MarketplaceScreen({ navigation, route }) {
           <View style={styles.grid}>
             {listings.map((item) => {
               const resolvedSellerId =
-              item.seller?.userId?.toString() ??
-              item.seller?._id?.toString() ??
-              item.sellerId?.toString() ??
-              null;
-            const isOwner = !!(currentUserId && resolvedSellerId && resolvedSellerId === currentUserId);
+                item.seller?.userId?.toString() ??
+                item.seller?._id?.toString() ??
+                item.sellerId?.toString() ??
+                null;
+              const isOwner = !!(currentUserId && resolvedSellerId && resolvedSellerId === currentUserId);
               return (
                 <TouchableOpacity
                   key={item._id}

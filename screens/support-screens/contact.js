@@ -1,10 +1,10 @@
 import React, { useState, useContext } from 'react';
-import {View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Alert, ActivityIndicator,} from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Alert, ActivityIndicator, } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AuthContext } from '../../context/AuthContext';
 import { contactSupport } from '../../services/authService';
 import * as ImagePicker from 'expo-image-picker';
-import { Ionicons} from '@expo/vector-icons';
+import { Ionicons } from '@expo/vector-icons';
 
 
 const SUBJECTS = [
@@ -84,13 +84,13 @@ const ContactSupportScreen = ({ navigation }) => {
     <SafeAreaView style={styles.container}>
       {/* HEADER */}
       <View style={styles.header}>
-      <TouchableOpacity
-  style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: '#F2E6E3', alignItems: 'center', justifyContent: 'center' }}
-  onPress={() => navigation.goBack()}
-  activeOpacity={0.8}
->
-  <Ionicons name="arrow-back" size={20} color="#2c2c2c" />
-</TouchableOpacity>
+        <TouchableOpacity
+          style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: '#F2E6E3', alignItems: 'center', justifyContent: 'center' }}
+          onPress={() => navigation.goBack()}
+          activeOpacity={0.8}
+        >
+          <Ionicons name="arrow-back" size={20} color="#2c2c2c" />
+        </TouchableOpacity>
         <Text style={styles.headerTitle}>Contact Support</Text>
       </View>
 
@@ -221,13 +221,13 @@ const styles = StyleSheet.create({
 
   headerTitle: {
     position: 'absolute',
-  left: 0,
-  right: 0,
-  textAlign: 'center',
-  fontSize: 17,
-  fontWeight: '700',
-  color: '#C17C74',
-  pointerEvents: 'none', 
+    left: 0,
+    right: 0,
+    textAlign: 'center',
+    fontSize: 17,
+    fontWeight: '700',
+    color: '#C17C74',
+    pointerEvents: 'none',
   },
 
   scrollContent: {

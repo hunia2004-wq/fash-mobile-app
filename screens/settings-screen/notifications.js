@@ -6,7 +6,7 @@ import { updateNotifications } from '../../services/authService';
 import { getSettings } from '../../services/authService';
 import { useFocusEffect } from '@react-navigation/native';
 import { useCallback } from 'react';
-import { Ionicons} from '@expo/vector-icons';
+import { Ionicons } from '@expo/vector-icons';
 
 
 const NotificationsScreen = ({ navigation }) => {
@@ -29,16 +29,16 @@ const NotificationsScreen = ({ navigation }) => {
     try {
       const token = await getToken();
       const data = await getSettings(token);
-  
+
       const n = data.notifications || {};
-  
+
       setNotifications({
         push: n.pushNotifications ?? false,
         email: n.emailNotifications ?? false,
         order: n.orderUpdates ?? false,
         promotions: n.promotionsOffers ?? false,
       });
-  
+
     } catch (e) {
       console.log("FETCH ERROR:", e);
     }
@@ -46,20 +46,20 @@ const NotificationsScreen = ({ navigation }) => {
 
   const handleToggle = async (key, value) => {
     const token = await getToken();
-  
+
     const updated = {
       ...notifications,
       [key]: value,
     };
 
     console.log("SENDING TO API:", {
-  emailNotifications: updated.email,
-  pushNotifications: updated.push,
-  orderUpdates: updated.order,
-  promotionsOffers: updated.promotions,
-});
+      emailNotifications: updated.email,
+      pushNotifications: updated.push,
+      orderUpdates: updated.order,
+      promotionsOffers: updated.promotions,
+    });
     setNotifications(updated);
-  
+
     try {
       await updateNotifications(token, {
         emailNotifications: updated.email,
@@ -72,16 +72,16 @@ const NotificationsScreen = ({ navigation }) => {
     }
   };
 
-const sendUpdate = async (token, updated) => {
-  try {
-    await updateNotifications(token, {
-      emailNotifications: updated.email,
-      pushNotifications: updated.push,
-    });
-  } catch (err) {
-    console.log("Update failed:", err.message);
-  }
-};
+  const sendUpdate = async (token, updated) => {
+    try {
+      await updateNotifications(token, {
+        emailNotifications: updated.email,
+        pushNotifications: updated.push,
+      });
+    } catch (err) {
+      console.log("Update failed:", err.message);
+    }
+  };
 
   const ToggleRow = ({ label, subtitle, value, onValueChange, isLast }) => (
     <View style={[styles.toggleRow, !isLast && styles.toggleRowBorder]}>
@@ -89,7 +89,7 @@ const sendUpdate = async (token, updated) => {
         <Text style={styles.itemTitle}>{label}</Text>
         {subtitle ? <Text style={styles.itemSubtitle}>{subtitle}</Text> : null}
       </View>
-  
+
       <Switch
         value={value}
         onValueChange={onValueChange}
@@ -102,30 +102,30 @@ const sendUpdate = async (token, updated) => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-      <TouchableOpacity
-  style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: '#F2E6E3', alignItems: 'center', justifyContent: 'center' }}
-  onPress={() => navigation.goBack()}
-  activeOpacity={0.8}
->
-  <Ionicons name="arrow-back" size={20} color="#2c2c2c" />
-</TouchableOpacity>
+        <TouchableOpacity
+          style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: '#F2E6E3', alignItems: 'center', justifyContent: 'center' }}
+          onPress={() => navigation.goBack()}
+          activeOpacity={0.8}
+        >
+          <Ionicons name="arrow-back" size={20} color="#2c2c2c" />
+        </TouchableOpacity>
         <Text style={styles.headerTitle}>Notifications</Text>
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <Text style={styles.sectionLabel}>Channels</Text>
         <View style={styles.card}>
-        <ToggleRow
-  label="Push Notifications"
-  value={notifications.push}
-  onValueChange={(v) => handleToggle('push', v)}
-/>
+          <ToggleRow
+            label="Push Notifications"
+            value={notifications.push}
+            onValueChange={(v) => handleToggle('push', v)}
+          />
 
-<ToggleRow
-  label="Email Notifications"
-  value={notifications.email}
-  onValueChange={(v) => handleToggle('email', v)}
-/>
+          <ToggleRow
+            label="Email Notifications"
+            value={notifications.email}
+            onValueChange={(v) => handleToggle('email', v)}
+          />
         </View>
 
         <Text style={styles.sectionLabel}>Preferences</Text>
@@ -134,13 +134,13 @@ const sendUpdate = async (token, updated) => {
             label="Order Updates"
             subtitle="Status changes and delivery"
             value={notifications.order}
-onValueChange={(v) => handleToggle('order', v)}
+            onValueChange={(v) => handleToggle('order', v)}
           />
           <ToggleRow
             label="Promotions & Offers"
             subtitle="Deals, sales, and new arrivals"
             value={notifications.promotions}
-onValueChange={(v) => handleToggle('promotions', v)}
+            onValueChange={(v) => handleToggle('promotions', v)}
             isLast
           />
         </View>

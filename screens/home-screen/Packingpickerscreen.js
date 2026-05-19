@@ -9,19 +9,19 @@ import { useFocusEffect } from '@react-navigation/native';
 import { COLORS } from './Packingdata';
 import { useAuth } from '../../context/AuthContext';
 import { getOutfits, deleteOutfit } from '../../services/authService';
- 
+
 const { width } = Dimensions.get('window');
- 
+
 const CATEGORY_EMOJIS = {
   Tops: '👕', Bottoms: '👖', Dresses: '👗', Shoes: '👟',
   Bags: '👜', Accessories: '✨', Outerwear: '🧥',
 };
- 
+
 // Shows actual item image if available, otherwise emoji
 const ItemPreviewBubble = ({ item, style, index }) => {
   const marginLeft = index > 0 ? -10 : 0;
   const zIndex = 10 - index;
- 
+
   if (item?.image) {
     return (
       <Image
@@ -37,7 +37,7 @@ const ItemPreviewBubble = ({ item, style, index }) => {
     </View>
   );
 };
- 
+
 const OutfitCard = ({ outfit, onPress, onSendToAI, onDelete }) => (
   <TouchableOpacity style={styles.outfitCard} onPress={onPress} activeOpacity={0.88}>
     <View style={styles.outfitItemsPreview}>
@@ -70,12 +70,12 @@ const OutfitCard = ({ outfit, onPress, onSendToAI, onDelete }) => (
     </View>
   </TouchableOpacity>
 );
- 
+
 export default function OutfitPickerScreen({ navigation }) {
   const { getToken } = useAuth();
-  const [outfits,  setOutfits]  = useState([]);
-  const [loading,  setLoading]  = useState(true);
- 
+  const [outfits, setOutfits] = useState([]);
+  const [loading, setLoading] = useState(true);
+
   const fetchOutfits = useCallback(async () => {
     try {
       setLoading(true);
@@ -88,17 +88,17 @@ export default function OutfitPickerScreen({ navigation }) {
       setLoading(false);
     }
   }, [getToken]);
- 
+
   useFocusEffect(
     useCallback(() => { fetchOutfits(); }, [fetchOutfits])
   );
- 
+
   const handleSendToAI = (outfit) => {
     const itemNames = outfit.items.map(i => i.name).join(', ');
     const message = `Can you help me style this outfit: ${itemNames}? The occasion is ${outfit.occasion || 'casual'}.`;
     navigation.navigate('AIStylingScreen', { prefillMessage: message });
   };
- 
+
   const handleDelete = (id) => {
     Alert.alert('Delete Outfit', 'Are you sure you want to delete this outfit?', [
       { text: 'Cancel', style: 'cancel' },
@@ -116,15 +116,15 @@ export default function OutfitPickerScreen({ navigation }) {
       },
     ]);
   };
- 
+
   return (
     <SafeAreaView style={styles.safe}>
       <StatusBar barStyle="dark-content" backgroundColor={COLORS.bg} />
- 
+
       <View style={styles.logoHeader}>
         <Image source={require('../../source/assets/images/Blacklogo.png')} style={styles.logo} resizeMode="contain" />
       </View>
- 
+
       <View style={styles.header}>
         <View>
           <Text style={styles.headerTitle}>My Outfits</Text>
@@ -139,9 +139,9 @@ export default function OutfitPickerScreen({ navigation }) {
           <Text style={styles.buildBtnText}>Build</Text>
         </TouchableOpacity>
       </View>
- 
+
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
- 
+
         <TouchableOpacity
           style={styles.aiBanner}
           onPress={() => navigation.navigate('AIStylingScreen', {})}
@@ -156,7 +156,7 @@ export default function OutfitPickerScreen({ navigation }) {
           </View>
           <Ionicons name="sparkles" size={18} color={COLORS.accent} />
         </TouchableOpacity>
- 
+
         <TouchableOpacity
           style={styles.builderCta}
           onPress={() => navigation.navigate('PackingBuilderscreen')}
@@ -171,9 +171,9 @@ export default function OutfitPickerScreen({ navigation }) {
           </View>
           <Feather name="chevron-right" size={18} color={COLORS.accent} />
         </TouchableOpacity>
- 
+
         <Text style={styles.sectionLabel}>Saved Outfits</Text>
- 
+
         {loading ? (
           <ActivityIndicator size="large" color={COLORS.accent} style={{ marginTop: 40 }} />
         ) : outfits.length === 0 ? (
@@ -193,7 +193,7 @@ export default function OutfitPickerScreen({ navigation }) {
             />
           ))
         )}
- 
+
       </ScrollView>
     </SafeAreaView>
   );

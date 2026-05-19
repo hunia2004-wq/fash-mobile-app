@@ -6,27 +6,27 @@ import {
 import { Ionicons, Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { COLORS } from './Packingdata';
- 
+
 const { width } = Dimensions.get('window');
- 
+
 const CATEGORY_EMOJIS = {
   Tops: '👕', Bottoms: '👖', Dresses: '👗', Shoes: '👟',
   Bags: '👜', Accessories: '✨', Outerwear: '🧥',
 };
- 
+
 export default function OutfitDetailScreen({ navigation, route }) {
   const { outfit, collection } = route.params;
   const [saved, setSaved] = useState(false);
- 
+
   // items come fully populated from the backend — no static lookup needed
   const items = outfit.items ?? [];
- 
+
   const handleStyleWithAI = () => {
     const itemNames = items.map((i) => i.name).join(', ');
     const message = `I'm wearing this outfit: ${itemNames}. The occasion is ${outfit.occasion || 'casual'}. Can you give me styling tips and suggest what accessories to add?`;
     navigation.navigate('AIStylingScreen', { prefillMessage: message });
   };
- 
+
   const categoryColors = {
     Tops: '#e3f2fd',
     Bottoms: '#f3e5f5',
@@ -36,11 +36,11 @@ export default function OutfitDetailScreen({ navigation, route }) {
     Accessories: '#fff3e0',
     Outerwear: '#e0f2f1',
   };
- 
+
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
       <StatusBar barStyle="dark-content" />
- 
+
       {/* Top nav */}
       <View style={styles.topNav}>
         <TouchableOpacity style={styles.navBtn} onPress={() => navigation.goBack()} activeOpacity={0.8}>
@@ -55,9 +55,9 @@ export default function OutfitDetailScreen({ navigation, route }) {
           />
         </TouchableOpacity>
       </View>
- 
+
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
- 
+
         {/* Hero — uses collection if passed, gracefully falls back */}
         {collection && (
           <View style={[styles.hero, { backgroundColor: collection.color ?? COLORS.accentLight }]}>
@@ -76,7 +76,7 @@ export default function OutfitDetailScreen({ navigation, route }) {
             <Text style={styles.heroCollection}>{collection.name}</Text>
           </View>
         )}
- 
+
         {/* Info */}
         <View style={styles.section}>
           <Text style={styles.outfitTitle}>{outfit.name}</Text>
@@ -93,9 +93,9 @@ export default function OutfitDetailScreen({ navigation, route }) {
             )}
           </View>
         </View>
- 
+
         <View style={styles.divider} />
- 
+
         {/* Items */}
         <View style={styles.section}>
           <Text style={styles.sectionLabel}>Outfit Items · {items.length} pieces</Text>
@@ -123,9 +123,9 @@ export default function OutfitDetailScreen({ navigation, route }) {
             </View>
           ))}
         </View>
- 
+
         <View style={styles.divider} />
- 
+
         {/* Styling tip — only shown if outfit has one */}
         {outfit.tip && (
           <>
@@ -139,7 +139,7 @@ export default function OutfitDetailScreen({ navigation, route }) {
             <View style={styles.divider} />
           </>
         )}
- 
+
         {/* AI section */}
         <View style={styles.section}>
           <Text style={styles.sectionLabel}>Want more ideas?</Text>
@@ -154,10 +154,10 @@ export default function OutfitDetailScreen({ navigation, route }) {
             <Ionicons name="arrow-forward" size={18} color={COLORS.accent} />
           </TouchableOpacity>
         </View>
- 
+
         <View style={{ height: 100 }} />
       </ScrollView>
- 
+
       {/* Bottom CTA */}
       <View style={styles.ctaBar}>
         <TouchableOpacity style={styles.wearBtn} onPress={() => Alert.alert('Outfit saved!', 'This outfit has been added to your diary.')} activeOpacity={0.85}>

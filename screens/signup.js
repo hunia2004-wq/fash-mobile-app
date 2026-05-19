@@ -26,11 +26,11 @@ export default function SignupScreen({ navigation }) {
       setError('Passwords do not match');
       return;
     }
-    
+
     setLoading(true);
     try {
-    await signup({firstName: firstName, lastName: lastName, email, password, fullname:`${firstName} ${lastName}`,});
-    navigation.navigate('Verification', {email});
+      await signup({ firstName: firstName, lastName: lastName, email, password, fullname: `${firstName} ${lastName}`, });
+      navigation.navigate('Verification', { email });
     }
     catch (err) {
       setError(err.message || "Sign up failed. Please try again");
@@ -58,32 +58,32 @@ export default function SignupScreen({ navigation }) {
 
         <Text style={styles.title}>Create Account</Text>
         <Text style={styles.subtitle}>Sign up to get started with FASH!</Text>
-        
+
         <View style={styles.card}>
 
-        <View style={styles.row}>
-  <View style={styles.halfInput}>
-    <Text style={styles.label}>First Name</Text>
-    <TextInput
-      style={styles.input}
-      placeholder="First name"
-      value={firstName}
-      onChangeText={setFirstName}
-      autoCapitalize="words"
-    />
-  </View>
+          <View style={styles.row}>
+            <View style={styles.halfInput}>
+              <Text style={styles.label}>First Name</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="First name"
+                value={firstName}
+                onChangeText={setFirstName}
+                autoCapitalize="words"
+              />
+            </View>
 
-  <View style={styles.halfInput}>
-    <Text style={styles.label}>Last Name</Text>
-    <TextInput
-      style={styles.input}
-      placeholder="Last name"
-      value={lastName}
-      onChangeText={setLastName}
-      autoCapitalize="words"
-    />
-  </View>
-</View>
+            <View style={styles.halfInput}>
+              <Text style={styles.label}>Last Name</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="Last name"
+                value={lastName}
+                onChangeText={setLastName}
+                autoCapitalize="words"
+              />
+            </View>
+          </View>
 
 
           <Text style={styles.label}>Email</Text>
@@ -126,10 +126,10 @@ export default function SignupScreen({ navigation }) {
 
           {error ? <Text style={styles.errorText}>{error}</Text> : null}
 
-          <TouchableOpacity style={styles.button} onPress={handleSignUp} disabled={loading}> 
+          <TouchableOpacity style={styles.button} onPress={handleSignUp} disabled={loading}>
             {loading
-              ? <ActivityIndicator color='#fff'/>
-              :  <Text style={styles.buttonText}>Sign Up</Text>
+              ? <ActivityIndicator color='#fff' />
+              : <Text style={styles.buttonText}>Sign Up</Text>
             }
           </TouchableOpacity>
         </View>
@@ -192,7 +192,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     gap: 10,
   },
-  
+
   halfInput: {
     flex: 1,
   },
@@ -245,11 +245,11 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
   },
 
-  errorText: { 
-    color: '#c0392b', 
-    fontSize: 13, 
-    marginBottom: 10, 
-    textAlign: 'center' 
+  errorText: {
+    color: '#c0392b',
+    fontSize: 13,
+    marginBottom: 10,
+    textAlign: 'center'
   },
 
   button: {

@@ -14,12 +14,12 @@ const CONDITIONS = ['Like New', 'Good', 'Fair'];
 
 // ── Category-specific size options ─────────────────────────────────
 const SIZE_OPTIONS = {
-  Shoes:            ['35', '36', '37', '38', '39', '40', '41', '42', '43', '44', '45'],
-  Bags:             ['One Size'],
-  Perfumes:         ['30ml', '50ml', '75ml', '100ml', '150ml', '200ml'],
-  Accessories:      ['One Size'],
-  'Newborn Accessories' : ['One Size'],
-  default:          ['One Size'],
+  Shoes: ['35', '36', '37', '38', '39', '40', '41', '42', '43', '44', '45'],
+  Bags: ['One Size'],
+  Perfumes: ['30ml', '50ml', '75ml', '100ml', '150ml', '200ml'],
+  Accessories: ['One Size'],
+  'Newborn Accessories': ['One Size'],
+  default: ['One Size'],
 };
 
 const getSizesForCategory = (cat) => SIZE_OPTIONS[cat] ?? SIZE_OPTIONS.default;
@@ -56,16 +56,16 @@ const TagRow = ({ options, selected, onSelect, multi = false }) => (
 export default function AddListingScreen({ navigation }) {
   const { getToken } = useAuth();
 
-  const [title,       setTitle]       = useState('');
-  const [price,       setPrice]       = useState('');
+  const [title, setTitle] = useState('');
+  const [price, setPrice] = useState('');
   const [description, setDescription] = useState('');
-  const [brand,       setBrand]       = useState('');
-  const [location,    setLocation]    = useState('');
-  const [category,    setCategory]    = useState('');
-  const [condition,   setCondition]   = useState('');
-  const [size,        setSize]        = useState('');
-  const [images,      setImages]      = useState([]);
-  const [saving,      setSaving]      = useState(false);
+  const [brand, setBrand] = useState('');
+  const [location, setLocation] = useState('');
+  const [category, setCategory] = useState('');
+  const [condition, setCondition] = useState('');
+  const [size, setSize] = useState('');
+  const [images, setImages] = useState([]);
+  const [saving, setSaving] = useState(false);
 
   // When category changes, reset size if it's not valid for the new category
   const handleCategorySelect = (cat) => {
@@ -125,13 +125,13 @@ export default function AddListingScreen({ navigation }) {
       const token = await getToken();
 
       const formData = new FormData();
-      formData.append('title',       title.trim());
-      formData.append('price',       price);
+      formData.append('title', title.trim());
+      formData.append('price', price);
       formData.append('description', description.trim());
-      formData.append('category',    category);
-      formData.append('condition',   condition);
-      formData.append('size',        effectiveSize);
-      if (brand)    formData.append('brand',    brand.trim());
+      formData.append('category', category);
+      formData.append('condition', condition);
+      formData.append('size', effectiveSize);
+      if (brand) formData.append('brand', brand.trim());
       if (location) formData.append('location', location.trim());
 
       // Attach each image as a file
@@ -283,16 +283,16 @@ export default function AddListingScreen({ navigation }) {
             ) : (
               <>
                 {category ? (
-  <Text style={styles.sizeHint}>
-    {category === 'Shoes'
-      ? 'EU shoe sizes'
-      : category === 'Perfumes'
-      ? 'Bottle size'
-      : 'One size fits all'}
-  </Text>
-) : (
-  <Text style={styles.sizeHint}>Select a category first to see size options</Text>
-)}
+                  <Text style={styles.sizeHint}>
+                    {category === 'Shoes'
+                      ? 'EU shoe sizes'
+                      : category === 'Perfumes'
+                        ? 'Bottle size'
+                        : 'One size fits all'}
+                  </Text>
+                ) : (
+                  <Text style={styles.sizeHint}>Select a category first to see size options</Text>
+                )}
                 <TagRow
                   options={availableSizes}
                   selected={size}
@@ -373,49 +373,49 @@ export default function AddListingScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  safe:               { flex: 1, backgroundColor: COLORS.bg },
-  topNav:             { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 12, marginTop: 50 },
-  navBtn:             { width: 40, height: 40, borderRadius: 12, backgroundColor: COLORS.card, alignItems: 'center', justifyContent: 'center' },
-  navTitle:           { fontSize: 16, fontWeight: '700', color: COLORS.text },
-  scrollContent:      { paddingBottom: 20 },
-  photoSection:       { paddingHorizontal: 20, marginBottom: 12 },
-  photoUpload:        { backgroundColor: COLORS.card, borderRadius: 16, borderWidth: 1.5, borderColor: COLORS.border, borderStyle: 'dashed', alignItems: 'center', paddingVertical: 32, gap: 6, marginBottom: 10 },
-  photoIcon:          { width: 60, height: 60, borderRadius: 30, backgroundColor: COLORS.iconBg, alignItems: 'center', justifyContent: 'center', marginBottom: 4 },
-  photoTitle:         { fontSize: 15, fontWeight: '700', color: COLORS.text },
-  photoSub:           { fontSize: 12, color: COLORS.muted },
-  photoRow:           { flexDirection: 'row', gap: 10, marginTop: 4 },
-  photoRowBtn:        { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', borderWidth: 1.5, borderColor: COLORS.accent, borderRadius: 14, paddingVertical: 10 },
-  photoRowBtnText:    { color: COLORS.accent, fontSize: 13, fontWeight: '600' },
-  imagePreviewRow:    { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 10 },
-  imageThumb:         { width: 80, height: 80, borderRadius: 12, overflow: 'visible', position: 'relative' },
-  thumbImg:           { width: 80, height: 80, borderRadius: 12 },
-  coverBadge:         { position: 'absolute', bottom: 4, left: 4, backgroundColor: COLORS.accent, borderRadius: 6, paddingHorizontal: 5, paddingVertical: 2 },
-  coverBadgeText:     { color: COLORS.white, fontSize: 9, fontWeight: '700' },
-  removeImgBtn:       { position: 'absolute', top: -6, right: -6, backgroundColor: COLORS.white, borderRadius: 10 },
-  addMoreBtn:         { width: 80, height: 80, borderRadius: 12, borderWidth: 1.5, borderColor: COLORS.accent, borderStyle: 'dashed', backgroundColor: COLORS.card, alignItems: 'center', justifyContent: 'center' },
-  form:               { paddingHorizontal: 20 },
-  field:              { marginBottom: 22 },
-  fieldLabel:         { fontSize: 11, fontWeight: '700', color: COLORS.accent, marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.9 },
-  required:           { color: COLORS.accent },
-  input:              { backgroundColor: COLORS.white, borderWidth: 1, borderColor: '#e0c8c5', borderRadius: 12, paddingHorizontal: 14, paddingVertical: 11, fontSize: 14, color: '#2c2c2c' },
-  textArea:           { height: 100, paddingTop: 13 },
-  priceInput:         { flexDirection: 'row', alignItems: 'center', backgroundColor: COLORS.white, borderWidth: 1, borderColor: '#e0c8c5', borderRadius: 12, paddingHorizontal: 14 },
-  currencySign:       { fontSize: 16, fontWeight: '700', color: COLORS.accent },
-  locationInput:      { flexDirection: 'row', alignItems: 'center', backgroundColor: COLORS.white, borderWidth: 1, borderColor: '#e0c8c5', borderRadius: 12, paddingHorizontal: 14 },
-  tagRow:             { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  tag:                { paddingHorizontal: 14, paddingVertical: 7, borderRadius: 14, backgroundColor: COLORS.card, borderWidth: 1, borderColor: COLORS.border },
-  tagActive:          { backgroundColor: COLORS.accent, borderColor: COLORS.accent },
-  tagText:            { fontSize: 12, color: '#2c2c2c', fontWeight: '500' },
-  tagTextActive:      { color: COLORS.white },
-  sizeHint:           { fontSize: 11, color: COLORS.muted, marginBottom: 8, fontStyle: 'italic' },
-  autoSizeNote:       { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: COLORS.card, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 12 },
-  autoSizeText:       { fontSize: 13, color: COLORS.accent, fontWeight: '600' },
-  noPhotoNote:        { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: '#fff8e1', borderRadius: 12, padding: 12, marginBottom: 8 },
-  noPhotoText:        { fontSize: 12, color: '#7a5c00', flex: 1 },
-  ctaBar:             { position: 'absolute', bottom: 0, left: 0, right: 0, paddingHorizontal: 20, paddingVertical: 12, paddingBottom: 32, backgroundColor: COLORS.white, borderTopWidth: 1, borderTopColor: COLORS.border, gap: 8 },
-  ctaInfo:            { alignItems: 'center' },
-  ctaInfoText:        { fontSize: 12, color: COLORS.muted },
-  submitBtn:          { flexDirection: 'row', backgroundColor: COLORS.accent, borderRadius: 14, paddingVertical: 15, alignItems: 'center', justifyContent: 'center' },
-  submitBtnDisabled:  { opacity: 0.45 },
-  submitBtnText:      { color: COLORS.white, fontSize: 15, fontWeight: '700' },
+  safe: { flex: 1, backgroundColor: COLORS.bg },
+  topNav: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 12, marginTop: 50 },
+  navBtn: { width: 40, height: 40, borderRadius: 12, backgroundColor: COLORS.card, alignItems: 'center', justifyContent: 'center' },
+  navTitle: { fontSize: 16, fontWeight: '700', color: COLORS.text },
+  scrollContent: { paddingBottom: 20 },
+  photoSection: { paddingHorizontal: 20, marginBottom: 12 },
+  photoUpload: { backgroundColor: COLORS.card, borderRadius: 16, borderWidth: 1.5, borderColor: COLORS.border, borderStyle: 'dashed', alignItems: 'center', paddingVertical: 32, gap: 6, marginBottom: 10 },
+  photoIcon: { width: 60, height: 60, borderRadius: 30, backgroundColor: COLORS.iconBg, alignItems: 'center', justifyContent: 'center', marginBottom: 4 },
+  photoTitle: { fontSize: 15, fontWeight: '700', color: COLORS.text },
+  photoSub: { fontSize: 12, color: COLORS.muted },
+  photoRow: { flexDirection: 'row', gap: 10, marginTop: 4 },
+  photoRowBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', borderWidth: 1.5, borderColor: COLORS.accent, borderRadius: 14, paddingVertical: 10 },
+  photoRowBtnText: { color: COLORS.accent, fontSize: 13, fontWeight: '600' },
+  imagePreviewRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 10 },
+  imageThumb: { width: 80, height: 80, borderRadius: 12, overflow: 'visible', position: 'relative' },
+  thumbImg: { width: 80, height: 80, borderRadius: 12 },
+  coverBadge: { position: 'absolute', bottom: 4, left: 4, backgroundColor: COLORS.accent, borderRadius: 6, paddingHorizontal: 5, paddingVertical: 2 },
+  coverBadgeText: { color: COLORS.white, fontSize: 9, fontWeight: '700' },
+  removeImgBtn: { position: 'absolute', top: -6, right: -6, backgroundColor: COLORS.white, borderRadius: 10 },
+  addMoreBtn: { width: 80, height: 80, borderRadius: 12, borderWidth: 1.5, borderColor: COLORS.accent, borderStyle: 'dashed', backgroundColor: COLORS.card, alignItems: 'center', justifyContent: 'center' },
+  form: { paddingHorizontal: 20 },
+  field: { marginBottom: 22 },
+  fieldLabel: { fontSize: 11, fontWeight: '700', color: COLORS.accent, marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.9 },
+  required: { color: COLORS.accent },
+  input: { backgroundColor: COLORS.white, borderWidth: 1, borderColor: '#e0c8c5', borderRadius: 12, paddingHorizontal: 14, paddingVertical: 11, fontSize: 14, color: '#2c2c2c' },
+  textArea: { height: 100, paddingTop: 13 },
+  priceInput: { flexDirection: 'row', alignItems: 'center', backgroundColor: COLORS.white, borderWidth: 1, borderColor: '#e0c8c5', borderRadius: 12, paddingHorizontal: 14 },
+  currencySign: { fontSize: 16, fontWeight: '700', color: COLORS.accent },
+  locationInput: { flexDirection: 'row', alignItems: 'center', backgroundColor: COLORS.white, borderWidth: 1, borderColor: '#e0c8c5', borderRadius: 12, paddingHorizontal: 14 },
+  tagRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  tag: { paddingHorizontal: 14, paddingVertical: 7, borderRadius: 14, backgroundColor: COLORS.card, borderWidth: 1, borderColor: COLORS.border },
+  tagActive: { backgroundColor: COLORS.accent, borderColor: COLORS.accent },
+  tagText: { fontSize: 12, color: '#2c2c2c', fontWeight: '500' },
+  tagTextActive: { color: COLORS.white },
+  sizeHint: { fontSize: 11, color: COLORS.muted, marginBottom: 8, fontStyle: 'italic' },
+  autoSizeNote: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: COLORS.card, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 12 },
+  autoSizeText: { fontSize: 13, color: COLORS.accent, fontWeight: '600' },
+  noPhotoNote: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: '#fff8e1', borderRadius: 12, padding: 12, marginBottom: 8 },
+  noPhotoText: { fontSize: 12, color: '#7a5c00', flex: 1 },
+  ctaBar: { position: 'absolute', bottom: 0, left: 0, right: 0, paddingHorizontal: 20, paddingVertical: 12, paddingBottom: 32, backgroundColor: COLORS.white, borderTopWidth: 1, borderTopColor: COLORS.border, gap: 8 },
+  ctaInfo: { alignItems: 'center' },
+  ctaInfoText: { fontSize: 12, color: COLORS.muted },
+  submitBtn: { flexDirection: 'row', backgroundColor: COLORS.accent, borderRadius: 14, paddingVertical: 15, alignItems: 'center', justifyContent: 'center' },
+  submitBtnDisabled: { opacity: 0.45 },
+  submitBtnText: { color: COLORS.white, fontSize: 15, fontWeight: '700' },
 });

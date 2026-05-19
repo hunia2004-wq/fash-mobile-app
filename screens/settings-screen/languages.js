@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'rea
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AuthContext } from '../../context/AuthContext';
 import { updateLanguage, getSettings } from '../../services/authService';
-import { Ionicons} from '@expo/vector-icons';
+import { Ionicons } from '@expo/vector-icons';
 import i18n from '../../source/i18n';
 
 
@@ -23,47 +23,47 @@ const LanguagesScreen = ({ navigation }) => {
       const settings = await getSettings(token);
       const lang = settings.language ?? 'en';
       setSelected(lang);
-      i18n.changeLanguage(lang); 
+      i18n.changeLanguage(lang);
     } catch (e) {
       console.log("ERROR LOADING LANGUAGE:", e);
       setSelected('en');
     }
   };
 
-useEffect(() => {
-  const unsubscribe = navigation.addListener('focus', loadLanguage);
-  return unsubscribe;
-}, [navigation]);
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('focus', loadLanguage);
+    return unsubscribe;
+  }, [navigation]);
 
 
-const handleLanguageChange = async (language) => {
-  if (language === selected) return;
+  const handleLanguageChange = async (language) => {
+    if (language === selected) return;
 
-  const token = await getToken();
-  const previous = selected;
+    const token = await getToken();
+    const previous = selected;
 
-  setSelected(language);
-  i18n.changeLanguage(language); 
+    setSelected(language);
+    i18n.changeLanguage(language);
 
-  try {
-    await updateLanguage(token, { language });
-  } catch (e) {
-    Alert.alert("Error", "Failed to update language");
-    setSelected(previous);
-    i18n.changeLanguage(previous); 
-  }
-};
+    try {
+      await updateLanguage(token, { language });
+    } catch (e) {
+      Alert.alert("Error", "Failed to update language");
+      setSelected(previous);
+      i18n.changeLanguage(previous);
+    }
+  };
 
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-      <TouchableOpacity
-  style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: '#F2E6E3', alignItems: 'center', justifyContent: 'center' }}
-  onPress={() => navigation.goBack()}
-  activeOpacity={0.8}
->
-  <Ionicons name="arrow-back" size={20} color="#2c2c2c" />
-</TouchableOpacity>
+        <TouchableOpacity
+          style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: '#F2E6E3', alignItems: 'center', justifyContent: 'center' }}
+          onPress={() => navigation.goBack()}
+          activeOpacity={0.8}
+        >
+          <Ionicons name="arrow-back" size={20} color="#2c2c2c" />
+        </TouchableOpacity>
         <Text style={styles.headerTitle}>Language</Text>
       </View>
 

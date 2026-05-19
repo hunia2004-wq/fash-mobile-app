@@ -1,9 +1,9 @@
 import React, { useState, useContext, useEffect } from 'react';
-import {View, Text, StyleSheet, ScrollView, TouchableOpacity, Switch, Alert, ActivityIndicator} from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Switch, Alert, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AuthContext } from '../../context/AuthContext';
-import { toggle2FA, get2FA} from '../../services/authService';
-import { Ionicons} from '@expo/vector-icons';
+import { toggle2FA, get2FA } from '../../services/authService';
+import { Ionicons } from '@expo/vector-icons';
 
 
 const TwoFactorAuthScreen = ({ navigation }) => {
@@ -14,7 +14,7 @@ const TwoFactorAuthScreen = ({ navigation }) => {
     emailVerification: false,
   });
 
-  const [loading, setLoading] = useState(false); 
+  const [loading, setLoading] = useState(false);
 
 
   const backupOptions = [
@@ -25,23 +25,23 @@ const TwoFactorAuthScreen = ({ navigation }) => {
 
   const handleToggle = async (key, value) => {
     const token = await getToken();
-  
-    const prevState = { ...twoFA }; 
+
+    const prevState = { ...twoFA };
     setLoading(true);
-  
+
     setTwoFA(prev => ({ ...prev, [key]: value }));
-  
+
     try {
       const res = await toggle2FA(token, {
         method: key,
         enabled: value,
       });
-  
-      setTwoFA(res?.twoFactor || res); 
+
+      setTwoFA(res?.twoFactor || res);
 
     } catch (e) {
 
-      setTwoFA(prevState); 
+      setTwoFA(prevState);
       Alert.alert('Error', 'Failed to update 2FA settings.');
 
     } finally {
@@ -50,26 +50,26 @@ const TwoFactorAuthScreen = ({ navigation }) => {
   };
 
   useEffect(() => {
-  const loadSecurity = async () => {
-    try {
-      const token = await getToken();
-      const res = await get2FA(token);
+    const loadSecurity = async () => {
+      try {
+        const token = await getToken();
+        const res = await get2FA(token);
 
-      const data = res?.twoFactor || res;
+        const data = res?.twoFactor || res;
 
-      setTwoFA({
-        authenticatorApp: data?.authenticatorApp ?? false,
-        smsVerification: data?.smsVerification ?? false,
-        emailVerification: data?.emailVerification ?? false,
-      });
+        setTwoFA({
+          authenticatorApp: data?.authenticatorApp ?? false,
+          smsVerification: data?.smsVerification ?? false,
+          emailVerification: data?.emailVerification ?? false,
+        });
 
-    } catch (e) {
-      console.log("FAILED TO LOAD 2FA:", e.message);
-    }
-  };
+      } catch (e) {
+        console.log("FAILED TO LOAD 2FA:", e.message);
+      }
+    };
 
-  loadSecurity();
-}, []);
+    loadSecurity();
+  }, []);
 
 
   return (
@@ -77,20 +77,20 @@ const TwoFactorAuthScreen = ({ navigation }) => {
     <SafeAreaView style={styles.container}>
 
       {/* header */}
-     <View style={styles.header}>
-     <TouchableOpacity
-  style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: '#F2E6E3', alignItems: 'center', justifyContent: 'center' }}
-  onPress={() => navigation.goBack()}
-  activeOpacity={0.8}
->
-  <Ionicons name="arrow-back" size={20} color="#2c2c2c" />
-</TouchableOpacity>
+      <View style={styles.header}>
+        <TouchableOpacity
+          style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: '#F2E6E3', alignItems: 'center', justifyContent: 'center' }}
+          onPress={() => navigation.goBack()}
+          activeOpacity={0.8}
+        >
+          <Ionicons name="arrow-back" size={20} color="#2c2c2c" />
+        </TouchableOpacity>
 
-  <Text style={styles.headerTitle}>Two-Factor Authentication</Text>
+        <Text style={styles.headerTitle}>Two-Factor Authentication</Text>
 
-  {/* balance right side */}
-  <View style={{ width: 40 }} />
-</View>
+        {/* balance right side */}
+        <View style={{ width: 40 }} />
+      </View>
 
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
@@ -110,12 +110,12 @@ const TwoFactorAuthScreen = ({ navigation }) => {
               <Text style={styles.itemTitle}>Authenticator App</Text>
               <Text style={styles.itemSubtitle}>Google Authenticator, Authy</Text>
             </View>
-            <Switch  disabled={loading}
-  value={twoFA.authenticatorApp}
-  onValueChange={(v) => handleToggle('authenticatorApp', v)}
-  trackColor={{ false: '#ccc', true: '#B07070' }}
-  thumbColor="#fff"
-/>
+            <Switch disabled={loading}
+              value={twoFA.authenticatorApp}
+              onValueChange={(v) => handleToggle('authenticatorApp', v)}
+              trackColor={{ false: '#ccc', true: '#B07070' }}
+              thumbColor="#fff"
+            />
           </View>
 
           <View style={[styles.toggleRow, styles.rowBorder]}>
@@ -123,12 +123,12 @@ const TwoFactorAuthScreen = ({ navigation }) => {
               <Text style={styles.itemTitle}>SMS Verification</Text>
               <Text style={styles.itemSubtitle}>Text message to +20 *** ***9856</Text>
             </View>
-            <Switch  disabled={loading}
-  value={twoFA.smsVerification}
-  onValueChange={(v) => handleToggle('smsVerification', v)}
-  trackColor={{ false: '#ccc', true: '#B07070' }}
-  thumbColor="#fff"
-/>
+            <Switch disabled={loading}
+              value={twoFA.smsVerification}
+              onValueChange={(v) => handleToggle('smsVerification', v)}
+              trackColor={{ false: '#ccc', true: '#B07070' }}
+              thumbColor="#fff"
+            />
           </View>
 
           <View style={[styles.toggleRow, styles.rowBorder]}>
@@ -136,17 +136,17 @@ const TwoFactorAuthScreen = ({ navigation }) => {
               <Text style={styles.itemTitle}>Email Verification</Text>
               <Text style={styles.itemSubtitle}>aynourhamadaa@gmail.com</Text>
             </View>
-            <Switch  disabled={loading}
-  value={twoFA.emailVerification}
-  onValueChange={(v) => handleToggle('emailVerification', v)}
-  trackColor={{ false: '#ccc', true: '#B07070' }}
-  thumbColor="#fff"
-/>
+            <Switch disabled={loading}
+              value={twoFA.emailVerification}
+              onValueChange={(v) => handleToggle('emailVerification', v)}
+              trackColor={{ false: '#ccc', true: '#B07070' }}
+              thumbColor="#fff"
+            />
           </View>
         </View>
       </ScrollView>
-  </SafeAreaView>
-  
+    </SafeAreaView>
+
   );
 };
 

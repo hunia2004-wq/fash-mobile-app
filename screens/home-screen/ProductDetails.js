@@ -69,7 +69,7 @@ export default function ProductDetailScreen({ navigation, route }) {
       null
     );
   })();
-  
+
   const isOwnListing = !!(resolvedSellerId && currentUserId && resolvedSellerId === currentUserId);
 
   const getInitial = () => {
@@ -87,7 +87,7 @@ export default function ProductDetailScreen({ navigation, route }) {
   const handleMessage = () => {
     Alert.alert('Message Seller', `Start a conversation with ${sellerName || 'this seller'}?`, [
       { text: 'Cancel', style: 'cancel' },
-      { text: 'Message', onPress: () => {} },
+      { text: 'Message', onPress: () => { } },
     ]);
   };
 
@@ -129,18 +129,18 @@ export default function ProductDetailScreen({ navigation, route }) {
         </TouchableOpacity>
         <Text style={styles.navTitle}>Item Details</Text>
         {!isOwnListing && (
-  <TouchableOpacity
-    style={styles.navBtn}
-    onPress={() => setSaved((v) => !v)}
-    activeOpacity={0.8}
-  >
-    <Ionicons
-      name={saved ? 'heart' : 'heart-outline'}
-      size={20}
-      color={saved ? '#E05C5C' : COLORS.text}
-    />
-  </TouchableOpacity>
-)}
+          <TouchableOpacity
+            style={styles.navBtn}
+            onPress={() => setSaved((v) => !v)}
+            activeOpacity={0.8}
+          >
+            <Ionicons
+              name={saved ? 'heart' : 'heart-outline'}
+              size={20}
+              color={saved ? '#E05C5C' : COLORS.text}
+            />
+          </TouchableOpacity>
+        )}
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
@@ -276,25 +276,25 @@ export default function ProductDetailScreen({ navigation, route }) {
 
       {/* Sticky CTA — single bar, message hidden for own listings */}
       <View style={styles.ctaBar}>
-  {isOwnListing ? (
-    <TouchableOpacity style={styles.deleteListingBtn} onPress={handleDeleteListing} activeOpacity={0.85}>
-      <Ionicons name="trash-outline" size={16} color={COLORS.white} style={{ marginRight: 8 }} />
-      <Text style={styles.deleteListingBtnText}>Delete Listing</Text>
-    </TouchableOpacity>
-  ) : (
-    <>
-      <TouchableOpacity style={styles.offerBtn} onPress={handleOffer} activeOpacity={0.85}>
-        <Text style={styles.offerBtnText}>Make Offer</Text>
-      </TouchableOpacity>
-      <TouchableOpacity style={styles.messageBtn} onPress={handleMessage} activeOpacity={0.85}>
-        <Ionicons name="chatbubble-outline" size={16} color={COLORS.white} style={{ marginRight: 6 }} />
-        <Text style={styles.messageBtnText}>Message Seller</Text>
-      </TouchableOpacity>
-    </>
-  )}
+        {isOwnListing ? (
+          <TouchableOpacity style={styles.deleteListingBtn} onPress={handleDeleteListing} activeOpacity={0.85}>
+            <Ionicons name="trash-outline" size={16} color={COLORS.white} style={{ marginRight: 8 }} />
+            <Text style={styles.deleteListingBtnText}>Delete Listing</Text>
+          </TouchableOpacity>
+        ) : (
+          <>
+            <TouchableOpacity style={styles.offerBtn} onPress={handleOffer} activeOpacity={0.85}>
+              <Text style={styles.offerBtnText}>Make Offer</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.messageBtn} onPress={handleMessage} activeOpacity={0.85}>
+              <Ionicons name="chatbubble-outline" size={16} color={COLORS.white} style={{ marginRight: 6 }} />
+              <Text style={styles.messageBtnText}>Message Seller</Text>
+            </TouchableOpacity>
+          </>
+        )}
 
-  
-</View>
+
+      </View>
     </SafeAreaView>
   );
 }

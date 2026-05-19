@@ -1,9 +1,9 @@
 import React, { useContext, useEffect, useState } from 'react';
-import {View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Alert, TextInput,} from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Alert, TextInput, } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AuthContext } from '../../context/AuthContext';
-import {getCards, addCard, updateCard, setDefaultCard, deleteCard,} from '../../services/authService';
-import { Ionicons} from '@expo/vector-icons';
+import { getCards, addCard, updateCard, setDefaultCard, deleteCard, } from '../../services/authService';
+import { Ionicons } from '@expo/vector-icons';
 
 
 export default function SavedCards({ navigation }) {
@@ -28,9 +28,9 @@ export default function SavedCards({ navigation }) {
     try {
       const token = await getToken();
       const res = await getCards(token);
-  
+
       console.log("FETCH RESPONSE:", res);
-  
+
       setCards(Array.isArray(res) ? res : []);
     } catch (e) {
       console.log("FETCH ERROR:", e);
@@ -124,13 +124,13 @@ export default function SavedCards({ navigation }) {
   const handleSetDefault = async (id) => {
     try {
       const token = await getToken();
-  
+
       console.log("SETTING DEFAULT FOR:", id);
-  
+
       await setDefaultCard(token, id);
-  
+
       console.log("DEFAULT SET SUCCESS");
-  
+
       await fetchCards();
     } catch (e) {
       console.log("SET DEFAULT ERROR:", e);
@@ -173,7 +173,7 @@ export default function SavedCards({ navigation }) {
             <Text style={styles.backBtn}>‹</Text>
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Saved Cards</Text>
-          
+
           <View style={{ width: 40 }} />
         </View>
 
@@ -188,18 +188,18 @@ export default function SavedCards({ navigation }) {
     <SafeAreaView style={styles.container}>
       {/* HEADER */}
       <View style={styles.header}>
-  <TouchableOpacity
-    style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: '#F2E6E3', alignItems: 'center', justifyContent: 'center' }}
-    onPress={() => navigation.goBack()}
-    activeOpacity={0.8}
-  >
-    <Ionicons name="arrow-back" size={20} color="#2c2c2c" />
-  </TouchableOpacity>
-  <Text style={styles.headerTitle}>Saved Cards</Text>
-  <TouchableOpacity onPress={() => { resetForm(); setShowForm(true); }}>
-    <Text style={styles.addBtn}>+ Add</Text>
-  </TouchableOpacity>
-</View>
+        <TouchableOpacity
+          style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: '#F2E6E3', alignItems: 'center', justifyContent: 'center' }}
+          onPress={() => navigation.goBack()}
+          activeOpacity={0.8}
+        >
+          <Ionicons name="arrow-back" size={20} color="#2c2c2c" />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Saved Cards</Text>
+        <TouchableOpacity onPress={() => { resetForm(); setShowForm(true); }}>
+          <Text style={styles.addBtn}>+ Add</Text>
+        </TouchableOpacity>
+      </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
 
@@ -360,7 +360,7 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderColor: '#C17C74',
   },
-  
+
   infoText: {
     color: '#C17C74',
     fontSize: 14,
