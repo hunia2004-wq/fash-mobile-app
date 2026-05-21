@@ -367,7 +367,7 @@ export default function DonationScreen({ navigation }) {
             <Text style={styles.pointsEarnedLabel}>points earned!</Text>
           </View>
           <TouchableOpacity style={styles.doneBtn} onPress={() => navigation.goBack()} activeOpacity={0.85}>
-            <Text style={styles.doneBtnText}>Back to App</Text>
+            <Text style={styles.doneBtnText}>Back to Home</Text>
           </TouchableOpacity>
         </ScrollView>
       </SafeAreaView>
