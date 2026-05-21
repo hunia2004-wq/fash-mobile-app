@@ -531,7 +531,11 @@ export async function getListingById(id) {
 }
 
 export async function createListing(token, formData) {
-  return uploadFormData('/listings', token, formData);
+  return request('/listings', {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${token}` },
+    body: formData,
+  });
 }
 
 export async function updateListing(token, id, listingData) {
