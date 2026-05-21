@@ -186,7 +186,7 @@ export default function UploadScreen({ navigation }) {
         formData.append('description', description.trim());
         if (brand)    formData.append('brand',    brand.trim());
         if (location) formData.append('location', location.trim());
-        if (imageUri) formData.append('images', { uri: imageUri, type: 'image/jpeg', name: 'photo_0.jpg' });
+        if (imageUri) formData.append('image', { uri: imageUri, type: 'image/jpeg', name: 'photo_0.jpg' });
 
         await createListing(token, formData);
 
