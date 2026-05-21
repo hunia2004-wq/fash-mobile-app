@@ -37,17 +37,13 @@ export default function ProfileScreen({ navigation }) {
   const fetchUser = async () => {
     try {
       setLoading(true);
-
       const token = await getToken();
-
       if (!token) {
         console.warn("No token found");
         setUser(null);
         return;
       }
-
       const profile = await getProfile(token);
-
       setUser(profile?.data || profile);
     } catch (e) {
       console.warn("FULL ERROR:", e);
@@ -65,17 +61,14 @@ export default function ProfileScreen({ navigation }) {
 
   const pickImage = async () => {
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
-
     if (!permission.granted) {
       alert("Permission is required to choose an image!");
       return;
     }
-
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       quality: 1,
     });
-
     if (!result.canceled) {
       setAvatar(result.assets[0].uri);
     }
@@ -100,10 +93,10 @@ export default function ProfileScreen({ navigation }) {
   const fullName = `${user.firstName || ""} ${user.lastName || ""}`.trim();
   const joinedDate = user.createdAt
     ? new Date(user.createdAt).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    })
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      })
     : "—";
 
   return (
@@ -122,7 +115,6 @@ export default function ProfileScreen({ navigation }) {
             }
             style={styles.avatar}
           />
-
           <View style={styles.avatarBadge}>
             <Text style={styles.avatarBadgeText}>+</Text>
           </View>
@@ -131,14 +123,23 @@ export default function ProfileScreen({ navigation }) {
         <Text style={styles.name}>{fullName || "No Name"}</Text>
         <Text style={styles.email}>{user.email}</Text>
 
+        {/* ── Points chip ── */}
+        <View style={styles.pointsChipRow}>
+          <View style={styles.pointsChip}>
+            <Text style={styles.pointsChipNum}>{user.points ?? 0}</Text>
+            <Text style={styles.pointsChipLabel}>reward points</Text>
+          </View>
+          <View style={styles.pointsChipDivider} />
+          <View>
+            <Text style={styles.pointsChipHint}>Donate clothes</Text>
+            <Text style={[styles.pointsChipHint, { fontWeight: '600' }]}
+            onPress={() => navigation.navigate('DonationScreen')}>to earn more ›</Text>
+          </View>
+        </View>
+
         <TouchableOpacity
           style={styles.editButton}
-          onPress={() =>
-            navigation.navigate("EditProfileScreen", {
-              user,
-              refresh: fetchUser,
-            })
-          }
+          onPress={() => navigation.navigate("EditProfileScreen", { user, refresh: fetchUser })}
         >
           <Text style={styles.editButtonText}>Edit Profile</Text>
         </TouchableOpacity>
@@ -303,5 +304,42 @@ const styles = StyleSheet.create({
     color: "#C17C74",
     fontWeight: "bold",
     fontSize: 16,
+  },
+
+  pointsChipRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    marginVertical: 12,
+  },
+  pointsChip: {
+    backgroundColor: '#FAECE7',
+    borderRadius: 10,
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    borderWidth: 0.5,
+    borderColor: '#F0997B',
+  },
+  pointsChipNum: {
+    fontSize: 18,
+    fontWeight: '500',
+    color: '#4A1B0C',
+    lineHeight: 20,
+  },
+  pointsChipLabel: {
+    fontSize: 11,
+    color: '#993C1D',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  pointsChipDivider: {
+    width: 0.5,
+    height: 28,
+    backgroundColor: '#F0997B',
+  },
+  pointsChipHint: {
+    fontSize: 11,
+    color: '#993C1D',
+    lineHeight: 18,
   },
 });
