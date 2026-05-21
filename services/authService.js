@@ -703,13 +703,18 @@ export async function getNearbyCenters(lat, lng) {
 }
 
 
-export async function createDonation(token, donationCenterId, itemIds) {
+export async function createDonation(token, donationCenterId, items) {
   return request('/donations', {
     method: 'POST',
     headers: { Authorization: `Bearer ${token}` },
-    body: JSON.stringify({ donationCenterId, itemIds }),
+    body: JSON.stringify({
+      donationCenterId,
+      items,                                    
+      itemIds: items.map(i => i.wardrobeItemId), 
+    }),
   });
 }
+
 
 export async function getMyDonations(token) {
   return request('/donations/my-donations', {
