@@ -311,17 +311,6 @@ export default function UploadScreen({ navigation }) {
 
         <View style={styles.formRow}>
           <View style={styles.formHalf}>
-            <Text style={styles.formLabel}>{isMarketplace ? 'Price (EGP) *' : 'Price (optional)'}</Text>
-            <TextInput
-              style={[styles.formInput, isMarketplace && styles.formInputRequired]}
-              placeholder="EGP 0.00"
-              placeholderTextColor="#888888"
-              keyboardType="decimal-pad"
-              value={price}
-              onChangeText={setPrice}
-            />
-          </View>
-          <View style={styles.formHalf}>
             <Text style={styles.formLabel}>Brand</Text>
             <TextInput
               style={styles.formInput}
