@@ -12,19 +12,19 @@ import { createWardrobeItem, createListing } from '../../services/authService';
 
 const { width } = Dimensions.get('window');
 
-const SEASONS    = ['Spring', 'Summer', 'Autumn', 'Winter', 'All-season'];
-const OCCASIONS  = ['Casual', 'Work', 'Evening', 'Sport', 'Formal'];
+const SEASONS = ['Spring', 'Summer', 'Autumn', 'Winter', 'All-season'];
+const OCCASIONS = ['Casual', 'Work', 'Evening', 'Sport', 'Formal'];
 
-const WARDROBE_CATEGORIES    = ['Tops', 'Bottoms', 'Dresses', 'Outerwear', 'Shoes', 'Bags', 'Accessories'];
+const WARDROBE_CATEGORIES = ['Tops', 'Bottoms', 'Dresses', 'Outerwear', 'Shoes', 'Bags', 'Accessories'];
 const MARKETPLACE_CATEGORIES = ['Shoes', 'Bags', 'Perfumes', 'Accessories', 'Newborn Accessories'];
 
 const SIZE_OPTIONS = {
-  Shoes:                ['35', '36', '37', '38', '39', '40', '41', '42', '43', '44', '45'],
-  Bags:                 ['One Size'],
-  Perfumes:             ['30ml', '50ml', '75ml', '100ml', '150ml', '200ml'],
-  Accessories:          ['One Size'],
-  'Newborn Accessories':['One Size'],
-  default:              ['XS', 'S', 'M', 'L', 'XL', 'XXL', 'One Size'],
+  Shoes: ['35', '36', '37', '38', '39', '40', '41', '42', '43', '44', '45'],
+  Bags: ['One Size'],
+  Perfumes: ['30ml', '50ml', '75ml', '100ml', '150ml', '200ml'],
+  Accessories: ['One Size'],
+  'Newborn Accessories': ['One Size'],
+  default: ['XS', 'S', 'M', 'L', 'XL', 'XXL', 'One Size'],
 };
 
 const getSizesForCategory = (cat) => SIZE_OPTIONS[cat] ?? SIZE_OPTIONS.default;
@@ -71,36 +71,36 @@ const TagRow = ({ options, selected, onToggle, single = false }) => (
 );
 
 const EMPTY_STATE = {
-  itemName:    '',
-  size:        '',
-  brand:       '',
-  price:       '',
+  itemName: '',
+  size: '',
+  brand: '',
+  price: '',
   description: '',
-  location:    '',
-  condition:   '',
-  seasons:     ['Spring'],
-  occasions:   ['Casual'],
-  category:    '',
-  imageUri:    null,
+  location: '',
+  condition: '',
+  seasons: ['Spring'],
+  occasions: ['Casual'],
+  category: '',
+  imageUri: null,
 };
 
 export default function UploadScreen({ navigation }) {
   const { getToken } = useAuth();
-  const scrollRef   = useRef(null);
+  const scrollRef = useRef(null);
 
-  const [mode,        setMode]        = useState('wardrobe');
-  const [itemName,    setItemName]    = useState(EMPTY_STATE.itemName);
-  const [size,        setSize]        = useState(EMPTY_STATE.size);
-  const [brand,       setBrand]       = useState(EMPTY_STATE.brand);
-  const [price,       setPrice]       = useState(EMPTY_STATE.price);
-  const [condition,   setCondition]   = useState(EMPTY_STATE.condition);
-  const [seasons,     setSeasons]     = useState(EMPTY_STATE.seasons);
-  const [occasions,   setOccasions]   = useState(EMPTY_STATE.occasions);
-  const [category,    setCategory]    = useState(EMPTY_STATE.category);
-  const [imageUri,    setImageUri]    = useState(EMPTY_STATE.imageUri);
+  const [mode, setMode] = useState('wardrobe');
+  const [itemName, setItemName] = useState(EMPTY_STATE.itemName);
+  const [size, setSize] = useState(EMPTY_STATE.size);
+  const [brand, setBrand] = useState(EMPTY_STATE.brand);
+  const [price, setPrice] = useState(EMPTY_STATE.price);
+  const [condition, setCondition] = useState(EMPTY_STATE.condition);
+  const [seasons, setSeasons] = useState(EMPTY_STATE.seasons);
+  const [occasions, setOccasions] = useState(EMPTY_STATE.occasions);
+  const [category, setCategory] = useState(EMPTY_STATE.category);
+  const [imageUri, setImageUri] = useState(EMPTY_STATE.imageUri);
   const [description, setDescription] = useState(EMPTY_STATE.description);
-  const [location,    setLocation]    = useState(EMPTY_STATE.location);
-  const [saving,      setSaving]      = useState(false);
+  const [location, setLocation] = useState(EMPTY_STATE.location);
+  const [saving, setSaving] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
@@ -160,16 +160,16 @@ export default function UploadScreen({ navigation }) {
   };
 
   const availableSizes = getSizesForCategory(category);
-  const autoOneSize    = availableSizes.length === 1 && availableSizes[0] === 'One Size';
+  const autoOneSize = availableSizes.length === 1 && availableSizes[0] === 'One Size';
 
   const handleSave = async () => {
     if (!itemName.trim()) { Alert.alert('Missing info', 'Please enter an item name.'); return; }
-    if (!category)        { Alert.alert('Missing info', 'Please select a category.');  return; }
+    if (!category) { Alert.alert('Missing info', 'Please select a category.'); return; }
 
     if (isMarketplace) {
-      if (!price)       { Alert.alert('Missing info', 'Please enter a price.');           return; }
-      if (!condition)   { Alert.alert('Missing info', 'Please select the condition.');    return; }
-      if (!description) { Alert.alert('Missing info', 'Please add a description.');       return; }
+      if (!price) { Alert.alert('Missing info', 'Please enter a price.'); return; }
+      if (!condition) { Alert.alert('Missing info', 'Please select the condition.'); return; }
+      if (!description) { Alert.alert('Missing info', 'Please add a description.'); return; }
     }
 
     try {
@@ -178,13 +178,13 @@ export default function UploadScreen({ navigation }) {
 
       if (isMarketplace) {
         const formData = new FormData();
-        formData.append('title',     itemName.trim());
-        formData.append('price',     price);
-        formData.append('category',  category);
+        formData.append('title', itemName.trim());
+        formData.append('price', price);
+        formData.append('category', category);
         formData.append('condition', condition);
-        formData.append('size',      autoOneSize ? 'One Size' : size || 'One Size');
+        formData.append('size', autoOneSize ? 'One Size' : size || 'One Size');
         formData.append('description', description.trim());
-        if (brand)    formData.append('brand',    brand.trim());
+        if (brand) formData.append('brand', brand.trim());
         if (location) formData.append('location', location.trim());
         if (imageUri) formData.append('images', { uri: imageUri, type: 'image/jpeg', name: 'photo_0.jpg' });
 
@@ -194,20 +194,20 @@ export default function UploadScreen({ navigation }) {
           'Listed! 🎉',
           'Your item is now live on the Marketplace.',
           [
-            { text: 'Add Another',       onPress: resetForm },
+            { text: 'Add Another', onPress: resetForm },
             { text: 'Go to Marketplace', onPress: () => navigation.navigate('MarketplaceTab') },
           ]
         );
       } else {
         const formData = new FormData();
-        formData.append('name',     itemName.trim());
+        formData.append('name', itemName.trim());
         formData.append('category', category);
-        if (size)             formData.append('size',     size);
-        if (brand)            formData.append('brand',    brand);
-        if (price)            formData.append('price',    price);
-        if (seasons.length)   formData.append('season',   seasons[0]);
+        if (size) formData.append('size', size);
+        if (brand) formData.append('brand', brand);
+        if (price) formData.append('price', price);
+        if (seasons.length) formData.append('season', seasons[0]);
         if (occasions.length) formData.append('occasion', occasions[0]);
-        if (imageUri)         formData.append('image', { uri: imageUri, type: 'image/jpeg', name: 'item.jpg' });
+        if (imageUri) formData.append('image', { uri: imageUri, type: 'image/jpeg', name: 'item.jpg' });
 
         await createWardrobeItem(token, formData);
 
@@ -215,7 +215,7 @@ export default function UploadScreen({ navigation }) {
           'Saved! 🎉',
           'Item added to your wardrobe.',
           [
-            { text: 'Add Another',    onPress: resetForm },
+            { text: 'Add Another', onPress: resetForm },
             { text: 'Go to Wardrobe', onPress: () => navigation.navigate('WardrobeTab') },
           ]
         );
@@ -228,7 +228,7 @@ export default function UploadScreen({ navigation }) {
   };
 
   const isMarketplace = mode === 'marketplace';
-  const categories    = isMarketplace ? MARKETPLACE_CATEGORIES : WARDROBE_CATEGORIES;
+  const categories = isMarketplace ? MARKETPLACE_CATEGORIES : WARDROBE_CATEGORIES;
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -394,6 +394,21 @@ export default function UploadScreen({ navigation }) {
         {isMarketplace && (
           <>
             <View style={styles.divider} />
+
+            <View style={styles.formGroup}>  {/* ← was formHalf, wrong */}
+              <Text style={styles.formLabel}>Price (EGP) *</Text>
+              <TextInput
+                style={[styles.formInput, styles.formInputRequired]}
+                placeholder="EGP 0.00"
+                placeholderTextColor="#888888"
+                keyboardType="decimal-pad"
+                value={price}
+                onChangeText={setPrice}
+              />
+            </View>
+
+            <View style={styles.divider} />
+
             <Text style={styles.sectionLabel}>Description *</Text>
             <View style={styles.formGroup}>
               <TextInput
@@ -473,17 +488,17 @@ const styles = StyleSheet.create({
     flex: 1, flexDirection: 'row', alignItems: 'center',
     justifyContent: 'center', paddingVertical: 10, borderRadius: 11,
   },
-  modeBtnActive:     { backgroundColor: '#C17C74' },
-  modeBtnText:       { fontSize: 13, fontWeight: '700', color: '#C17C74' },
+  modeBtnActive: { backgroundColor: '#C17C74' },
+  modeBtnText: { fontSize: 13, fontWeight: '700', color: '#C17C74' },
   modeBtnTextActive: { color: 'white' },
 
   modeBanner: {
     flexDirection: 'row', alignItems: 'flex-start', backgroundColor: '#F2E6E3',
     marginHorizontal: 16, borderRadius: 12, padding: 10, marginBottom: 10,
   },
-  modeBannerMarket:        { backgroundColor: '#e8f5e9' },
-  modeBannerText:          { flex: 1, fontSize: 12, color: '#C17C74', lineHeight: 17 },
-  modeBannerTextMarket:    { color: '#388e3c' },
+  modeBannerMarket: { backgroundColor: '#e8f5e9' },
+  modeBannerText: { flex: 1, fontSize: 12, color: '#C17C74', lineHeight: 17 },
+  modeBannerTextMarket: { color: '#388e3c' },
 
   scrollContent: { paddingBottom: 60 },
 
@@ -493,13 +508,13 @@ const styles = StyleSheet.create({
     borderRadius: 20, paddingVertical: 32, alignItems: 'center', gap: 10,
   },
   uploadZoneMarket: { borderColor: '#388e3c', backgroundColor: '#f1f8f2' },
-  previewImage:     { width: '100%', height: 220, borderRadius: 18 },
+  previewImage: { width: '100%', height: 220, borderRadius: 18 },
   uploadIconCircle: {
     width: 60, height: 60, borderRadius: 30,
     backgroundColor: 'white', alignItems: 'center', justifyContent: 'center',
   },
   uploadText: { fontSize: 14, fontWeight: '600', color: '#C17C74' },
-  uploadSub:  { fontSize: 11, color: '#888888' },
+  uploadSub: { fontSize: 11, color: '#888888' },
 
   photoRow: { flexDirection: 'row', gap: 10, paddingHorizontal: 16, marginBottom: 4 },
   btnOutlineHalf: {
@@ -518,24 +533,24 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase', letterSpacing: 0.9,
   },
 
-  formGroup:         { paddingHorizontal: 16, marginBottom: 12 },
-  formRow:           { flexDirection: 'row', gap: 10, paddingHorizontal: 16, marginBottom: 12 },
-  formHalf:          { flex: 1 },
+  formGroup: { paddingHorizontal: 16, marginBottom: 12 },
+  formRow: { flexDirection: 'row', gap: 10, paddingHorizontal: 16, marginBottom: 12 },
+  formHalf: { flex: 1 },
   formLabel: {
     fontSize: 10, fontWeight: '700', color: '#C17C74',
     marginBottom: 6, textTransform: 'uppercase', letterSpacing: 0.6,
   },
   formInput: {
-    backgroundColor: 'white', borderWidth: 1, borderColor: '#e0c8c5',
+    backgroundColor: 'white', borderWidth: 1, borderColor: '#C17C74',
     borderRadius: 12, paddingHorizontal: 14, paddingVertical: 11,
     fontSize: 14, color: '#2c2c2c',
   },
   formInputRequired: { borderColor: '#C17C74' },
-  textArea:          { height: 100, paddingTop: 13 },
+  textArea: { height: 100, paddingTop: 13 },
 
   locationRow: {
     flexDirection: 'row', alignItems: 'center',
-    backgroundColor: 'white', borderWidth: 1, borderColor: '#e0c8c5',
+    backgroundColor: 'white', borderWidth: 1, borderColor: '#C17C74',
     borderRadius: 12, paddingHorizontal: 14, marginHorizontal: 16, marginBottom: 12,
   },
   locationInput: {
@@ -547,8 +562,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14, paddingVertical: 7, borderRadius: 14,
     backgroundColor: '#F2E6E3', borderWidth: 1, borderColor: 'rgba(193,124,116,0.18)',
   },
-  tagActive:     { backgroundColor: '#C17C74', borderColor: '#C17C74' },
-  tagText:       { fontSize: 12, color: '#C17C74', fontWeight: '500' },
+  tagActive: { backgroundColor: '#C17C74', borderColor: '#C17C74' },
+  tagText: { fontSize: 12, color: '#C17C74', fontWeight: '500' },
   tagTextActive: { color: 'white' },
 
   sizeHint: { fontSize: 11, color: '#888', fontStyle: 'italic', paddingHorizontal: 16, marginBottom: 8 },
@@ -570,5 +585,5 @@ const styles = StyleSheet.create({
     marginTop: 12, marginBottom: 10, borderRadius: 16, paddingVertical: 16,
   },
   btnAccentMarket: { backgroundColor: '#388e3c' },
-  btnAccentText:   { color: 'white', fontSize: 15, fontWeight: '600' },
+  btnAccentText: { color: 'white', fontSize: 15, fontWeight: '600' },
 });
