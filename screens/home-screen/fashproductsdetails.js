@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity,
   StatusBar, Image, Dimensions, ActivityIndicator, Alert,
@@ -8,12 +8,12 @@ import { Ionicons, Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../../context/AuthContext';
 import { useCart } from '../../context/CartContext';
-import { saveNewItem, removeSaved } from '../../services/authService';
+import { saveNewItem, removeSaved, getCollectionItemById } from '../../services/authService';
 
 const { width } = Dimensions.get('window');
 
-// ── constants ──────────────────────────────────────────────────────
-const RENTAL_DURATIONS = [
+// ── fallback constants (used until backend pricing loads) ───────────
+const RENTAL_DURATIONS_DEFAULT = [
   { days: 1, label: '1 Day', discount: 0 },
   { days: 3, label: '3 Days', discount: 5 },
   { days: 7, label: '1 Week', discount: 15 },
@@ -73,11 +73,13 @@ const MiniCalendar = ({ selectedStart, selectedEnd, onSelectDate, minDate }) => 
           <Ionicons name="chevron-forward" size={18} color="#C17C74" />
         </TouchableOpacity>
       </View>
+
       <View style={cal.weekRow}>
         {DAYS_OF_WEEK.map(d => (
           <Text key={d} style={cal.weekDay}>{d}</Text>
         ))}
       </View>
+
       <View style={cal.grid}>
         {cells.map((day, idx) => {
           if (!day) return <View key={`e${idx}`} style={cal.cell} />;
@@ -125,23 +127,59 @@ export default function FashProductDetailScreen({ navigation, route }) {
   const { getToken } = useAuth();
   const { addToCart } = useCart();
 
-  const [item] = useState(initialItem ?? {});
+  // ── item state: starts with route param, upgraded by fetch ────
+  const [item, setItem] = useState(initialItem ?? {});
+  const [rentalPricing, setRentalPricing] = useState(RENTAL_DURATIONS_DEFAULT);
+  const [fetchingItem, setFetchingItem] = useState(false);
+
   const [saved, setSaved] = useState(initialSaved ?? false);
   const [activeImg, setActiveImg] = useState(0);
   const [selectedSize, setSelectedSize] = useState(null);
   const [selectedColor, setSelectedColor] = useState(null);
   const [rentalModal, setRentalModal] = useState(false);
-  const [selectedDur, setSelectedDur] = useState(RENTAL_DURATIONS[1]);
+  const [selectedDur, setSelectedDur] = useState(RENTAL_DURATIONS_DEFAULT[1]);
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
   const [pickingStart, setPickingStart] = useState(true);
   const [addingToCart, setAddingToCart] = useState(false);
 
+  // ── fetch full item details from backend ───────────────────────
+  useEffect(() => {
+    if (!initialItem?._id) return;
+
+    const fetchDetail = async () => {
+      try {
+        setFetchingItem(true);
+        const data = await getCollectionItemById(initialItem._id);
+        const itemData = data.item ?? data;
+        setItem(itemData);
+
+        if (itemData.rentalPricing?.length) {
+          const mapped = itemData.rentalPricing.map(p => ({
+            days: p.days,
+            label: p.label,
+            discount: p.discountPercent,
+          }));
+          setRentalPricing(mapped);
+          setSelectedDur(mapped[1] ?? mapped[0]);
+        }
+      } catch (err) {
+        // Silently fall back to route.params data — no UX disruption
+        console.warn('Could not fetch item detail, using passed data:', err.message);
+      } finally {
+        setFetchingItem(false);
+      }
+    };
+
+    fetchDetail();
+  }, [initialItem?._id]);
+
+  // ── derived values ─────────────────────────────────────────────
   const images = item.images?.length ? item.images : item.image ? [item.image] : [];
   const sizes = item.sizes ?? item.availableSizes ?? [];
   const colors = item.colors ?? item.availableColors ?? [];
 
-  const dailyPrice = item.price ?? 0;
+  const dailyPrice = item.rentalPrice ?? item.price ?? 0;
   const totalDays = startDate && endDate
     ? Math.max(1, Math.round((endDate - startDate) / 86400000))
     : selectedDur.days;
@@ -160,7 +198,7 @@ export default function FashProductDetailScreen({ navigation, route }) {
         await saveNewItem(token, item._id, 'collection');
         navigation.navigate('SavedTab');
       }
-    } catch (err) {
+    } catch {
       setSaved(prev);
     }
   };
@@ -187,7 +225,7 @@ export default function FashProductDetailScreen({ navigation, route }) {
     if (startDate) setEndDate(addDays(startDate, dur.days));
   };
 
-  // ── confirm rental → add to cart → go to cart ─────────────────
+  // ── confirm rental → add to cart ──────────────────────────────
   const handleConfirmRental = async () => {
     if (sizes.length > 0 && !selectedSize) {
       Alert.alert('Select a size', 'Please pick a size before renting.');
@@ -198,7 +236,6 @@ export default function FashProductDetailScreen({ navigation, route }) {
       return;
     }
 
-    // Snapshot computed values at the moment of confirmation
     const confirmedDays = Math.max(1, Math.round((endDate - startDate) / 86400000));
     const confirmedSubtotal = dailyPrice * confirmedDays;
     const confirmedDiscount = Math.round(confirmedSubtotal * selectedDur.discount / 100);
@@ -209,24 +246,19 @@ export default function FashProductDetailScreen({ navigation, route }) {
 
       const rentalItem = {
         ...item,
-        // ── Unique cart ID: prevents deduplication with the same base item
         _id: `${item._id}_rental_${Date.now()}`,
-        itemId: item._id,           // original ID for reference
-        // ── Flag so CartContext routes this to local-only storage ─
+        itemId: item._id,
         isRental: true,
-        // ── Rental metadata ───────────────────────────────────────
         rentalStartDate: startDate.toISOString(),
         rentalEndDate: endDate.toISOString(),
         rentalDays: confirmedDays,
         rentalSize: selectedSize,
         rentalColor: selectedColor,
         rentalLabel: `${formatDate(startDate)} → ${formatDate(endDate)} · ${confirmedDays}d`,
-        // ── Price override: full rental total, NOT daily rate ─────
         price: confirmedTotal,
       };
 
       addToCart(rentalItem, 'collection');
-
       setRentalModal(false);
 
       Alert.alert(
@@ -255,9 +287,24 @@ export default function FashProductDetailScreen({ navigation, route }) {
         <TouchableOpacity style={s.navBtn} onPress={() => navigation.goBack()} activeOpacity={0.8}>
           <Ionicons name="arrow-back" size={20} color="#2c2c2c" />
         </TouchableOpacity>
+
         <Text style={s.navTitle} numberOfLines={1}>{item.title}</Text>
+
+        {/* Subtle fetch indicator — only visible while loading */}
+        {fetchingItem && (
+          <ActivityIndicator
+            size="small"
+            color="#C17C74"
+            style={s.fetchIndicator}
+          />
+        )}
+
         <TouchableOpacity style={s.navBtn} onPress={handleToggleSave} activeOpacity={0.8}>
-          <Ionicons name={saved ? 'heart' : 'heart-outline'} size={20} color={saved ? '#E05C5C' : '#C17C74'} />
+          <Ionicons
+            name={saved ? 'heart' : 'heart-outline'}
+            size={20}
+            color={saved ? '#E05C5C' : '#C17C74'}
+          />
         </TouchableOpacity>
       </View>
 
@@ -300,7 +347,7 @@ export default function FashProductDetailScreen({ navigation, route }) {
           <Text style={s.brandLabel}>{item.brand}</Text>
           <Text style={s.itemTitle}>{item.title}</Text>
           <View style={s.priceRow}>
-            <Text style={s.price}>EGP {item.price}</Text>
+            <Text style={s.price}>EGP {dailyPrice}</Text>
             <Text style={s.perDay}>/ day</Text>
           </View>
           {item.description ? <Text style={s.description}>{item.description}</Text> : null}
@@ -383,16 +430,22 @@ export default function FashProductDetailScreen({ navigation, route }) {
           </View>
         </View>
 
-        {/* Pricing table */}
+        {/* Pricing table — driven by backend rentalPricing */}
         <View style={s.section}>
-          <Text style={s.pickerTitle}>Rental Pricing</Text>
+          <View style={s.pickerTitleRow}>
+            <Text style={s.pickerTitle}>Rental Pricing</Text>
+            {fetchingItem && (
+              <ActivityIndicator size="small" color="#C17C74" style={{ marginLeft: 8 }} />
+            )}
+          </View>
+
           <View style={s.pricingTable}>
-            {RENTAL_DURATIONS.map((dur, idx) => (
+            {rentalPricing.map((dur, idx) => (
               <View
                 key={dur.days}
                 style={[
                   s.pricingRow,
-                  idx === RENTAL_DURATIONS.length - 1 && { borderBottomWidth: 0 },
+                  idx === rentalPricing.length - 1 && { borderBottomWidth: 0 },
                 ]}
               >
                 <Text style={s.pricingDur}>{dur.label}</Text>
@@ -450,14 +503,14 @@ export default function FashProductDetailScreen({ navigation, route }) {
               showsVerticalScrollIndicator={false}
               contentContainerStyle={{ paddingBottom: 32 }}
             >
-              {/* Duration presets */}
+              {/* Duration presets — from backend pricing */}
               <Text style={m.label}>Quick Duration</Text>
               <ScrollView
                 horizontal
                 showsHorizontalScrollIndicator={false}
                 contentContainerStyle={m.durRow}
               >
-                {RENTAL_DURATIONS.map(dur => (
+                {rentalPricing.map(dur => (
                   <TouchableOpacity
                     key={dur.days}
                     style={[m.durChip, selectedDur.days === dur.days && m.durChipActive]}
@@ -623,6 +676,7 @@ const s = StyleSheet.create({
   topNav: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 12, backgroundColor: 'white', borderBottomWidth: 1, borderBottomColor: 'rgba(193,124,116,0.12)' },
   navBtn: { width: 40, height: 40, borderRadius: 12, backgroundColor: '#F2E6E3', alignItems: 'center', justifyContent: 'center' },
   navTitle: { flex: 1, fontSize: 15, fontWeight: '700', color: '#2c2c2c', textAlign: 'center', marginHorizontal: 8 },
+  fetchIndicator: { position: 'absolute', right: 60, alignSelf: 'center' },
   scroll: { paddingBottom: 20 },
   galleryWrap: { width, height: width * 1.1, backgroundColor: '#F2E6E3', position: 'relative' },
   mainImage: { width, height: width * 1.1 },
@@ -643,7 +697,8 @@ const s = StyleSheet.create({
   tag: { backgroundColor: '#F2E6E3', borderRadius: 10, paddingHorizontal: 12, paddingVertical: 5 },
   tagText: { fontSize: 12, fontWeight: '600', color: '#C17C74' },
   divider: { height: 1, backgroundColor: 'rgba(193,124,116,0.12)', marginHorizontal: 20 },
-  pickerTitle: { fontSize: 13, fontWeight: '700', color: '#2c2c2c', marginBottom: 12 },
+  pickerTitleRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 12 },
+  pickerTitle: { fontSize: 13, fontWeight: '700', color: '#2c2c2c' },
   optionsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   optionChip: { paddingHorizontal: 18, paddingVertical: 9, borderRadius: 12, borderWidth: 1.5, borderColor: 'rgba(193,124,116,0.25)', backgroundColor: 'white' },
   optionChipActive: { backgroundColor: '#C17C74', borderColor: '#C17C74' },
