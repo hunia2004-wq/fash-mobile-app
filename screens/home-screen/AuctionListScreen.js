@@ -175,7 +175,16 @@ export default function AuctionListScreen({ navigation }) {
   }, []);
 
   useFocusEffect(
-    useCallback(() => { fetchAuctions(); }, [fetchAuctions])
+    useCallback(() => {
+      fetchAuctions();
+  
+      // Poll every 15 seconds while screen is focused
+      const interval = setInterval(() => {
+        fetchAuctions();
+      }, 15000);
+  
+      return () => clearInterval(interval); // cleanup when screen loses focus
+    }, [fetchAuctions])
   );
 
   const onRefresh = () => { setRefreshing(true); fetchAuctions(); };

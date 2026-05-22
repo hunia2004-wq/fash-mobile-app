@@ -173,6 +173,14 @@ export default function MarketplaceScreen({ navigation, route }) {
     });
     return unsubscribe;
   }, [navigation, fetchListings]);
+  
+  // ADD THIS: poll every 15 seconds while screen is mounted
+  useEffect(() => {
+    const interval = setInterval(() => {
+      fetchListings();
+    }, 15000);
+    return () => clearInterval(interval);
+  }, [fetchListings]);
 
   return (
     <SafeAreaView style={styles.safe}>
