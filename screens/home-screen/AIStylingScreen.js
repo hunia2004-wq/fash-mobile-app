@@ -2,7 +2,7 @@ import React, { useState, useRef, useCallback } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, TextInput,
   FlatList, KeyboardAvoidingView, Platform, StatusBar,
-  ActivityIndicator, Image,
+  ActivityIndicator,
 } from 'react-native';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -14,6 +14,21 @@ const COLORS = {
   bg: '#F5F5F5', card: '#F2E6E3', accent: '#C17C74',
   accentLight: '#f7edec', text: '#2c2c2c', muted: '#888888',
   white: '#ffffff', border: 'rgba(193,124,116,0.18)',
+};
+
+// ── Markdown bold renderer ─────────────────────────────────────────
+// Converts **text** to bold, leaves rest as plain text
+const MarkdownText = ({ text, style }) => {
+  const parts = text.split(/(\*\*[^*]+\*\*)/g);
+  return (
+    <Text style={style}>
+      {parts.map((part, i) =>
+        part.startsWith('**') && part.endsWith('**')
+          ? <Text key={i} style={{ fontWeight: '700' }}>{part.slice(2, -2)}</Text>
+          : <Text key={i}>{part}</Text>
+      )}
+    </Text>
+  );
 };
 
 const TypingIndicator = () => (
@@ -30,11 +45,7 @@ export default function AIStylingScreen({ navigation, route }) {
   const { t } = useTranslation();
 
   const [messages, setMessages] = useState([
-    {
-      id: '0',
-      role: 'assistant',
-      content: t('ai_greeting'),
-    },
+    { id: '0', role: 'assistant', content: t('ai_greeting') },
   ]);
 
   const SUGGESTIONS = [
@@ -45,18 +56,21 @@ export default function AIStylingScreen({ navigation, route }) {
     t('suggestion_5'),
   ];
 
-  const [input, setInput] = useState(prefillMessage ?? '');
+  const [input,   setInput]   = useState(prefillMessage ?? '');
   const [loading, setLoading] = useState(false);
   const flatListRef = useRef(null);
-
-  const getHistory = () =>
-    messages
-      .filter(m => m.id !== '0')
-      .map(m => ({ role: m.role, content: m.content }));
 
   const sendMessage = useCallback(async (text) => {
     const trimmed = (text ?? input).trim();
     if (!trimmed || loading) return;
+
+    // ── Snapshot history BEFORE state update ──────────────────────
+    // Gemini requires strictly alternating user/model roles.
+    // Computing history after setMessages causes stale closure issues
+    // and can produce consecutive same-role messages that crash Gemini.
+    const currentHistory = messages
+      .filter(m => m.id !== '0')
+      .map(m => ({ role: m.role, content: m.content }));
 
     const userMsg = { id: Date.now().toString(), role: 'user', content: trimmed };
     setMessages(prev => [...prev, userMsg]);
@@ -65,18 +79,26 @@ export default function AIStylingScreen({ navigation, route }) {
 
     try {
       const token = await getToken();
-      const data = await chatWithAIStylist(token, trimmed, getHistory());
-      console.log('AI response:', JSON.stringify(data, null, 2));
+      const data  = await chatWithAIStylist(token, trimmed, currentHistory);
+      const reply = data.reply ?? data.message ?? data.response ?? '';
 
-      const reply = data.reply ?? data.message ?? data.response ?? data;
       setMessages(prev => [
         ...prev,
-        { id: (Date.now() + 1).toString(), role: 'assistant', content: reply },
+        {
+          id:      (Date.now() + 1).toString(),
+          role:    'assistant',
+          content: String(reply),
+        },
       ]);
     } catch (err) {
+      console.log('AI error:', err.message);
       setMessages(prev => [
         ...prev,
-        { id: (Date.now() + 1).toString(), role: 'assistant', content: t('ai_error') },
+        {
+          id:      (Date.now() + 1).toString(),
+          role:    'assistant',
+          content: t('ai_error'),
+        },
       ]);
     } finally {
       setLoading(false);
@@ -94,9 +116,16 @@ export default function AIStylingScreen({ navigation, route }) {
           </View>
         )}
         <View style={[styles.bubble, isUser ? styles.bubbleUser : styles.bubbleAI]}>
-          <Text style={[styles.bubbleText, isUser && styles.bubbleTextUser]}>
-            {item.content}
-          </Text>
+          {isUser ? (
+            <Text style={[styles.bubbleText, styles.bubbleTextUser]}>
+              {item.content}
+            </Text>
+          ) : (
+            <MarkdownText
+              text={item.content}
+              style={styles.bubbleText}
+            />
+          )}
         </View>
       </View>
     );
@@ -108,7 +137,11 @@ export default function AIStylingScreen({ navigation, route }) {
 
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity style={styles.navBtn} onPress={() => navigation.goBack()} activeOpacity={0.8}>
+        <TouchableOpacity
+          style={styles.navBtn}
+          onPress={() => navigation.goBack()}
+          activeOpacity={0.8}
+        >
           <Ionicons name="arrow-back" size={20} color={COLORS.text} />
         </TouchableOpacity>
         <View style={styles.headerCenter}>
@@ -136,11 +169,13 @@ export default function AIStylingScreen({ navigation, route }) {
           renderItem={renderMessage}
           contentContainerStyle={styles.messagesList}
           showsVerticalScrollIndicator={false}
-          onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
+          onContentSizeChange={() =>
+            flatListRef.current?.scrollToEnd({ animated: true })
+          }
           ListFooterComponent={loading ? <TypingIndicator /> : null}
         />
 
-        {/* Suggestion chips */}
+        {/* Suggestion chips — only on first message */}
         {messages.length === 1 && !loading && (
           <View style={styles.suggestionsWrap}>
             <FlatList
@@ -193,30 +228,30 @@ export default function AIStylingScreen({ navigation, route }) {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: COLORS.bg },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 12, backgroundColor: COLORS.white, borderBottomWidth: 1, borderBottomColor: COLORS.border },
-  navBtn: { width: 40, height: 40, borderRadius: 12, backgroundColor: COLORS.card, alignItems: 'center', justifyContent: 'center' },
-  headerCenter: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  headerAvatar: { width: 36, height: 36, borderRadius: 18, backgroundColor: COLORS.accent, alignItems: 'center', justifyContent: 'center' },
-  headerTitle: { fontSize: 15, fontWeight: '700', color: COLORS.text },
-  headerSub: { fontSize: 11, color: COLORS.muted },
-  messagesList: { padding: 16, paddingBottom: 8 },
-  messageRow: { flexDirection: 'row', alignItems: 'flex-end', marginBottom: 12, gap: 8 },
+  safe:           { flex: 1, backgroundColor: COLORS.bg },
+  header:         { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 12, backgroundColor: COLORS.white, borderBottomWidth: 1, borderBottomColor: COLORS.border },
+  navBtn:         { width: 40, height: 40, borderRadius: 12, backgroundColor: COLORS.card, alignItems: 'center', justifyContent: 'center' },
+  headerCenter:   { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  headerAvatar:   { width: 36, height: 36, borderRadius: 18, backgroundColor: COLORS.accent, alignItems: 'center', justifyContent: 'center' },
+  headerTitle:    { fontSize: 15, fontWeight: '700', color: COLORS.text },
+  headerSub:      { fontSize: 11, color: COLORS.muted },
+  messagesList:   { padding: 16, paddingBottom: 8 },
+  messageRow:     { flexDirection: 'row', alignItems: 'flex-end', marginBottom: 12, gap: 8 },
   messageRowUser: { justifyContent: 'flex-end' },
-  aiAvatar: { width: 28, height: 28, borderRadius: 14, backgroundColor: COLORS.accent, alignItems: 'center', justifyContent: 'center', marginBottom: 2 },
-  bubble: { maxWidth: '78%', borderRadius: 18, paddingHorizontal: 14, paddingVertical: 10 },
-  bubbleAI: { backgroundColor: COLORS.white, borderWidth: 1, borderColor: COLORS.border, borderBottomLeftRadius: 4 },
-  bubbleUser: { backgroundColor: COLORS.accent, borderBottomRightRadius: 4 },
-  bubbleText: { fontSize: 14, color: COLORS.text, lineHeight: 20 },
+  aiAvatar:       { width: 28, height: 28, borderRadius: 14, backgroundColor: COLORS.accent, alignItems: 'center', justifyContent: 'center', marginBottom: 2 },
+  bubble:         { maxWidth: '78%', borderRadius: 18, paddingHorizontal: 14, paddingVertical: 10 },
+  bubbleAI:       { backgroundColor: COLORS.white, borderWidth: 1, borderColor: COLORS.border, borderBottomLeftRadius: 4 },
+  bubbleUser:     { backgroundColor: COLORS.accent, borderBottomRightRadius: 4 },
+  bubbleText:     { fontSize: 14, color: COLORS.text, lineHeight: 20 },
   bubbleTextUser: { color: COLORS.white },
-  typingWrap: { flexDirection: 'row', alignItems: 'flex-end', gap: 8, paddingHorizontal: 16, marginBottom: 12 },
-  aiBubble: { backgroundColor: COLORS.white, borderRadius: 18, borderBottomLeftRadius: 4, paddingHorizontal: 14, paddingVertical: 10, borderWidth: 1, borderColor: COLORS.border },
-  typingDots: { fontSize: 18, color: COLORS.accent, letterSpacing: 4 },
-  suggestionsWrap: { paddingVertical: 8 },
+  typingWrap:     { flexDirection: 'row', alignItems: 'flex-end', gap: 8, paddingHorizontal: 16, marginBottom: 12 },
+  aiBubble:       { backgroundColor: COLORS.white, borderRadius: 18, borderBottomLeftRadius: 4, paddingHorizontal: 14, paddingVertical: 10, borderWidth: 1, borderColor: COLORS.border },
+  typingDots:     { fontSize: 18, color: COLORS.accent, letterSpacing: 4 },
+  suggestionsWrap:{ paddingVertical: 8 },
   suggestionsRow: { paddingHorizontal: 16, gap: 8 },
   suggestionChip: { backgroundColor: COLORS.white, borderRadius: 20, paddingHorizontal: 14, paddingVertical: 8, borderWidth: 1.5, borderColor: COLORS.accent },
   suggestionText: { fontSize: 12, fontWeight: '600', color: COLORS.accent },
-  inputBar: { flexDirection: 'row', alignItems: 'flex-end', gap: 10, paddingHorizontal: 16, paddingVertical: 12, paddingBottom: 16, backgroundColor: COLORS.white, borderTopWidth: 1, borderTopColor: COLORS.border },
-  input: { flex: 1, backgroundColor: COLORS.bg, borderRadius: 20, paddingHorizontal: 16, paddingVertical: 10, fontSize: 14, color: COLORS.text, maxHeight: 100, borderWidth: 1, borderColor: COLORS.border },
-  sendBtn: { width: 42, height: 42, borderRadius: 21, backgroundColor: COLORS.accent, alignItems: 'center', justifyContent: 'center' },
+  inputBar:       { flexDirection: 'row', alignItems: 'flex-end', gap: 10, paddingHorizontal: 16, paddingVertical: 12, paddingBottom: 16, backgroundColor: COLORS.white, borderTopWidth: 1, borderTopColor: COLORS.border },
+  input:          { flex: 1, backgroundColor: COLORS.bg, borderRadius: 20, paddingHorizontal: 16, paddingVertical: 10, fontSize: 14, color: COLORS.text, maxHeight: 100, borderWidth: 1, borderColor: COLORS.border },
+  sendBtn:        { width: 42, height: 42, borderRadius: 21, backgroundColor: COLORS.accent, alignItems: 'center', justifyContent: 'center' },
 });

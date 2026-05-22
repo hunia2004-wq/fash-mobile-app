@@ -10,21 +10,21 @@ import { COLORS, CATEGORIES } from './marketplacedata';
 import { createListing } from '../../services/authService';
 import { useAuth } from '../../context/AuthContext';
 
+const BASE_URL = 'https://fash-backend-cp3n.vercel.app/api/v1';
+
 const CONDITIONS = ['Like New', 'Good', 'Fair'];
 
-// ── Category-specific size options ─────────────────────────────────
 const SIZE_OPTIONS = {
-  Shoes: ['35', '36', '37', '38', '39', '40', '41', '42', '43', '44', '45'],
-  Bags: ['One Size'],
-  Perfumes: ['30ml', '50ml', '75ml', '100ml', '150ml', '200ml'],
-  Accessories: ['One Size'],
-  'Newborn Accessories': ['One Size'],
-  default: ['One Size'],
+  Shoes:                ['35', '36', '37', '38', '39', '40', '41', '42', '43', '44', '45'],
+  Bags:                 ['One Size'],
+  Perfumes:             ['30ml', '50ml', '75ml', '100ml', '150ml', '200ml'],
+  Accessories:          ['One Size'],
+  'Newborn Accessories':['One Size'],
+  default:              ['One Size'],
 };
 
 const getSizesForCategory = (cat) => SIZE_OPTIONS[cat] ?? SIZE_OPTIONS.default;
 
-// ── Sub-components ─────────────────────────────────────────────────
 const Field = ({ label, required, children }) => (
   <View style={styles.field}>
     <Text style={styles.fieldLabel}>
@@ -34,10 +34,10 @@ const Field = ({ label, required, children }) => (
   </View>
 );
 
-const TagRow = ({ options, selected, onSelect, multi = false }) => (
+const TagRow = ({ options, selected, onSelect }) => (
   <View style={styles.tagRow}>
     {options.map(opt => {
-      const isActive = multi ? selected.includes(opt) : selected === opt;
+      const isActive = selected === opt;
       return (
         <TouchableOpacity
           key={opt}
@@ -52,51 +52,78 @@ const TagRow = ({ options, selected, onSelect, multi = false }) => (
   </View>
 );
 
-// ── Main screen ────────────────────────────────────────────────────
 export default function AddListingScreen({ navigation }) {
   const { getToken } = useAuth();
 
-  const [title, setTitle] = useState('');
-  const [price, setPrice] = useState('');
+  const [title,       setTitle]       = useState('');
+  const [price,       setPrice]       = useState('');
   const [description, setDescription] = useState('');
-  const [brand, setBrand] = useState('');
-  const [location, setLocation] = useState('');
-  const [category, setCategory] = useState('');
-  const [condition, setCondition] = useState('');
-  const [size, setSize] = useState('');
-  const [images, setImages] = useState([]);
-  const [saving, setSaving] = useState(false);
+  const [brand,       setBrand]       = useState('');
+  const [location,    setLocation]    = useState('');
+  const [category,    setCategory]    = useState('');
+  const [condition,   setCondition]   = useState('');
+  const [size,        setSize]        = useState('');
+  const [images,      setImages]      = useState([]);
+  const [saving,      setSaving]      = useState(false);
 
-  // When category changes, reset size if it's not valid for the new category
+  // ── Image validation state ─────────────────────────────────────
+  const [validatingImage, setValidatingImage] = useState(false);
+  const [imageValidation, setImageValidation] = useState(null); // { valid, message }
+
   const handleCategorySelect = (cat) => {
     setCategory(cat);
     const validSizes = getSizesForCategory(cat);
     if (size && !validSizes.includes(size)) setSize('');
+    // Re-validate existing image against new category
+    if (images.length > 0) validateImageForCategory(images[0], cat);
   };
 
   const availableSizes = category ? getSizesForCategory(category) : SIZE_OPTIONS.default;
+  const autoOneSize    = availableSizes.length === 1 && availableSizes[0] === 'One Size';
+  const effectiveSize  = autoOneSize ? 'One Size' : size;
 
-  const autoOneSize = availableSizes.length === 1 && availableSizes[0] === 'One Size';
+  const isValid = title && price && description && category && condition && effectiveSize
+    && imageValidation?.valid !== false; // only blocks on explicit false
 
+  // ── Validate image via Gemini ──────────────────────────────────
+  const validateImageForCategory = async (imageUri, cat) => {
+    if (!cat) return;
+    try {
+      setValidatingImage(true);
+      setImageValidation(null);
+      const token = await getToken();
 
+      const formData = new FormData();
+      formData.append('image',    { uri: imageUri, type: 'image/jpeg', name: 'validate.jpg' });
+      formData.append('category', cat);
 
-
-  // Auto-select "One Size" when category only has that option
-  const effectiveSize = autoOneSize ? 'One Size' : size;
-
-  const isValid = title && price && description && category && condition && effectiveSize;
+      const response = await fetch(`${BASE_URL}/listings/validate-image`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+        body: formData,
+      });
+      const data = await response.json();
+      setImageValidation(data); // { valid: bool, message: string }
+    } catch {
+      setImageValidation({ valid: true, message: '' }); // fail open
+    } finally {
+      setValidatingImage(false);
+    }
+  };
 
   // ── Image pickers ──────────────────────────────────────────────
   const pickImage = async (fromCamera = false) => {
-    if (images.length >= 5) {
-      Alert.alert('Limit reached', 'You can add up to 5 photos.');
-      return;
-    }
+    if (images.length >= 5) { Alert.alert('Limit reached', 'You can add up to 5 photos.'); return; }
+
     if (fromCamera) {
       const perm = await ImagePicker.requestCameraPermissionsAsync();
       if (!perm.granted) { Alert.alert('Permission required', 'Please allow camera access.'); return; }
       const result = await ImagePicker.launchCameraAsync({ quality: 0.8 });
-      if (!result.canceled) setImages(prev => [...prev, result.assets[0].uri].slice(0, 5));
+      if (!result.canceled) {
+        const uri = result.assets[0].uri;
+        setImages(prev => [...prev, uri].slice(0, 5));
+        if (category) validateImageForCategory(uri, category);
+      }
     } else {
       const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (!perm.granted) { Alert.alert('Permission required', 'Please allow photo library access.'); return; }
@@ -106,17 +133,26 @@ export default function AddListingScreen({ navigation }) {
         selectionLimit: 5 - images.length,
       });
       if (!result.canceled) {
-        setImages(prev => [...prev, ...result.assets.map(a => a.uri)].slice(0, 5));
+        const uris = result.assets.map(a => a.uri);
+        setImages(prev => [...prev, ...uris].slice(0, 5));
+        if (category && uris.length > 0) validateImageForCategory(uris[0], category);
       }
     }
   };
 
-  const removeImage = (index) => setImages(prev => prev.filter((_, i) => i !== index));
+  const removeImage = (index) => {
+    setImages(prev => prev.filter((_, i) => i !== index));
+    if (index === 0) setImageValidation(null);
+  };
 
-  // ── Submit — sends FormData so images are included ─────────────
+  // ── Submit ─────────────────────────────────────────────────────
   const handleSubmit = async () => {
     if (!isValid) {
       Alert.alert('Missing info', 'Please fill in all required fields.');
+      return;
+    }
+    if (imageValidation?.valid === false) {
+      Alert.alert('Wrong category', imageValidation.message);
       return;
     }
 
@@ -125,22 +161,17 @@ export default function AddListingScreen({ navigation }) {
       const token = await getToken();
 
       const formData = new FormData();
-      formData.append('title', title.trim());
-      formData.append('price', price);
+      formData.append('title',       title.trim());
+      formData.append('price',       price);
       formData.append('description', description.trim());
-      formData.append('category', category);
-      formData.append('condition', condition);
-      formData.append('size', effectiveSize);
-      if (brand) formData.append('brand', brand.trim());
+      formData.append('category',    category);
+      formData.append('condition',   condition);
+      formData.append('size',        effectiveSize);
+      if (brand)    formData.append('brand',    brand.trim());
       if (location) formData.append('location', location.trim());
 
-      // Attach each image as a file
       images.forEach((uri, i) => {
-        formData.append('images', {
-          uri,
-          type: 'image/jpeg',
-          name: `photo_${i}.jpg`,
-        });
+        formData.append('images', { uri, type: 'image/jpeg', name: `photo_${i}.jpg` });
       });
 
       await createListing(token, formData);
@@ -207,6 +238,26 @@ export default function AddListingScreen({ navigation }) {
             </View>
           )}
 
+          {/* Image validation feedback */}
+          {validatingImage && (
+            <View style={styles.validationRow}>
+              <ActivityIndicator size="small" color={COLORS.accent} />
+              <Text style={styles.validatingText}>Checking image matches category...</Text>
+            </View>
+          )}
+          {imageValidation && !validatingImage && (
+            <View style={[styles.validationRow, { backgroundColor: imageValidation.valid ? '#e8f5e9' : '#fce4ec' }]}>
+              <Ionicons
+                name={imageValidation.valid ? 'checkmark-circle' : 'close-circle'}
+                size={16}
+                color={imageValidation.valid ? '#388e3c' : '#c2185b'}
+              />
+              <Text style={[styles.validationText, { color: imageValidation.valid ? '#388e3c' : '#c2185b' }]}>
+                {imageValidation.message}
+              </Text>
+            </View>
+          )}
+
           <View style={styles.photoRow}>
             <TouchableOpacity style={styles.photoRowBtn} onPress={() => pickImage(true)} activeOpacity={0.8}>
               <Ionicons name="camera-outline" size={15} color={COLORS.accent} style={{ marginRight: 5 }} />
@@ -221,125 +272,63 @@ export default function AddListingScreen({ navigation }) {
 
         <View style={styles.form}>
 
-          {/* Title */}
           <Field label="Title" required>
-            <TextInput
-              style={styles.input}
-              placeholder="e.g. Floral Wrap Dress"
-              placeholderTextColor={COLORS.muted}
-              value={title}
-              onChangeText={setTitle}
-            />
+            <TextInput style={styles.input} placeholder="e.g. Nike Air Max Size 42" placeholderTextColor={COLORS.muted} value={title} onChangeText={setTitle} />
           </Field>
 
-          {/* Price */}
           <Field label="Price (EGP)" required>
             <View style={styles.priceInput}>
               <Text style={styles.currencySign}>EGP</Text>
-              <TextInput
-                style={[styles.input, { flex: 1, borderWidth: 0, paddingLeft: 4 }]}
-                placeholder="0.00"
-                placeholderTextColor={COLORS.muted}
-                keyboardType="decimal-pad"
-                value={price}
-                onChangeText={setPrice}
-              />
+              <TextInput style={[styles.input, { flex: 1, borderWidth: 0, paddingLeft: 4 }]} placeholder="0.00" placeholderTextColor={COLORS.muted} keyboardType="decimal-pad" value={price} onChangeText={setPrice} />
             </View>
           </Field>
 
-          {/* Brand */}
           <Field label="Brand">
-            <TextInput
-              style={styles.input}
-              placeholder="e.g. Zara, H&M, Mango"
-              placeholderTextColor={COLORS.muted}
-              value={brand}
-              onChangeText={setBrand}
-            />
+            <TextInput style={styles.input} placeholder="e.g. Nike, Zara, H&M" placeholderTextColor={COLORS.muted} value={brand} onChangeText={setBrand} />
           </Field>
 
-          {/* Category — pick this first so size options update */}
           <Field label="Category" required>
-            <TagRow
-              options={CATEGORIES.filter(c => c !== 'All')}
-              selected={category}
-              onSelect={handleCategorySelect}
-            />
+            <TagRow options={CATEGORIES.filter(c => c !== 'All')} selected={category} onSelect={handleCategorySelect} />
           </Field>
 
-          {/* Condition */}
           <Field label="Condition" required>
             <TagRow options={CONDITIONS} selected={condition} onSelect={setCondition} />
           </Field>
 
-          {/* Size — changes based on selected category */}
           <Field label="Size" required>
             {autoOneSize ? (
-              // No picker needed — single option auto-selected
               <View style={styles.autoSizeNote}>
                 <Ionicons name="checkmark-circle" size={16} color={COLORS.accent} />
                 <Text style={styles.autoSizeText}>One Size — no selection needed</Text>
               </View>
             ) : (
               <>
-                {category ? (
-                  <Text style={styles.sizeHint}>
-                    {category === 'Shoes'
-                      ? 'EU shoe sizes'
-                      : category === 'Perfumes'
-                        ? 'Bottle size'
-                        : 'One size fits all'}
-                  </Text>
-                ) : (
-                  <Text style={styles.sizeHint}>Select a category first to see size options</Text>
-                )}
-                <TagRow
-                  options={availableSizes}
-                  selected={size}
-                  onSelect={setSize}
-                />
+                {category
+                  ? <Text style={styles.sizeHint}>{category === 'Shoes' ? 'EU shoe sizes' : category === 'Perfumes' ? 'Bottle size' : 'One size fits all'}</Text>
+                  : <Text style={styles.sizeHint}>Select a category first to see size options</Text>
+                }
+                <TagRow options={availableSizes} selected={size} onSelect={setSize} />
               </>
             )}
           </Field>
 
-          {/* Description */}
           <Field label="Description" required>
-            <TextInput
-              style={[styles.input, styles.textArea]}
-              placeholder="Describe your item — fit, fabric, any flaws..."
-              placeholderTextColor={COLORS.muted}
-              value={description}
-              onChangeText={setDescription}
-              multiline
-              numberOfLines={4}
-              textAlignVertical="top"
-            />
+            <TextInput style={[styles.input, styles.textArea]} placeholder="Describe your item — fit, fabric, any flaws..." placeholderTextColor={COLORS.muted} value={description} onChangeText={setDescription} multiline numberOfLines={4} textAlignVertical="top" />
           </Field>
 
-          {/* Location */}
           <Field label="Location">
             <View style={styles.locationInput}>
               <Ionicons name="location-outline" size={16} color={COLORS.accent} style={{ marginRight: 8 }} />
-              <TextInput
-                style={[styles.input, { flex: 1, borderWidth: 0, paddingLeft: 0 }]}
-                placeholder="e.g. Cairo, Egypt"
-                placeholderTextColor={COLORS.muted}
-                value={location}
-                onChangeText={setLocation}
-              />
+              <TextInput style={[styles.input, { flex: 1, borderWidth: 0, paddingLeft: 0 }]} placeholder="e.g. Cairo, Egypt" placeholderTextColor={COLORS.muted} value={location} onChangeText={setLocation} />
             </View>
           </Field>
 
-          {/* Image count reminder */}
           {images.length === 0 && (
             <View style={styles.noPhotoNote}>
               <Ionicons name="information-circle-outline" size={16} color={COLORS.muted} />
-              <Text style={styles.noPhotoText}>
-                No photos added — listings with photos sell much faster
-              </Text>
+              <Text style={styles.noPhotoText}>No photos added — listings with photos sell much faster</Text>
             </View>
           )}
-
         </View>
 
         <View style={{ height: 120 }} />
@@ -351,13 +340,13 @@ export default function AddListingScreen({ navigation }) {
           <Text style={styles.ctaInfoText}>
             {images.length > 0 ? `${images.length} photo${images.length > 1 ? 's' : ''} added` : 'No photos'}
             {' · '}
-            {isValid ? 'Ready to post' : 'Fill required fields'}
+            {validatingImage ? 'Validating image...' : isValid ? 'Ready to post' : 'Fill required fields'}
           </Text>
         </View>
         <TouchableOpacity
-          style={[styles.submitBtn, (!isValid || saving) && styles.submitBtnDisabled]}
+          style={[styles.submitBtn, (!isValid || saving || validatingImage) && styles.submitBtnDisabled]}
           onPress={handleSubmit}
-          disabled={!isValid || saving}
+          disabled={!isValid || saving || validatingImage}
           activeOpacity={0.85}
         >
           {saving ? (
@@ -373,49 +362,54 @@ export default function AddListingScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: COLORS.bg },
-  topNav: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 12, marginTop: 50 },
-  navBtn: { width: 40, height: 40, borderRadius: 12, backgroundColor: COLORS.card, alignItems: 'center', justifyContent: 'center' },
-  navTitle: { fontSize: 16, fontWeight: '700', color: COLORS.text },
-  scrollContent: { paddingBottom: 20 },
-  photoSection: { paddingHorizontal: 20, marginBottom: 12 },
-  photoUpload: { backgroundColor: COLORS.card, borderRadius: 16, borderWidth: 1.5, borderColor: COLORS.border, borderStyle: 'dashed', alignItems: 'center', paddingVertical: 32, gap: 6, marginBottom: 10 },
-  photoIcon: { width: 60, height: 60, borderRadius: 30, backgroundColor: COLORS.iconBg, alignItems: 'center', justifyContent: 'center', marginBottom: 4 },
-  photoTitle: { fontSize: 15, fontWeight: '700', color: COLORS.text },
-  photoSub: { fontSize: 12, color: COLORS.muted },
-  photoRow: { flexDirection: 'row', gap: 10, marginTop: 4 },
-  photoRowBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', borderWidth: 1.5, borderColor: COLORS.accent, borderRadius: 14, paddingVertical: 10 },
-  photoRowBtnText: { color: COLORS.accent, fontSize: 13, fontWeight: '600' },
-  imagePreviewRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 10 },
-  imageThumb: { width: 80, height: 80, borderRadius: 12, overflow: 'visible', position: 'relative' },
-  thumbImg: { width: 80, height: 80, borderRadius: 12 },
-  coverBadge: { position: 'absolute', bottom: 4, left: 4, backgroundColor: COLORS.accent, borderRadius: 6, paddingHorizontal: 5, paddingVertical: 2 },
+  safe:           { flex: 1, backgroundColor: COLORS.bg },
+  topNav:         { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 12, marginTop: 50 },
+  navBtn:         { width: 40, height: 40, borderRadius: 12, backgroundColor: COLORS.card, alignItems: 'center', justifyContent: 'center' },
+  navTitle:       { fontSize: 16, fontWeight: '700', color: COLORS.text },
+  scrollContent:  { paddingBottom: 20 },
+  photoSection:   { paddingHorizontal: 20, marginBottom: 12 },
+  photoUpload:    { backgroundColor: COLORS.card, borderRadius: 16, borderWidth: 1.5, borderColor: COLORS.border, borderStyle: 'dashed', alignItems: 'center', paddingVertical: 32, gap: 6, marginBottom: 10 },
+  photoIcon:      { width: 60, height: 60, borderRadius: 30, backgroundColor: COLORS.iconBg, alignItems: 'center', justifyContent: 'center', marginBottom: 4 },
+  photoTitle:     { fontSize: 15, fontWeight: '700', color: COLORS.text },
+  photoSub:       { fontSize: 12, color: COLORS.muted },
+  photoRow:       { flexDirection: 'row', gap: 10, marginTop: 8 },
+  photoRowBtn:    { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', borderWidth: 1.5, borderColor: COLORS.accent, borderRadius: 14, paddingVertical: 10 },
+  photoRowBtnText:{ color: COLORS.accent, fontSize: 13, fontWeight: '600' },
+  imagePreviewRow:{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 10 },
+  imageThumb:     { width: 80, height: 80, borderRadius: 12, overflow: 'visible', position: 'relative' },
+  thumbImg:       { width: 80, height: 80, borderRadius: 12 },
+  coverBadge:     { position: 'absolute', bottom: 4, left: 4, backgroundColor: COLORS.accent, borderRadius: 6, paddingHorizontal: 5, paddingVertical: 2 },
   coverBadgeText: { color: COLORS.white, fontSize: 9, fontWeight: '700' },
-  removeImgBtn: { position: 'absolute', top: -6, right: -6, backgroundColor: COLORS.white, borderRadius: 10 },
-  addMoreBtn: { width: 80, height: 80, borderRadius: 12, borderWidth: 1.5, borderColor: COLORS.accent, borderStyle: 'dashed', backgroundColor: COLORS.card, alignItems: 'center', justifyContent: 'center' },
-  form: { paddingHorizontal: 20 },
-  field: { marginBottom: 22 },
-  fieldLabel: { fontSize: 11, fontWeight: '700', color: COLORS.accent, marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.9 },
-  required: { color: COLORS.accent },
-  input: { backgroundColor: COLORS.white, borderWidth: 1, borderColor: '#e0c8c5', borderRadius: 12, paddingHorizontal: 14, paddingVertical: 11, fontSize: 14, color: '#2c2c2c' },
-  textArea: { height: 100, paddingTop: 13 },
-  priceInput: { flexDirection: 'row', alignItems: 'center', backgroundColor: COLORS.white, borderWidth: 1, borderColor: '#e0c8c5', borderRadius: 12, paddingHorizontal: 14 },
-  currencySign: { fontSize: 16, fontWeight: '700', color: COLORS.accent },
-  locationInput: { flexDirection: 'row', alignItems: 'center', backgroundColor: COLORS.white, borderWidth: 1, borderColor: '#e0c8c5', borderRadius: 12, paddingHorizontal: 14 },
-  tagRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  tag: { paddingHorizontal: 14, paddingVertical: 7, borderRadius: 14, backgroundColor: COLORS.card, borderWidth: 1, borderColor: COLORS.border },
-  tagActive: { backgroundColor: COLORS.accent, borderColor: COLORS.accent },
-  tagText: { fontSize: 12, color: '#2c2c2c', fontWeight: '500' },
-  tagTextActive: { color: COLORS.white },
-  sizeHint: { fontSize: 11, color: COLORS.muted, marginBottom: 8, fontStyle: 'italic' },
-  autoSizeNote: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: COLORS.card, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 12 },
-  autoSizeText: { fontSize: 13, color: COLORS.accent, fontWeight: '600' },
-  noPhotoNote: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: '#fff8e1', borderRadius: 12, padding: 12, marginBottom: 8 },
-  noPhotoText: { fontSize: 12, color: '#7a5c00', flex: 1 },
-  ctaBar: { position: 'absolute', bottom: 0, left: 0, right: 0, paddingHorizontal: 20, paddingVertical: 12, paddingBottom: 32, backgroundColor: COLORS.white, borderTopWidth: 1, borderTopColor: COLORS.border, gap: 8 },
-  ctaInfo: { alignItems: 'center' },
-  ctaInfoText: { fontSize: 12, color: COLORS.muted },
-  submitBtn: { flexDirection: 'row', backgroundColor: COLORS.accent, borderRadius: 14, paddingVertical: 15, alignItems: 'center', justifyContent: 'center' },
+  removeImgBtn:   { position: 'absolute', top: -6, right: -6, backgroundColor: COLORS.white, borderRadius: 10 },
+  addMoreBtn:     { width: 80, height: 80, borderRadius: 12, borderWidth: 1.5, borderColor: COLORS.accent, borderStyle: 'dashed', backgroundColor: COLORS.card, alignItems: 'center', justifyContent: 'center' },
+
+  validationRow:   { flexDirection: 'row', alignItems: 'center', gap: 8, borderRadius: 12, padding: 10, marginBottom: 8 },
+  validatingText:  { fontSize: 12, color: COLORS.muted },
+  validationText:  { flex: 1, fontSize: 12, fontWeight: '600' },
+
+  form:           { paddingHorizontal: 20 },
+  field:          { marginBottom: 22 },
+  fieldLabel:     { fontSize: 11, fontWeight: '700', color: COLORS.accent, marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.9 },
+  required:       { color: COLORS.accent },
+  input:          { backgroundColor: COLORS.white, borderWidth: 1, borderColor: '#e0c8c5', borderRadius: 12, paddingHorizontal: 14, paddingVertical: 11, fontSize: 14, color: '#2c2c2c' },
+  textArea:       { height: 100, paddingTop: 13 },
+  priceInput:     { flexDirection: 'row', alignItems: 'center', backgroundColor: COLORS.white, borderWidth: 1, borderColor: '#e0c8c5', borderRadius: 12, paddingHorizontal: 14 },
+  currencySign:   { fontSize: 16, fontWeight: '700', color: COLORS.accent },
+  locationInput:  { flexDirection: 'row', alignItems: 'center', backgroundColor: COLORS.white, borderWidth: 1, borderColor: '#e0c8c5', borderRadius: 12, paddingHorizontal: 14 },
+  tagRow:         { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  tag:            { paddingHorizontal: 14, paddingVertical: 7, borderRadius: 14, backgroundColor: COLORS.card, borderWidth: 1, borderColor: COLORS.border },
+  tagActive:      { backgroundColor: COLORS.accent, borderColor: COLORS.accent },
+  tagText:        { fontSize: 12, color: '#2c2c2c', fontWeight: '500' },
+  tagTextActive:  { color: COLORS.white },
+  sizeHint:       { fontSize: 11, color: COLORS.muted, marginBottom: 8, fontStyle: 'italic' },
+  autoSizeNote:   { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: COLORS.card, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 12 },
+  autoSizeText:   { fontSize: 13, color: COLORS.accent, fontWeight: '600' },
+  noPhotoNote:    { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: '#fff8e1', borderRadius: 12, padding: 12, marginBottom: 8 },
+  noPhotoText:    { fontSize: 12, color: '#7a5c00', flex: 1 },
+  ctaBar:         { position: 'absolute', bottom: 0, left: 0, right: 0, paddingHorizontal: 20, paddingVertical: 12, paddingBottom: 32, backgroundColor: COLORS.white, borderTopWidth: 1, borderTopColor: COLORS.border, gap: 8 },
+  ctaInfo:        { alignItems: 'center' },
+  ctaInfoText:    { fontSize: 12, color: COLORS.muted },
+  submitBtn:      { flexDirection: 'row', backgroundColor: COLORS.accent, borderRadius: 14, paddingVertical: 15, alignItems: 'center', justifyContent: 'center' },
   submitBtnDisabled: { opacity: 0.45 },
-  submitBtnText: { color: COLORS.white, fontSize: 15, fontWeight: '700' },
+  submitBtnText:  { color: COLORS.white, fontSize: 15, fontWeight: '700' },
 });

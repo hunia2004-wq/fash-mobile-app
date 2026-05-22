@@ -5,7 +5,6 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 // Fire-and-forget on app start to pre-warm Vercel serverless functions
 export async function warmupServer() {
   const endpoints = ['/listings', '/saved'];
-
   await Promise.allSettled(
     endpoints.map(async (endpoint) => {
       try {
@@ -20,15 +19,17 @@ export async function warmupServer() {
   );
 }
 
-// CORE REQUEST WRAPPER
-// attempt 0 gets a longer timeout to absorb cold-start latency (~10–20 s on Vercel)
+// ── CORE REQUEST WRAPPER ───────────────────────────────────────────
+// NOTE: Do NOT use request() for FormData endpoints.
+// FormData requires fetch to auto-set multipart/form-data + boundary.
+// Use uploadFormData() instead for: createListing, createWardrobeItem, createAuction, uploadAvatar.
 
 async function request(endpoint, options = {}, retries = 2, attempt = 0) {
   const { headers: customHeaders, body, ...restOptions } = options;
 
-  const timeoutMs = attempt === 0 ? 60000 : 30000; // 60s first attempt, 30s retries
+  const timeoutMs = attempt === 0 ? 60000 : 30000;
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+  const timeoutId  = setTimeout(() => controller.abort(), timeoutMs);
 
   try {
     const response = await fetch(`${BASE_URL}${endpoint}`, {
@@ -76,7 +77,33 @@ async function request(endpoint, options = {}, retries = 2, attempt = 0) {
   }
 }
 
-// AUTHENTICATION
+// ── Shared raw-fetch helper for ALL FormData POSTs ────────────────
+// Bypasses request() so fetch can auto-set multipart/form-data + boundary.
+async function uploadFormData(endpoint, token, formData) {
+  const response = await fetch(`${BASE_URL}${endpoint}`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      // NO Content-Type — fetch sets multipart/form-data + boundary automatically
+    },
+    body: formData,
+  });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(
+      data?.error?.message ||
+      data?.message ||
+      `Request failed: ${response.status}`
+    );
+  }
+
+  return data.data || data;
+}
+
+
+// ── AUTHENTICATION ─────────────────────────────────────────────────
 
 export async function signup({ firstName, lastName, email, password, fullname }) {
   return request("/auth/signup", {
@@ -116,19 +143,16 @@ export async function verifyResetOtp({ email, otp, newPassword }) {
 export async function logout(token) {
   return request("/auth/logout", {
     method: "POST",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
+    headers: { Authorization: `Bearer ${token}` },
   });
 }
 
 
-// PROFILE
+// ── PROFILE ────────────────────────────────────────────────────────
+
 export async function getProfile(token) {
   return request("/auth/profile", {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
+    headers: { Authorization: `Bearer ${token}` },
   });
 }
 
@@ -140,43 +164,31 @@ export async function updateProfile(token, payload) {
   });
 }
 
-// Avatar upload (FormData)
+// Avatar upload — raw fetch, NOT request()
 export async function uploadAvatar(token, imageUri) {
   const formData = new FormData();
-
-  formData.append("avatar", {
-    uri: imageUri,
-    type: "image/jpeg",
-    name: "avatar.jpg",
-  });
+  formData.append("avatar", { uri: imageUri, type: "image/jpeg", name: "avatar.jpg" });
 
   const response = await fetch(`${BASE_URL}/user/profile/avatar`, {
     method: "PUT",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
+    headers: { Authorization: `Bearer ${token}` },
     body: formData,
   });
 
   const data = await response.json();
-
   if (!response.ok) {
-    throw new Error(
-      data?.error?.message || data?.message || "Avatar upload failed"
-    );
+    throw new Error(data?.error?.message || data?.message || "Avatar upload failed");
   }
-
   return data;
 }
 
-// EMAIL (OTP FLOW)
+
+// ── EMAIL (OTP FLOW) ───────────────────────────────────────────────
+
 export async function requestEmailChange(token, newEmail) {
-  console.log(token);
   return request("/user/change-email/request", {
     method: "POST",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
+    headers: { Authorization: `Bearer ${token}` },
     body: JSON.stringify({ newEmail }),
   });
 }
@@ -184,87 +196,72 @@ export async function requestEmailChange(token, newEmail) {
 export async function verifyEmailChange(token, otp) {
   return request("/user/change-email/verify", {
     method: "POST",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
+    headers: { Authorization: `Bearer ${token}` },
     body: JSON.stringify({ otp }),
   });
 }
 
 
-// PASSWORD
+// ── PASSWORD ───────────────────────────────────────────────────────
+
 export async function changePassword(token, { oldPassword, newPassword }) {
   return request("/user/change-password", {
     method: "PUT",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
+    headers: { Authorization: `Bearer ${token}` },
     body: JSON.stringify({ oldPassword, newPassword }),
   });
 }
 
 
+// ── PRIVACY ────────────────────────────────────────────────────────
 
-// PRIVACY
 export async function updatePrivacy(token, privacySettings) {
   return request("/user/settings/privacy", {
     method: "PUT",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
+    headers: { Authorization: `Bearer ${token}` },
     body: JSON.stringify(privacySettings),
   });
 }
 
 
-// NOTIFICATIONS
+// ── NOTIFICATIONS ──────────────────────────────────────────────────
+
 export async function updateNotifications(token, notificationSettings) {
   return request("/user/settings/notifications", {
     method: "PUT",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
+    headers: { Authorization: `Bearer ${token}` },
     body: JSON.stringify(notificationSettings),
   });
 }
 
 export async function getSettings(token) {
   return request("/user/settings", {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
+    headers: { Authorization: `Bearer ${token}` },
   });
 }
 
 
-// LANGUAGE
+// ── LANGUAGE ───────────────────────────────────────────────────────
+
 export async function updateLanguage(token, languageSettings) {
   return request("/user/settings/language", {
     method: "PUT",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
+    headers: { Authorization: `Bearer ${token}` },
     body: JSON.stringify(languageSettings),
   });
 }
 
 
-// CARDS
+// ── CARDS ──────────────────────────────────────────────────────────
+
 export const getCards = async (token) => {
-  return request('/cards', {
-    method: 'GET',
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
+  return request('/cards', { method: 'GET', headers: { Authorization: `Bearer ${token}` } });
 };
 
 export const addCard = async (token, payload) => {
   return request('/cards', {
     method: 'POST',
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
+    headers: { Authorization: `Bearer ${token}` },
     body: JSON.stringify(payload),
   });
 };
@@ -272,9 +269,7 @@ export const addCard = async (token, payload) => {
 export const updateCard = async (token, id, payload) => {
   return request(`/cards/${id}`, {
     method: 'PUT',
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
+    headers: { Authorization: `Bearer ${token}` },
     body: JSON.stringify(payload),
   });
 };
@@ -282,30 +277,22 @@ export const updateCard = async (token, id, payload) => {
 export const setDefaultCard = async (token, id) => {
   return request(`/cards/${id}/default`, {
     method: 'PUT',
-    headers: {
-      Authorization: `Bearer ${token}`,
-      'Content-Type': 'application/json',
-    },
+    headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
   });
 };
 
 export const deleteCard = async (token, id) => {
   return request(`/cards/${id}`, {
     method: 'DELETE',
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
+    headers: { Authorization: `Bearer ${token}` },
   });
 };
 
 
-// ORDERS
+// ── ORDERS ─────────────────────────────────────────────────────────
+
 export async function getOrders(token) {
-  return request("/orders", {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
+  return request("/orders", { headers: { Authorization: `Bearer ${token}` } });
 }
 
 export async function cancelOrder(token, orderId) {
@@ -316,49 +303,37 @@ export async function cancelOrder(token, orderId) {
 }
 
 
-// FAVORITES
+// ── FAVORITES ──────────────────────────────────────────────────────
+
 export async function getFavorites(token) {
-  return request("/user/favorites", {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
+  return request("/user/favorites", { headers: { Authorization: `Bearer ${token}` } });
 }
 
 export async function addFavorite(token, itemId) {
   return request(`/user/favorites/${itemId}`, {
     method: "POST",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
+    headers: { Authorization: `Bearer ${token}` },
   });
 }
 
 export async function removeFavorite(token, itemId) {
   return request(`/user/favorites/${itemId}`, {
     method: "DELETE",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
+    headers: { Authorization: `Bearer ${token}` },
   });
 }
 
 
-// ADDRESSES
+// ── ADDRESSES ──────────────────────────────────────────────────────
+
 export async function getAddresses(token) {
-  return request("/addresses", {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
+  return request("/addresses", { headers: { Authorization: `Bearer ${token}` } });
 }
 
 export async function addAddress(token, addressData) {
   return request("/addresses", {
     method: "POST",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
+    headers: { Authorization: `Bearer ${token}` },
     body: JSON.stringify(addressData),
   });
 }
@@ -366,9 +341,7 @@ export async function addAddress(token, addressData) {
 export async function updateAddress(token, id, addressData) {
   return request(`/addresses/${id}`, {
     method: "PUT",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
+    headers: { Authorization: `Bearer ${token}` },
     body: JSON.stringify(addressData),
   });
 }
@@ -376,88 +349,58 @@ export async function updateAddress(token, id, addressData) {
 export const setDefaultAddress = async (token, id) => {
   return request(`/addresses/${id}/default`, {
     method: "PUT",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
+    headers: { Authorization: `Bearer ${token}` },
   });
 };
 
 export async function deleteAddress(token, id) {
   return request(`/addresses/${id}`, {
     method: "DELETE",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
+    headers: { Authorization: `Bearer ${token}` },
   });
 }
 
 
-//SECURITY
+// ── SECURITY ───────────────────────────────────────────────────────
+
 export const getSecurity = (token) => {
-  return request('/user/security', {
-    method: 'GET',
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
+  return request('/user/security', { method: 'GET', headers: { Authorization: `Bearer ${token}` } });
 };
 
-// 2FA
 export const toggle2FA = (token, data) => {
   return request('/user/security/2fa', {
     method: 'PUT',
-    headers: {
-      Authorization: `Bearer ${token}`,
-      'Content-Type': 'application/json',
-    },
+    headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
   });
 };
 
 export const get2FA = (token) => {
-  return request('/user/security/2fa', {
-    method: 'GET',
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
+  return request('/user/security/2fa', { method: 'GET', headers: { Authorization: `Bearer ${token}` } });
 };
 
-// LOGIN DEVICES
 export const getLoginDevices = (token) => {
-  return request('/user/security/devices', {
-    method: 'GET',
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
+  return request('/user/security/devices', { method: 'GET', headers: { Authorization: `Bearer ${token}` } });
 };
 
 export const removeDevice = (token, id) => {
   return request(`/user/security/devices/${id}`, {
     method: 'DELETE',
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
+    headers: { Authorization: `Bearer ${token}` },
   });
 };
 
 export const logoutAllDevices = (token) => {
   return request('/user/security/devices', {
     method: 'DELETE',
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
+    headers: { Authorization: `Bearer ${token}` },
   });
 };
 
-// CONNECTED ACCOUNTS
 export const getConnectedAccount = (token, data) => {
   return request('/connected-accounts', {
     method: 'GET',
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
+    headers: { Authorization: `Bearer ${token}` },
     body: JSON.stringify(data),
   });
 };
@@ -465,64 +408,47 @@ export const getConnectedAccount = (token, data) => {
 export const toggleConnectedAccount = (token, data) => {
   return request('/connected-accounts', {
     method: 'PUT',
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
+    headers: { Authorization: `Bearer ${token}` },
   });
 };
 
 
-//CONTACT SUPPORT
+// ── CONTACT SUPPORT ────────────────────────────────────────────────
+
 export const contactSupport = async (token, { subject, orderNumber, message, image }) => {
   const formData = new FormData();
-
-  formData.append("subject", subject);
+  formData.append("subject",     subject);
   formData.append("orderNumber", orderNumber || "");
-  formData.append("message", message);
-
+  formData.append("message",     message);
   if (image) {
-    formData.append("attachment", {
-      uri: image,
-      type: "image/jpeg",
-      name: "support.jpg",
-    });
+    formData.append("attachment", { uri: image, type: "image/jpeg", name: "support.jpg" });
   }
 
   const data = await request("/support/contact", {
     method: "POST",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
+    headers: { Authorization: `Bearer ${token}` },
     body: formData,
   });
 
-  return {
-    ticketId: data.ticketId,
-    status: data.status,
-    createdAt: data.createdAt,
-  };
+  return { ticketId: data.ticketId, status: data.status, createdAt: data.createdAt };
 };
 
-//FAQ
+
+// ── FAQ ────────────────────────────────────────────────────────────
+
 export const getFaqs = (token) => {
-  return request("/faqs", {
-    method: "GET",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
+  return request("/faqs", { method: "GET", headers: { Authorization: `Bearer ${token}` } });
 };
 
-// MARKETPLACE LISTINGS 
+
+// ── MARKETPLACE LISTINGS ───────────────────────────────────────────
+
 export async function getAllListings(query = {}) {
   const params = new URLSearchParams();
   if (query.category && query.category !== 'All') params.append('category', query.category);
   if (query.search) params.append('search', query.search);
-
   const queryString = params.toString();
-
   const res = await request(`/listings${queryString ? `?${queryString}` : ''}`);
-
   return res.listings;
 }
 
@@ -530,6 +456,7 @@ export async function getListingById(id) {
   return request(`/listings/${id}`);
 }
 
+// FormData upload — raw fetch via uploadFormData, NOT request()
 export async function createListing(token, formData) {
   return uploadFormData('/listings', token, formData);
 }
@@ -549,7 +476,9 @@ export async function deleteListing(token, id) {
   });
 }
 
-// WARDROBE
+
+// ── WARDROBE ───────────────────────────────────────────────────────
+
 export async function getWardrobeItems(token, category, search = '') {
   const params = new URLSearchParams();
   if (category && category !== 'All') params.append('category', category);
@@ -561,9 +490,7 @@ export async function getWardrobeItems(token, category, search = '') {
 }
 
 export async function getWardrobeStats(token) {
-  return request('/wardrobe/stats', {
-    headers: { Authorization: `Bearer ${token}` },
-  });
+  return request('/wardrobe/stats', { headers: { Authorization: `Bearer ${token}` } });
 }
 
 export async function toggleWardrobeFavorite(token, id) {
@@ -573,12 +500,9 @@ export async function toggleWardrobeFavorite(token, id) {
   });
 }
 
+// FormData upload — raw fetch via uploadFormData, NOT request()
 export async function createWardrobeItem(token, formData) {
-  return request('/wardrobe', {
-    method: 'POST',
-    headers: { Authorization: `Bearer ${token}` },
-    body: formData, // FormData — request() already skips Content-Type for FormData
-  });
+  return uploadFormData('/wardrobe', token, formData);
 }
 
 export async function deleteWardrobeItem(token, id) {
@@ -588,13 +512,15 @@ export async function deleteWardrobeItem(token, id) {
   });
 }
 
-// AUCTION
+
+// ── AUCTION ────────────────────────────────────────────────────────
+
 export async function getAllAuctions(query = {}) {
   const params = new URLSearchParams();
   if (query.category && query.category !== 'All') params.append('category', query.category);
   if (query.endingSoon) params.append('endingSoon', 'true');
   const queryString = params.toString();
-  return request(`/auctions${queryString ? `?${queryString}` : ''}`)
+  return request(`/auctions${queryString ? `?${queryString}` : ''}`);
 }
 
 export async function getAuctionById(id) {
@@ -609,12 +535,17 @@ export async function placeBid(token, auctionId, amount) {
   });
 }
 
-// SAVED ITEMS
+// FormData upload — raw fetch via uploadFormData, NOT request()
+export async function createAuction(token, formData) {
+  return uploadFormData('/auctions', token, formData);
+}
+
+
+// ── SAVED ITEMS ────────────────────────────────────────────────────
+
 export async function getSaved(token, itemType) {
   const query = itemType && itemType !== 'all' ? `?itemType=${itemType}` : '';
-  return request(`/saved${query}`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
+  return request(`/saved${query}`, { headers: { Authorization: `Bearer ${token}` } });
 }
 
 export async function saveNewItem(token, itemId, itemType) {
@@ -633,17 +564,17 @@ export async function removeSaved(token, itemId) {
 }
 
 export async function checkIsSaved(token, itemId) {
-  return request(`/saved/${itemId}`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
+  return request(`/saved/${itemId}`, { headers: { Authorization: `Bearer ${token}` } });
 }
 
-// FASH COLLECTION
+
+// ── FASH COLLECTION ────────────────────────────────────────────────
+
 export async function getCollectionItems(query = {}) {
   const params = new URLSearchParams();
   if (query.category && query.category !== 'All') params.append('category', query.category);
   if (query.search) params.append('search', query.search);
-  if (query.brand) params.append('brand', query.brand);
+  if (query.brand)  params.append('brand',  query.brand);
   const queryString = params.toString();
   return request(`/collection${queryString ? `?${queryString}` : ''}`);
 }
@@ -661,9 +592,7 @@ export async function rentCollectionItem(token, id, rentalData) {
 }
 
 export async function getMyRentals(token) {
-  return request('/collection/my-rentals', {
-    headers: { Authorization: `Bearer ${token}` },
-  });
+  return request('/collection/my-rentals', { headers: { Authorization: `Bearer ${token}` } });
 }
 
 export async function cancelRental(token, rentalId) {
@@ -673,35 +602,12 @@ export async function cancelRental(token, rentalId) {
   });
 }
 
-// CREATE AUCTION
-export async function createAuction(token, formData) {
-  const response = await fetch(`${BASE_URL}/auctions`, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${token}`,
-      // NO Content-Type — let fetch set multipart/form-data + boundary automatically
-    },
-    body: formData,
-  });
 
-  const data = await response.json();
+// ── DONATIONS ──────────────────────────────────────────────────────
 
-  if (!response.ok) {
-    throw new Error(
-      data?.error?.message ||
-      data?.message ||
-      `Request failed: ${response.status}`
-    );
-  }
-
-  return data.data || data;
-}
-
-// DONATIONS
 export async function getNearbyCenters(lat, lng) {
   return request(`/donations/centers?lat=${lat}&lng=${lng}&maxDistanceKm=99999`);
 }
-
 
 export async function createDonation(token, donationCenterId, items) {
   return request('/donations', {
@@ -709,24 +615,23 @@ export async function createDonation(token, donationCenterId, items) {
     headers: { Authorization: `Bearer ${token}` },
     body: JSON.stringify({
       donationCenterId,
-      items,                                    
-      itemIds: items.map(i => i.wardrobeItemId), 
+      items,                                     // what the service expects
+      itemIds: items.map(i => i.wardrobeItemId), // workaround until backend controller is fixed
     }),
   });
 }
 
-
 export async function getMyDonations(token) {
-  return request('/donations/my-donations', {
-    headers: { Authorization: `Bearer ${token}` },
-  });
+  return request('/donations/my-donations', { headers: { Authorization: `Bearer ${token}` } });
 }
 
 export async function getPointsGuide() {
   return request('/donations/points-guide');
 }
 
-// PACKING
+
+// ── OUTFITS / PACKING ──────────────────────────────────────────────
+
 export async function getBuilderItems(token, query = {}) {
   const params = new URLSearchParams();
   if (query.category && query.category !== 'All') params.append('category', query.category);
@@ -739,15 +644,11 @@ export async function getBuilderItems(token, query = {}) {
 }
 
 export async function getOutfits(token) {
-  return request('/outfits', {
-    headers: { Authorization: `Bearer ${token}` },
-  });
+  return request('/outfits', { headers: { Authorization: `Bearer ${token}` } });
 }
 
 export async function getOutfitById(token, id) {
-  return request(`/outfits/${id}`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
+  return request(`/outfits/${id}`, { headers: { Authorization: `Bearer ${token}` } });
 }
 
 export async function createOutfit(token, outfitData) {
@@ -773,11 +674,11 @@ export async function deleteOutfit(token, id) {
   });
 }
 
-// CART
+
+// ── CART ───────────────────────────────────────────────────────────
+
 export async function getCart(token) {
-  return request('/cart', {
-    headers: { Authorization: `Bearer ${token}` },
-  });
+  return request('/cart', { headers: { Authorization: `Bearer ${token}` } });
 }
 
 export async function addToCartAPI(token, itemId, itemType, options = {}) {
@@ -802,7 +703,9 @@ export async function clearCartAPI(token) {
   });
 }
 
-// CHECKOUT/ PAYMENT
+
+// ── CHECKOUT / PAYMENT ─────────────────────────────────────────────
+
 export async function initiateCheckout(token) {
   return request('/checkout/initiate', {
     method: 'POST',
@@ -818,7 +721,9 @@ export async function placeOrderCOD(token, address) {
   });
 }
 
-// AI STYLING
+
+// ── AI STYLING ─────────────────────────────────────────────────────
+
 export async function chatWithAIStylist(token, message, history = []) {
   return request('/ai-stylist/chat', {
     method: 'POST',
@@ -827,11 +732,11 @@ export async function chatWithAIStylist(token, message, history = []) {
   });
 }
 
-// SELLER PROFILE
+
+// ── SELLER PROFILE ─────────────────────────────────────────────────
+
 export async function getSellerProfile(token, sellerId) {
-  return request(`/sellers/${sellerId}`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
+  return request(`/sellers/${sellerId}`, { headers: { Authorization: `Bearer ${token}` } });
 }
 
 export async function toggleFollowSeller(token, sellerId) {
