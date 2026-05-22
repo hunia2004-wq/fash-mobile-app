@@ -246,26 +246,27 @@ export default function MarketplaceScreen({ navigation, route }) {
         )}
       </View>
 
-      {/* Category Pills */}
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.categoryRow}
-        style={styles.categoryScroll}
-      >
-        {CATEGORIES.map((cat) => (
-          <TouchableOpacity
-            key={cat}
-            style={[styles.categoryPill, activeCategory === cat && styles.categoryPillActive]}
-            onPress={() => setActiveCategory(cat)}
-            activeOpacity={0.8}
-          >
-            <Text style={[styles.categoryText, activeCategory === cat && styles.categoryTextActive]}>
-              {cat}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
+      {/* Category Pills — wrapped in a fixed-height View to prevent layout shifts */}
+      <View style={styles.categoryWrapper}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.categoryRow}
+        >
+          {CATEGORIES.map((cat) => (
+            <TouchableOpacity
+              key={cat}
+              style={[styles.categoryPill, activeCategory === cat && styles.categoryPillActive]}
+              onPress={() => setActiveCategory(cat)}
+              activeOpacity={0.8}
+            >
+              <Text style={[styles.categoryText, activeCategory === cat && styles.categoryTextActive]}>
+                {cat}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      </View>
 
       {/* Content */}
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
@@ -294,10 +295,7 @@ export default function MarketplaceScreen({ navigation, route }) {
                   key={item._id}
                   style={styles.itemCard}
                   activeOpacity={0.88}
-                  onPress={() => navigation.navigate('ProductDetails', { 
-                    item,
-                    isSaved: !!savedItems[item._id], 
-                  })}
+                  onPress={() => navigation.navigate('ProductDetails', { item })}
                 >
                   <View style={styles.itemImageBox}>
                     {item.image ? (
@@ -498,9 +496,11 @@ const styles = StyleSheet.create({
   badgeCountText: { fontSize: 9, fontWeight: '800', color: COLORS.white },
   searchBar: { flex: 1, flexDirection: 'row', alignItems: 'center', backgroundColor: COLORS.card, borderRadius: 12, paddingHorizontal: 12, height: 40 },
   searchInput: { flex: 1, fontSize: 14, color: COLORS.text },
-  categoryScroll: { marginBottom: 14 },
-  categoryRow: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingBottom: 6, paddingVertical: 6 },
-  categoryPill: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20, flexShrink: 0, backgroundColor: COLORS.card, borderWidth: 1, borderColor: COLORS.border, marginRight: 8 },
+  // FIXED: wrapper View locks the height so it never shifts when categories change
+  categoryWrapper: { height: 50, marginBottom: 12 },
+  categoryRow: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingBottom: 6 },
+  // FIXED: flexShrink:0 stops pills from being squished; no maxHeight capping them
+  categoryPill: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20, backgroundColor: COLORS.card, borderWidth: 1, borderColor: COLORS.border, marginRight: 8, flexShrink: 0 },
   categoryPillActive: { backgroundColor: COLORS.accent, borderColor: COLORS.accent },
   categoryText: { fontSize: 13, fontWeight: '600', color: COLORS.muted },
   categoryTextActive: { color: COLORS.white },
