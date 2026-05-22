@@ -9,7 +9,6 @@ import { AuthContext } from '../../context/AuthContext';
 import { useCart } from '../../context/CartContext';
 import { cancelOrder } from '../../services/authService';
 
-
 const COLORS = {
   bg: '#F5F5F5', card: '#F2E6E3', accent: '#C17C74',
   accentLight: '#f7edec', text: '#2c2c2c', muted: '#888888',
@@ -18,13 +17,13 @@ const COLORS = {
 };
 
 const STEPS = [
-  { key: 'pending',           label: 'Order Placed',          icon: '📋' },
-  { key: 'courier_dispatched',label: 'Courier Dispatched',    icon: '🔍' },
-  { key: 'confirmed',         label: 'Order Confirmed',       icon: '✅' },
-  { key: 'sanitizing',        label: 'Sanitization',          icon: '🧴' },
-  { key: 'ready',             label: 'Ready for Delivery',    icon: '📦' },
-  { key: 'shipped',           label: 'Out for Delivery',      icon: '🚚' },
-  { key: 'delivered',         label: 'Delivered',             icon: '🎉' },
+  { key: 'pending',            label: 'Order Placed',       icon: '📋' },
+  { key: 'courier_dispatched', label: 'Courier Dispatched', icon: '🔍' },
+  { key: 'confirmed',          label: 'Order Confirmed',    icon: '✅' },
+  { key: 'sanitizing',         label: 'Sanitization',       icon: '🧴' },
+  { key: 'ready',              label: 'Ready for Delivery', icon: '📦' },
+  { key: 'shipped',            label: 'Out for Delivery',   icon: '🚚' },
+  { key: 'delivered',          label: 'Delivered',          icon: '🎉' },
 ];
 
 const STATUS_ORDER = [
@@ -38,15 +37,18 @@ const STATUS_ORDER = [
 ];
 
 const STATUS_CONFIG = {
-  pending:            { label: 'Pending',             bg: '#FEF3C7', text: '#92400E' },
-  courier_dispatched: { label: 'Courier Dispatched',  bg: '#FEF9C3', text: '#713F12' },
-  confirmed:          { label: 'Confirmed',            bg: '#DBEAFE', text: '#1E40AF' },
-  sanitizing:         { label: 'Sanitizing',           bg: '#FFEDD5', text: '#9A3412' },
-  ready:              { label: 'Ready for Delivery',   bg: '#E0F2FE', text: '#075985' },
-  shipped:            { label: 'Out for Delivery',     bg: '#EDE9FE', text: '#5B21B6' },
-  on_the_way:         { label: 'On the Way',           bg: '#EDE9FE', text: '#5B21B6' },
-  delivered:          { label: 'Delivered',            bg: '#D1FAE5', text: '#065F46' },
-  cancelled:          { label: 'Cancelled',            bg: '#FEE2E2', text: '#991B1B' },
+  pending:            { label: 'Pending',            bg: '#FEF3C7', text: '#92400E' },
+  courier_dispatched: { label: 'Courier Dispatched', bg: '#FEF9C3', text: '#713F12' },
+  confirmed:          { label: 'Confirmed',          bg: '#DBEAFE', text: '#1E40AF' },
+  sanitizing:         { label: 'Sanitizing',         bg: '#FFEDD5', text: '#9A3412' },
+  ready:              { label: 'Ready for Delivery', bg: '#E0F2FE', text: '#075985' },
+  shipped:            { label: 'Out for Delivery',   bg: '#EDE9FE', text: '#5B21B6' },
+  on_the_way:         { label: 'On the Way',         bg: '#EDE9FE', text: '#5B21B6' },
+  delivered:          { label: 'Delivered',          bg: '#D1FAE5', text: '#065F46' },
+  cancelled:          { label: 'Cancelled',          bg: '#FEE2E2', text: '#991B1B' },
+  rejected:           { label: 'Item Rejected',      bg: '#FEE2E2', text: '#991B1B' },
+  rejection_pending:  { label: 'Return in Progress', bg: '#FFEDD5', text: '#9A3412' },
+  refunded:           { label: 'Refunded',           bg: '#D1FAE5', text: '#065F46' },
 };
 
 const formatDate = (dateStr) => {
@@ -60,15 +62,63 @@ const SectionTitle = ({ title }) => (
   <Text style={styles.sectionTitle}>{title}</Text>
 );
 
-const TrackingTimeline = ({ status }) => {
+const TrackingTimeline = ({ status, rejectionReason }) => {
   const currentIndex = STATUS_ORDER.indexOf(status);
   const isCancelled = status === 'cancelled';
+  const isRejected = ['rejected', 'rejection_pending', 'refunded'].includes(status);
 
   if (isCancelled) {
     return (
       <View style={styles.cancelledBox}>
         <Ionicons name="close-circle" size={20} color="#991B1B" style={{ marginRight: 8 }} />
         <Text style={styles.cancelledText}>This order has been cancelled</Text>
+      </View>
+    );
+  }
+
+  if (isRejected) {
+    return (
+      <View>
+        <View style={styles.timeline}>
+          {STEPS.slice(0, 4).map((step, index) => (
+            <View key={step.key} style={styles.timelineRow}>
+              <View style={styles.timelineLeft}>
+                <View style={[styles.timelineDot, styles.timelineDotDone]}>
+                  <Ionicons name="checkmark" size={11} color={COLORS.white} />
+                </View>
+                <View style={[styles.timelineLine, styles.timelineLineDone]} />
+              </View>
+              <View style={styles.timelineContent}>
+                <Text style={styles.timelineLabel}>{step.icon}  {step.label}</Text>
+              </View>
+            </View>
+          ))}
+        </View>
+
+        <View style={styles.rejectedBox}>
+          <View style={styles.rejectedHeader}>
+            <Ionicons name="close-circle" size={20} color="#991B1B" style={{ marginRight: 8 }} />
+            <Text style={styles.rejectedTitle}>Item Rejected</Text>
+          </View>
+          {rejectionReason && (
+            <Text style={styles.rejectedReason}>Reason: {rejectionReason}</Text>
+          )}
+          <View style={styles.rejectedSteps}>
+            <Text style={[
+              styles.rejectedStep,
+              status === 'rejection_pending' && styles.rejectedStepActive,
+              status === 'refunded' && styles.rejectedStepDone,
+            ]}>
+              🔄  Return in Progress
+            </Text>
+            <Text style={[
+              styles.rejectedStep,
+              status === 'refunded' && styles.rejectedStepActive,
+            ]}>
+              💰  Refunded
+            </Text>
+          </View>
+        </View>
       </View>
     );
   }
@@ -188,7 +238,6 @@ export default function OrderDetailScreen({ navigation, route }) {
     <SafeAreaView style={styles.safe}>
       <StatusBar barStyle="dark-content" backgroundColor={COLORS.white} />
 
-      {/* Logo */}
       <View style={styles.logoHeader}>
         <Image
           source={require('../../source/assets/images/Blacklogo.png')}
@@ -197,7 +246,6 @@ export default function OrderDetailScreen({ navigation, route }) {
         />
       </View>
 
-      {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity style={styles.navBtn} onPress={() => navigation.goBack()} activeOpacity={0.8}>
           <Ionicons name="arrow-back" size={20} color={COLORS.text} />
@@ -212,7 +260,6 @@ export default function OrderDetailScreen({ navigation, route }) {
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
 
-        {/* Order ID + Date */}
         <View style={styles.orderMeta}>
           <Text style={styles.orderMetaId}>
             Order #{order._id?.toString().slice(-6).toUpperCase() ?? '000000'}
@@ -220,13 +267,11 @@ export default function OrderDetailScreen({ navigation, route }) {
           <Text style={styles.orderMetaDate}>{formatDate(order.placedAt ?? order.createdAt)}</Text>
         </View>
 
-        {/* Tracking */}
         <View style={styles.card}>
           <SectionTitle title="Order Tracking" />
-          <TrackingTimeline status={status} />
+          <TrackingTimeline status={status} rejectionReason={order.rejectionReason} />
         </View>
 
-        {/* Order Summary */}
         <View style={styles.card}>
           <SectionTitle title="Order Summary" />
           {items.length > 0 ? (
@@ -242,9 +287,7 @@ export default function OrderDetailScreen({ navigation, route }) {
           <View style={styles.totalDivider} />
           <View style={styles.totalRow}>
             <Text style={styles.totalLabel}>Subtotal</Text>
-            <Text style={styles.totalValue}>
-              EGP {(order.total - 25).toFixed(2)}
-            </Text>
+            <Text style={styles.totalValue}>EGP {(order.total - 25).toFixed(2)}</Text>
           </View>
           <View style={styles.totalRow}>
             <Text style={styles.totalLabel}>Delivery Fee</Text>
@@ -256,7 +299,6 @@ export default function OrderDetailScreen({ navigation, route }) {
           </View>
         </View>
 
-        {/* Delivery Info */}
         <View style={styles.card}>
           <SectionTitle title="Delivery Information" />
           <View style={styles.infoRow}>
@@ -275,7 +317,6 @@ export default function OrderDetailScreen({ navigation, route }) {
           )}
         </View>
 
-        {/* Payment */}
         <View style={styles.card}>
           <SectionTitle title="Payment" />
           <View style={styles.infoRow}>
@@ -290,7 +331,6 @@ export default function OrderDetailScreen({ navigation, route }) {
           </View>
         </View>
 
-        {/* Actions */}
         <View style={styles.actionsCard}>
           <TouchableOpacity style={styles.reorderBtn} onPress={handleReorder} activeOpacity={0.85}>
             <Ionicons name="refresh-outline" size={16} color={COLORS.white} style={{ marginRight: 8 }} />
@@ -349,6 +389,14 @@ const styles = StyleSheet.create({
   timelineCurrentTag: { fontSize: 11, color: COLORS.accent, marginTop: 3, fontWeight: '600' },
   cancelledBox: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FEE2E2', borderRadius: 10, padding: 14 },
   cancelledText: { color: '#991B1B', fontWeight: '600', fontSize: 14 },
+  rejectedBox: { backgroundColor: '#FEF2F2', borderRadius: 12, padding: 14, borderWidth: 1, borderColor: '#FECACA', marginTop: 4 },
+  rejectedHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 6 },
+  rejectedTitle: { fontSize: 14, fontWeight: '700', color: '#991B1B' },
+  rejectedReason: { fontSize: 12, color: '#B91C1C', marginBottom: 10, marginLeft: 4 },
+  rejectedSteps: { gap: 8, marginTop: 4 },
+  rejectedStep: { fontSize: 13, color: COLORS.muted, fontWeight: '500' },
+  rejectedStepActive: { color: '#9A3412', fontWeight: '700' },
+  rejectedStepDone: { color: COLORS.muted, textDecorationLine: 'line-through' },
   productRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 10 },
   productImage: { width: 56, height: 56, borderRadius: 10, marginRight: 12 },
   productImagePlaceholder: { backgroundColor: COLORS.card, justifyContent: 'center', alignItems: 'center' },
