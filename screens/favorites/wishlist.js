@@ -30,7 +30,7 @@ const SourceBadge = ({ itemType }) => {
   );
 };
 
-const SavedCard = ({ savedItem, onRemove, onOpen, onAddToCart, cartAdded }) => {
+const SavedCard = ({ savedItem, onRemove, onOpen, onAddToCart, cartAdded, navigation }) => {
   const { item, itemType, itemId } = savedItem;
   const imageUri = item?.image ?? item?.images?.[0] ?? null;
   const isCollection = itemType === 'collection';
@@ -83,7 +83,14 @@ const SavedCard = ({ savedItem, onRemove, onOpen, onAddToCart, cartAdded }) => {
           ) : (
             <TouchableOpacity
               style={[styles.cartBtn, cartAdded && styles.cartBtnAdded]}
-              onPress={(e) => { e.stopPropagation(); onAddToCart(savedItem); }}
+              onPress={(e) => {
+                e.stopPropagation();
+                if (cartAdded) {
+                  navigation.navigate('MainCart');  // ← if already in cart, go to cart
+                } else {
+                  onAddToCart(savedItem);           // ← otherwise add it
+                }
+              }}
               activeOpacity={0.85}
             >
               <Ionicons
@@ -93,7 +100,7 @@ const SavedCard = ({ savedItem, onRemove, onOpen, onAddToCart, cartAdded }) => {
                 style={{ marginRight: 4 }}
               />
               <Text style={styles.cartBtnText}>
-                {cartAdded ? 'In Cart' : 'Add to Cart'}
+                {cartAdded ? 'View Cart' : 'Add to Cart'}  {/* ← update label too */}
               </Text>
             </TouchableOpacity>
           )}
@@ -127,10 +134,10 @@ export default function SavedScreen({ navigation }) {
   const { getToken } = useAuth();
   const { addToCart, isInCart } = useCart();
 
-  const [activeTab,   setActiveTab]   = useState('All');
-  const [savedItems,  setSavedItems]  = useState([]);
-  const [loading,     setLoading]     = useState(true);
-  const [error,       setError]       = useState(null);
+  const [activeTab, setActiveTab] = useState('All');
+  const [savedItems, setSavedItems] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const hasFetched = useRef(false);
 
   const fetchSaved = useCallback(async () => {
@@ -197,20 +204,23 @@ export default function SavedScreen({ navigation }) {
 
   // ── Add to cart (marketplace only) ────────────────────────────
   const handleAddToCart = (savedItem) => {
-    const { item } = savedItem;
-    addToCart(item, 'marketplace');
+    console.log('savedItem:', JSON.stringify(savedItem));
+    const itemId = savedItem.itemId;
+    const item = savedItem.item;
+    addToCart({ ...item, _id: itemId.toString() }, 'marketplace');
+    navigation.navigate('MainCart');
   };
 
   // ── Filtering ──────────────────────────────────────────────────
   const filteredItems = () => {
-    if (activeTab === 'FASH')        return savedItems.filter(i => i.itemType === 'collection');
+    if (activeTab === 'FASH') return savedItems.filter(i => i.itemType === 'collection');
     if (activeTab === 'Marketplace') return savedItems.filter(i => i.itemType === 'marketplace');
     return savedItems;
   };
 
   const totalCount = {
-    'All':         savedItems.length,
-    'FASH':        savedItems.filter(i => i.itemType === 'collection').length,
+    'All': savedItems.length,
+    'FASH': savedItems.filter(i => i.itemType === 'collection').length,
     'Marketplace': savedItems.filter(i => i.itemType === 'marketplace').length,
   };
 
@@ -291,6 +301,7 @@ export default function SavedScreen({ navigation }) {
                 onOpen={handleOpen}
                 onAddToCart={handleAddToCart}
                 cartAdded={isInCart(savedItem.itemId)}
+                navigation={navigation}
               />
             ))}
           </>
@@ -301,38 +312,38 @@ export default function SavedScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  safe:        { flex: 1, backgroundColor: '#F5F5F5' },
-  logoHeader:  { paddingBottom: 10, alignItems: 'center', backgroundColor: '#F5F5F5' },
-  logo:        { width: 120, height: 50 },
+  safe: { flex: 1, backgroundColor: '#F5F5F5' },
+  logoHeader: { paddingBottom: 10, alignItems: 'center', backgroundColor: '#F5F5F5' },
+  logo: { width: 120, height: 50 },
   titleHeader: { backgroundColor: '#F5F5F5', paddingHorizontal: 20 },
   headerTitle: { fontSize: 20, fontWeight: '700', color: '#C17C74' },
-  headerSub:   { fontSize: 13, color: '#888888', marginTop: 2, marginBottom: 10 },
+  headerSub: { fontSize: 13, color: '#888888', marginTop: 2, marginBottom: 10 },
 
   tabsWrapper: { backgroundColor: '#F5F5F5', borderBottomWidth: 0.5, borderBottomColor: '#e0d0ce' },
-  tabsRow:     { flexDirection: 'row', paddingHorizontal: 14 },
-  tab:         { paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 2, borderBottomColor: 'transparent', marginRight: 2 },
-  tabActive:   { borderBottomColor: '#C17C74' },
-  tabText:     { fontSize: 13, fontWeight: '600', color: '#888888' },
-  tabTextActive:{ color: '#C17C74' },
-  tabCount:    { fontSize: 11, fontWeight: '400' },
+  tabsRow: { flexDirection: 'row', paddingHorizontal: 14 },
+  tab: { paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 2, borderBottomColor: 'transparent', marginRight: 2 },
+  tabActive: { borderBottomColor: '#C17C74' },
+  tabText: { fontSize: 13, fontWeight: '600', color: '#888888' },
+  tabTextActive: { color: '#C17C74' },
+  tabCount: { fontSize: 11, fontWeight: '400' },
 
   scrollContent: { padding: 14, paddingBottom: 50 },
-  sectionLabel:  { fontSize: 11, fontWeight: '700', color: '#C17C74', marginTop: 10, marginBottom: 10, textTransform: 'uppercase', letterSpacing: 0.9 },
+  sectionLabel: { fontSize: 11, fontWeight: '700', color: '#C17C74', marginTop: 10, marginBottom: 10, textTransform: 'uppercase', letterSpacing: 0.9 },
 
   itemCard: {
     backgroundColor: '#F2E6E3', borderRadius: 18,
     flexDirection: 'row', padding: 12, marginBottom: 10,
     alignItems: 'flex-start', gap: 12,
   },
-  itemImg:   { width: 80, height: 90, borderRadius: 14, backgroundColor: '#dfc8c5', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
+  itemImg: { width: 80, height: 90, borderRadius: 14, backgroundColor: '#dfc8c5', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
   itemImage: { width: '100%', height: '100%', borderRadius: 14 },
-  itemInfo:  { flex: 1, gap: 3 },
-  itemName:  { fontSize: 14, fontWeight: '600', color: '#2c2c2c' },
+  itemInfo: { flex: 1, gap: 3 },
+  itemName: { fontSize: 14, fontWeight: '600', color: '#2c2c2c' },
   itemBrand: { fontSize: 11, color: '#888888' },
   itemPrice: { fontSize: 14, fontWeight: '700', color: '#C17C74' },
-  perDay:    { fontSize: 11, color: '#888', fontWeight: '400' },
+  perDay: { fontSize: 11, color: '#888', fontWeight: '400' },
 
-  badge:     { alignSelf: 'flex-start', marginTop: 2, paddingHorizontal: 9, paddingVertical: 3, borderRadius: 7 },
+  badge: { alignSelf: 'flex-start', marginTop: 2, paddingHorizontal: 9, paddingVertical: 3, borderRadius: 7 },
   badgeText: { fontSize: 10, fontWeight: '700' },
 
   actionRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 8 },
@@ -343,7 +354,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10, paddingVertical: 6,
   },
   cartBtnAdded: { backgroundColor: '#a0635d' },
-  cartBtnText:  { fontSize: 11, fontWeight: '700', color: 'white' },
+  cartBtnText: { fontSize: 11, fontWeight: '700', color: 'white' },
 
   viewBtn: {
     flexDirection: 'row', alignItems: 'center', gap: 2,
@@ -357,7 +368,7 @@ const styles = StyleSheet.create({
 
   emptyState: { alignItems: 'center', paddingTop: 80, paddingHorizontal: 40, gap: 12 },
   emptyTitle: { fontSize: 17, fontWeight: '600', color: '#2c2c2c' },
-  emptySub:   { fontSize: 13, color: '#888888', textAlign: 'center', lineHeight: 20 },
-  retryBtn:   { paddingHorizontal: 20, paddingVertical: 8, backgroundColor: '#C17C74', borderRadius: 12 },
-  retryText:  { color: 'white', fontSize: 13, fontWeight: '600' },
+  emptySub: { fontSize: 13, color: '#888888', textAlign: 'center', lineHeight: 20 },
+  retryBtn: { paddingHorizontal: 20, paddingVertical: 8, backgroundColor: '#C17C74', borderRadius: 12 },
+  retryText: { color: 'white', fontSize: 13, fontWeight: '600' },
 });
