@@ -228,9 +228,16 @@ export default function OrderDetailScreen({ navigation, route }) {
             <Text style={styles.emptyText}>No items found</Text>
           )}
           <View style={styles.totalDivider} />
+          <View style={styles.totalDivider} />
           <View style={styles.totalRow}>
             <Text style={styles.totalLabel}>Subtotal</Text>
-            <Text style={styles.totalValue}>EGP {order.total ?? 0}</Text>
+            <Text style={styles.totalValue}>
+              EGP {(order.total - 25).toFixed(2)}
+            </Text>
+          </View>
+          <View style={styles.totalRow}>
+            <Text style={styles.totalLabel}>Delivery Fee</Text>
+            <Text style={styles.totalValue}>EGP 25.00</Text>
           </View>
           <View style={[styles.totalRow, styles.grandTotalRow]}>
             <Text style={styles.grandTotalLabel}>Total</Text>

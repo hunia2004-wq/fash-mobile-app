@@ -103,8 +103,7 @@ async function uploadFormData(endpoint, token, formData) {
 }
 
 
-// ── AUTHENTICATION ─────────────────────────────────────────────────
-
+// AUTHENTICATION
 export async function signup({ firstName, lastName, email, password, fullname }) {
   return request("/auth/signup", {
     method: "POST",
@@ -148,8 +147,7 @@ export async function logout(token) {
 }
 
 
-// ── PROFILE ────────────────────────────────────────────────────────
-
+// PROFILE
 export async function getProfile(token) {
   return request("/auth/profile", {
     headers: { Authorization: `Bearer ${token}` },
@@ -183,8 +181,7 @@ export async function uploadAvatar(token, imageUri) {
 }
 
 
-// ── EMAIL (OTP FLOW) ───────────────────────────────────────────────
-
+// EMAIL OTP FLOW
 export async function requestEmailChange(token, newEmail) {
   return request("/user/change-email/request", {
     method: "POST",
@@ -202,8 +199,7 @@ export async function verifyEmailChange(token, otp) {
 }
 
 
-// ── PASSWORD ───────────────────────────────────────────────────────
-
+// PASSWORD
 export async function changePassword(token, { oldPassword, newPassword }) {
   return request("/user/change-password", {
     method: "PUT",
@@ -213,8 +209,7 @@ export async function changePassword(token, { oldPassword, newPassword }) {
 }
 
 
-// ── PRIVACY ────────────────────────────────────────────────────────
-
+// PRIVACY
 export async function updatePrivacy(token, privacySettings) {
   return request("/user/settings/privacy", {
     method: "PUT",
@@ -224,8 +219,7 @@ export async function updatePrivacy(token, privacySettings) {
 }
 
 
-// ── NOTIFICATIONS ──────────────────────────────────────────────────
-
+// NOTIFICATIONS
 export async function updateNotifications(token, notificationSettings) {
   return request("/user/settings/notifications", {
     method: "PUT",
@@ -241,8 +235,7 @@ export async function getSettings(token) {
 }
 
 
-// ── LANGUAGE ───────────────────────────────────────────────────────
-
+// LANGUAGES
 export async function updateLanguage(token, languageSettings) {
   return request("/user/settings/language", {
     method: "PUT",
@@ -252,8 +245,7 @@ export async function updateLanguage(token, languageSettings) {
 }
 
 
-// ── CARDS ──────────────────────────────────────────────────────────
-
+// CARDS
 export const getCards = async (token) => {
   return request('/cards', { method: 'GET', headers: { Authorization: `Bearer ${token}` } });
 };
@@ -289,8 +281,7 @@ export const deleteCard = async (token, id) => {
 };
 
 
-// ── ORDERS ─────────────────────────────────────────────────────────
-
+// ORDERS
 export async function getOrders(token) {
   return request("/orders", { headers: { Authorization: `Bearer ${token}` } });
 }
@@ -303,8 +294,7 @@ export async function cancelOrder(token, orderId) {
 }
 
 
-// ── FAVORITES ──────────────────────────────────────────────────────
-
+// WISHLIST
 export async function getFavorites(token) {
   return request("/user/favorites", { headers: { Authorization: `Bearer ${token}` } });
 }
@@ -324,8 +314,7 @@ export async function removeFavorite(token, itemId) {
 }
 
 
-// ── ADDRESSES ──────────────────────────────────────────────────────
-
+// ADDRESSES
 export async function getAddresses(token) {
   return request("/addresses", { headers: { Authorization: `Bearer ${token}` } });
 }
@@ -361,8 +350,7 @@ export async function deleteAddress(token, id) {
 }
 
 
-// ── SECURITY ───────────────────────────────────────────────────────
-
+// SECURITY
 export const getSecurity = (token) => {
   return request('/user/security', { method: 'GET', headers: { Authorization: `Bearer ${token}` } });
 };
@@ -413,8 +401,7 @@ export const toggleConnectedAccount = (token, data) => {
 };
 
 
-// ── CONTACT SUPPORT ────────────────────────────────────────────────
-
+// CONTACT SUPPORT
 export const contactSupport = async (token, { subject, orderNumber, message, image }) => {
   const formData = new FormData();
   formData.append("subject",     subject);
@@ -434,15 +421,13 @@ export const contactSupport = async (token, { subject, orderNumber, message, ima
 };
 
 
-// ── FAQ ────────────────────────────────────────────────────────────
-
+// FAQ
 export const getFaqs = (token) => {
   return request("/faqs", { method: "GET", headers: { Authorization: `Bearer ${token}` } });
 };
 
 
-// ── MARKETPLACE LISTINGS ───────────────────────────────────────────
-
+// MARKETPLACE LISTING
 export async function getAllListings(query = {}) {
   const params = new URLSearchParams();
   if (query.category && query.category !== 'All') params.append('category', query.category);
@@ -477,8 +462,7 @@ export async function deleteListing(token, id) {
 }
 
 
-// ── WARDROBE ───────────────────────────────────────────────────────
-
+// WARDROBE
 export async function getWardrobeItems(token, category, search = '') {
   const params = new URLSearchParams();
   if (category && category !== 'All') params.append('category', category);
@@ -513,8 +497,7 @@ export async function deleteWardrobeItem(token, id) {
 }
 
 
-// ── AUCTION ────────────────────────────────────────────────────────
-
+// AUCTION
 export async function getAllAuctions(query = {}) {
   const params = new URLSearchParams();
   if (query.category && query.category !== 'All') params.append('category', query.category);
@@ -541,8 +524,7 @@ export async function createAuction(token, formData) {
 }
 
 
-// ── SAVED ITEMS ────────────────────────────────────────────────────
-
+// SAVED ITEMS
 export async function getSaved(token, itemType) {
   const query = itemType && itemType !== 'all' ? `?itemType=${itemType}` : '';
   return request(`/saved${query}`, { headers: { Authorization: `Bearer ${token}` } });
@@ -568,8 +550,7 @@ export async function checkIsSaved(token, itemId) {
 }
 
 
-// ── FASH COLLECTION ────────────────────────────────────────────────
-
+// FASH COLLECTION
 export async function getCollectionItems(query = {}) {
   const params = new URLSearchParams();
   if (query.category && query.category !== 'All') params.append('category', query.category);
@@ -603,8 +584,7 @@ export async function cancelRental(token, rentalId) {
 }
 
 
-// ── DONATIONS ──────────────────────────────────────────────────────
-
+// DONATIONS
 export async function getNearbyCenters(lat, lng) {
   return request(`/donations/centers?lat=${lat}&lng=${lng}&maxDistanceKm=99999`);
 }
@@ -630,8 +610,7 @@ export async function getPointsGuide() {
 }
 
 
-// ── OUTFITS / PACKING ──────────────────────────────────────────────
-
+// PACKING
 export async function getBuilderItems(token, query = {}) {
   const params = new URLSearchParams();
   if (query.category && query.category !== 'All') params.append('category', query.category);
@@ -675,8 +654,7 @@ export async function deleteOutfit(token, id) {
 }
 
 
-// ── CART ───────────────────────────────────────────────────────────
-
+// CART
 export async function getCart(token) {
   return request('/cart', { headers: { Authorization: `Bearer ${token}` } });
 }
@@ -704,8 +682,7 @@ export async function clearCartAPI(token) {
 }
 
 
-// ── CHECKOUT / PAYMENT ─────────────────────────────────────────────
-
+// CHECKOUT / PAYMENT
 export async function initiateCheckout(token) {
   return request('/checkout/initiate', {
     method: 'POST',
@@ -722,8 +699,7 @@ export async function placeOrderCOD(token, address) {
 }
 
 
-// ── AI STYLING ─────────────────────────────────────────────────────
-
+// AI STYLING
 export async function chatWithAIStylist(token, message, history = []) {
   return request('/ai-stylist/chat', {
     method: 'POST',
@@ -733,8 +709,7 @@ export async function chatWithAIStylist(token, message, history = []) {
 }
 
 
-// ── SELLER PROFILE ─────────────────────────────────────────────────
-
+// SELLER PROFILE
 export async function getSellerProfile(token, sellerId) {
   return request(`/sellers/${sellerId}`, { headers: { Authorization: `Bearer ${token}` } });
 }

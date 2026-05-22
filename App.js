@@ -33,7 +33,7 @@ import PrivacyScreen from './screens/settings-screen/privacy';
 import ChangePasswordScreen from './screens/settings-screen/password';
 import VerifyEmailScreen from './screens/settings-screen/verifyemail';
 import OrdersScreen from './screens/orders-screen/orders';
-import OrderDetailScreen from './screens/orders-screen/orderdteails';
+import OrderDetailScreen from './screens/orders-screen/orderdetails';
 
 import SecurityScreen from './screens/security-screens/securitymain';
 import TwoFactorAuthScreen from './screens/security-screens/twofa';
