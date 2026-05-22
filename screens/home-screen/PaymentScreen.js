@@ -17,8 +17,8 @@ const COLORS = {
   success: '#6abf7b', successLight: '#e8f5e9',
 };
 
-const InputField = ({ label, placeholder, value, onChangeText, keyboardType, maxLength, secureTextEntry }) => (
-  <View style={styles.inputWrap}>
+const InputField = ({ label, placeholder, value, onChangeText, keyboardType, maxLength, secureTextEntry, style }) => (
+  <View style={[styles.inputWrap, style]}>
     <Text style={styles.inputLabel}>{label}</Text>
     <TextInput
       style={styles.input}
@@ -45,11 +45,14 @@ export default function PaymentScreen({ navigation, route }) {
   const [orderSuccess, setOrderSuccess] = useState(false);
   const [orderId, setOrderId] = useState(null);
 
+  const [fullName, setFullName] = useState('');
+  const [postalCode, setPostalCode] = useState('');
+  const [instructions, setInstructions] = useState('');
   const [address, setAddress] = useState('');
   const [city, setCity] = useState('');
   const [phone, setPhone] = useState('');
 
-  const isAddressValid = address && city && phone;
+  const isAddressValid = fullName && address && city && phone;
   const canProceed = isAddressValid;
 
   const handlePlaceOrder = async () => {
@@ -65,7 +68,9 @@ export default function PaymentScreen({ navigation, route }) {
 
 
       if (paymentMethod === 'cash') {
-        const data = await placeOrderCOD(token, { street: address, city, phone });
+        const data = await placeOrderCOD(token, {
+          fullName, street: address, city, postalCode, phone, instructions,
+        });
         console.log('COD response:', JSON.stringify(data, null, 2));
 
         setOrderId(data.data?._id ?? data._id ?? null);
@@ -218,9 +223,27 @@ export default function PaymentScreen({ navigation, route }) {
               </View>
               <View style={{ marginTop: 20 }}>
                 <Text style={styles.sectionTitle}>Delivery Address</Text>
-                <InputField label="Street Address" placeholder="123 Street Name" value={address} onChangeText={setAddress} />
-                <InputField label="City" placeholder="Cairo" value={city} onChangeText={setCity} />
+                <InputField label="Full Name" placeholder="Your full name" value={fullName} onChangeText={setFullName} />
                 <InputField label="Phone Number" placeholder="+20 100 000 0000" value={phone} onChangeText={setPhone} keyboardType="phone-pad" />
+                <InputField label="Street Address" placeholder="32 Maadi, Apt 4" value={address} onChangeText={setAddress} />
+                <View style={styles.rowFields}>
+                  <InputField
+                    label="City"
+                    placeholder="Cairo"
+                    value={city}
+                    onChangeText={setCity}
+                    style={{ flex: 1, marginRight: 8 }}
+                  />
+                  <InputField
+                    label="Postal Code"
+                    placeholder="11511"
+                    value={postalCode}
+                    onChangeText={setPostalCode}
+                    keyboardType="numeric"
+                    style={{ flex: 1 }}
+                  />
+                </View>
+                <InputField label="Additional Instructions (optional)" placeholder="e.g. Ring bell 2, leave with doorman…" value={instructions} onChangeText={setInstructions} />
               </View>
             </View>
           )}
@@ -233,9 +256,14 @@ export default function PaymentScreen({ navigation, route }) {
                 <Ionicons name="cash-outline" size={16} color={COLORS.accent} />
                 <Text style={styles.cashInfoText}>Pay with cash when your order arrives</Text>
               </View>
-              <InputField label="Street Address" placeholder="123 Street Name" value={address} onChangeText={setAddress} />
-              <InputField label="City" placeholder="Cairo" value={city} onChangeText={setCity} />
+              <InputField label="Full Name" placeholder="Your full name" value={fullName} onChangeText={setFullName} />
               <InputField label="Phone Number" placeholder="+20 100 000 0000" value={phone} onChangeText={setPhone} keyboardType="phone-pad" />
+              <InputField label="Street Address" placeholder="32 Maadi, Apt 4" value={address} onChangeText={setAddress} />
+              <View style={styles.rowFields}>
+                <InputField label="City" placeholder="Cairo" value={city} onChangeText={setCity} style={{ flex: 1, marginRight: 8 }} />
+                <InputField label="Postal Code" placeholder="11511" value={postalCode} onChangeText={setPostalCode} keyboardType="numeric" style={{ flex: 1 }} />
+              </View>
+              <InputField label="Additional Instructions (optional)" placeholder="e.g. Ring bell 2, leave with doorman…" value={instructions} onChangeText={setInstructions} />
             </View>
           )}
 
@@ -294,7 +322,7 @@ const styles = StyleSheet.create({
   secureText: { fontSize: 11, color: COLORS.muted },
   inputWrap: { marginBottom: 14 },
   inputLabel: { fontSize: 11, fontWeight: '700', color: COLORS.text, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 7 },
-  input: { backgroundColor: COLORS.bg, borderWidth: 1, borderColor: COLORS.border, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 13, fontSize: 14, color: COLORS.text },
+  input: { backgroundColor: COLORS.white, borderWidth: 1, borderColor: COLORS.border, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 13, fontSize: 14, color: COLORS.text },
   cashInfo: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: COLORS.accentLight, borderRadius: 12, padding: 12, marginBottom: 16 },
   cashInfoText: { fontSize: 13, color: COLORS.accent, fontWeight: '600' },
   ctaBar: { position: 'absolute', bottom: 0, left: 0, right: 0, paddingHorizontal: 20, paddingVertical: 16, paddingBottom: 32, backgroundColor: COLORS.white, borderTopWidth: 1, borderTopColor: COLORS.border },
@@ -310,4 +338,5 @@ const styles = StyleSheet.create({
   successValue: { fontSize: 13, fontWeight: '700', color: COLORS.text },
   backToShopBtn: { backgroundColor: COLORS.accent, borderRadius: 16, paddingVertical: 16, paddingHorizontal: 40 },
   backToShopBtnText: { fontSize: 15, fontWeight: '700', color: COLORS.white },
+  rowFields: { flexDirection: 'row' },
 });
