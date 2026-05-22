@@ -61,26 +61,43 @@ export default function PaymentScreen({ navigation, route }) {
     try {
       setPlacing(true);
       const token = await getToken();
+      console.log('token:', token ? 'exists' : 'null');
+
 
       if (paymentMethod === 'cash') {
         const data = await placeOrderCOD(token, { street: address, city, phone });
+        console.log('COD response:', JSON.stringify(data, null, 2));
+
         setOrderId(data.data?._id ?? data._id ?? null);
         await clearCart();
         setOrderSuccess(true);
       } else {
+        console.log('calling initiateCheckout...');
+
+        // Card — just open Paymob, do NOT clear cart or show success yet
+        // The webhook will confirm the order, user checks order history after payment
         const data = await initiateCheckout(token);
+        console.log('initiateCheckout response:', JSON.stringify(data, null, 2));
+
         const paymentUrl = data.data?.paymentUrl ?? data.paymentUrl;
         if (!paymentUrl) throw new Error('Payment URL not returned from server.');
         await Linking.openURL(paymentUrl);
-        await clearCart();
-        setOrderSuccess(true);
+        // Show a "redirected" message instead of full success
+        Alert.alert(
+          'Redirecting to Payment 🔒',
+          'Complete your payment in the browser. Your order will appear in Order History once payment is confirmed.',
+          [{ text: 'OK', onPress: () => navigation.navigate('Home') }]
+        );
       }
     } catch (err) {
+      console.log('handlePlaceOrder error:', err.message, err.stack);
+
       Alert.alert('Error', err.message);
     } finally {
       setPlacing(false);
     }
   };
+
 
   // ── Success screen ───────────────────────────────────────────────
   if (orderSuccess) {

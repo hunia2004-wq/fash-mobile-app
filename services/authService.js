@@ -595,8 +595,8 @@ export async function createDonation(token, donationCenterId, items) {
     headers: { Authorization: `Bearer ${token}` },
     body: JSON.stringify({
       donationCenterId,
-      items,                                     // what the service expects
-      itemIds: items.map(i => i.wardrobeItemId), // workaround until backend controller is fixed
+      items,                                    
+      itemIds: items.map(i => i.wardrobeItemId), 
     }),
   });
 }
@@ -697,6 +697,7 @@ export async function placeOrderCOD(token, address) {
     body: JSON.stringify({ address }),
   });
 }
+
 
 
 // AI STYLING
