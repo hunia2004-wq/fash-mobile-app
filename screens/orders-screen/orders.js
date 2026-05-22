@@ -243,7 +243,6 @@ const EmptyState = ({ tab, onPress }) => (
       </TouchableOpacity>
     )}
   </View>
-  
 );
 
 // ─── Main Screen ──────────────────────────────────────────────────────────────
@@ -325,9 +324,9 @@ export default function OrdersScreen({ navigation }) {
         </TouchableOpacity>
         <Text style={styles.headerTitle}>My Orders</Text>
         <View style={{ width: 40 }} />
-      </View>
 
-      <TouchableOpacity onPress={() => navigation.navigate('SellerPickupScreen')}><Text>try here</Text></TouchableOpacity>
+        <TouchableOpacity onPress={() => navigation.navigate('SellerPickupScreen')}><Text>try here</Text></TouchableOpacity>
+      </View>
 
       {/* ── Tab toggle ── */}
       <TabToggle active={activeTab} onChange={setActiveTab} />
