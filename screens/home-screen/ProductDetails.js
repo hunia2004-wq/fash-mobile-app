@@ -1,20 +1,12 @@
 import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  ScrollView,
-  StyleSheet,
-  TouchableOpacity,
-  StatusBar,
-  Image,
-  Dimensions,
-  Alert,
-} from 'react-native';
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity, StatusBar, Image, Dimensions, Alert, } from 'react-native';
 import { Ionicons, Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { COLORS } from './marketplacedata';
 import { useAuth } from '../../context/AuthContext';
 import { deleteListing } from '../../services/authService';
+import { saveNewItem, removeSaved } from '../../services/authService';
+import { useEffect } from 'react';
 
 const { width } = Dimensions.get('window');
 
@@ -46,9 +38,24 @@ export default function ProductDetailScreen({ navigation, route }) {
   const { item } = route.params;
   const { userId: currentUserId, getToken } = useAuth();
 
-  const [saved, setSaved] = useState(false);
+  const [saved, setSaved] = useState(route.params?.isSaved ?? false);
+  const [savingItem, setSavingItem] = useState(false);
   const [activeImage, setActiveImage] = useState(0);
   const imageCount = item.images?.length || 1;
+
+  useEffect(() => {
+    const check = async () => {
+      try {
+        const token = await getToken();
+        if (!token) return;
+        const data = await checkIsSaved(token, item._id);
+        setSaved(data.isSaved ?? data.saved ?? false);
+      } catch {
+        // fail silently — keep route.params value
+      }
+    };
+    if (!isOwnListing) check();
+  }, [item._id]);
 
   // Destructure nested seller object
   const seller = item.seller ?? {};
@@ -83,6 +90,23 @@ export default function ProductDetailScreen({ navigation, route }) {
     if (!original || original <= 0 || isNaN(price) || isNaN(original)) return 0;
     return Math.round((1 - price / original) * 100);
   };
+
+  const handleToggleSave = async () => {
+    const prev = saved;
+    setSaved(!prev);
+    try {
+      const token = await getToken();
+      if (prev) {
+        await removeSaved(token, item._id);
+      } else {
+        await saveNewItem(token, item._id, 'marketplace');
+      }
+    } catch (err) {
+      setSaved(prev);
+      console.error('Save failed:', err.message);
+    }
+  };
+
 
   const handleMessage = () => {
     Alert.alert('Message Seller', `Start a conversation with ${sellerName || 'this seller'}?`, [
@@ -131,7 +155,7 @@ export default function ProductDetailScreen({ navigation, route }) {
         {!isOwnListing && (
           <TouchableOpacity
             style={styles.navBtn}
-            onPress={() => setSaved((v) => !v)}
+            onPress={handleToggleSave}
             activeOpacity={0.8}
           >
             <Ionicons
@@ -187,7 +211,7 @@ export default function ProductDetailScreen({ navigation, route }) {
         <View style={styles.section}>
           <View style={styles.titleRow}>
             <Text style={styles.itemTitle}>{item.title ?? 'Untitled'}</Text>
-            <Text style={styles.itemPrice}>{item.price ?? ''}</Text>
+            <Text style={styles.itemPrice}>EGP {item.price ?? ''}</Text>
           </View>
 
           {item.originalPrice ? (
@@ -202,7 +226,11 @@ export default function ProductDetailScreen({ navigation, route }) {
           <View style={styles.locationRow}>
             <Ionicons name="location-outline" size={14} color={COLORS.accent} />
             <Text style={styles.locationText}>{item.location ?? ''}</Text>
-            {item.postedAt ? <Text style={styles.postedAt}>· {item.postedAt}</Text> : null}
+            {item.postedAt ? (
+              <Text style={styles.postedAt}>
+                · {new Date(item.postedAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+              </Text>
+            ) : null}
           </View>
         </View>
 

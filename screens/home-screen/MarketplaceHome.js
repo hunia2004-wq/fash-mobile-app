@@ -294,7 +294,10 @@ export default function MarketplaceScreen({ navigation, route }) {
                   key={item._id}
                   style={styles.itemCard}
                   activeOpacity={0.88}
-                  onPress={() => navigation.navigate('ProductDetails', { item })}
+                  onPress={() => navigation.navigate('ProductDetails', { 
+                    item,
+                    isSaved: !!savedItems[item._id], 
+                  })}
                 >
                   <View style={styles.itemImageBox}>
                     {item.image ? (
