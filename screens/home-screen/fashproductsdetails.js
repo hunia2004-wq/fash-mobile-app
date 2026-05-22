@@ -196,7 +196,6 @@ export default function FashProductDetailScreen({ navigation, route }) {
       if (prev) await removeSaved(token, item._id);
       else {
         await saveNewItem(token, item._id, 'collection');
-        navigation.navigate('SavedTab');
       }
     } catch {
       setSaved(prev);

@@ -132,7 +132,6 @@ export default function FashCollectionScreen({ navigation }) {
         await removeSaved(token, id);
       } else {
         await saveNewItem(token, id, 'collection');
-        navigation.navigate('SavedTab');
       }
     } catch (err) {
       setSavedMap(prev => ({ ...prev, [id]: alreadySaved }));
