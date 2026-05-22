@@ -1,4 +1,5 @@
 import { View, Text, TouchableOpacity, StyleSheet, Image, StatusBar, } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 
 export default function WelcomeScreen({ navigation }) {
   return (
@@ -33,6 +34,20 @@ export default function WelcomeScreen({ navigation }) {
         >
           <Text style={styles.signupText}>Sign Up</Text>
         </TouchableOpacity>
+
+        {/* divider */}
+        <View style={styles.dividerContainer}>
+          <View style={styles.dividerLine} />
+          <Text style={styles.dividerText}>or</Text>
+          <View style={styles.dividerLine} />
+        </View>
+
+        <TouchableOpacity
+          style={styles.courierLink}
+          onPress={() => navigation.navigate("CourierLogin")}>
+          <Text style={styles.courierLinkText}>Are you a courier? Log in here</Text>
+        </TouchableOpacity>
+
       </View>
     </View>
   );
@@ -90,6 +105,32 @@ const styles = StyleSheet.create({
     color: "#C17C74",
     fontWeight: "600",
     fontSize: 16,
+  },
+  dividerContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginVertical: 4,
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: "#D0D0D0",
+  },
+  dividerText: {
+    marginHorizontal: 10,
+    fontSize: 13,
+    color: "gray",
+  },
+  courierLink: {
+    flexDirection: "row",
+    gap: 5,
+    justifyContent: "center",
+  },
+  courierLinkText: {
+    fontSize: 13,
+    color: "#C17C74",
+    fontWeight: "600",
+    textDecorationLine: "underline",
   },
   footer: {
     position: "absolute",
