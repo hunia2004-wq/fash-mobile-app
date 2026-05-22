@@ -74,6 +74,8 @@ import Fashproductsdetails from './screens/home-screen/fashproductsdetails';
 
 import SellerPickupScreen from './screens/orders-screen/sellerpickup';
 
+import Premium from './screens/premium';
+
 import { logout, warmupServer } from './services/authService';
 
 const Stack = createNativeStackNavigator();
@@ -245,7 +247,10 @@ export default function App() {
                     <Stack.Screen name="ARscreen" component={ARscreen} options={{ headerShown: false }} />
 
                     <Stack.Screen name="Fashproductsdetails" component={Fashproductsdetails} />
+
                     <Stack.Screen name="SellerPickupScreen" component={SellerPickupScreen} />
+
+                    <Stack.Screen name="Premium" component={Premium} />
                   </>
                 )}
               </Stack.Navigator>
