@@ -10,43 +10,52 @@ const { width } = Dimensions.get('window');
 
 const CATEGORIES = ['All', 'Tops', 'Bottoms', 'Dresses', 'Shoes', 'Bags', 'Accessories'];
 
-const WardrobeCard = ({ item, onDelete }) => (
-  <TouchableOpacity style={styles.wCard} activeOpacity={0.85}>
-    <View style={styles.wCardImg}>
-      {item.image ? (
-        <Image
-          source={{ uri: item.image }}
-          style={{ width: '100%', height: '100%', resizeMode: 'cover' }}
-        />
-      ) : (
-        <MaterialCommunityIcons name="hanger" size={48} color="#C17C74" />
-      )}
+const WardrobeCard = ({ item, onDelete }) => {
+  const isDonated = item.donated || item.isDonated;
+  return (
+    <TouchableOpacity style={[styles.wCard, isDonated && styles.wCardDonated]} activeOpacity={0.85}>
+      <View style={styles.wCardImg}>
+        {item.image ? (
+          <Image
+            source={{ uri: item.image }}
+            style={{ width: '100%', height: '100%', resizeMode: 'cover', opacity: isDonated ? 0.45 : 1 }}
+          />
+        ) : (
+          <MaterialCommunityIcons name="hanger" size={48} color={isDonated ? '#bbb' : '#C17C74'} />
+        )}
 
-      {item.isFavorite && (
-        <View style={styles.wCardBadge}>
-          <Text style={styles.wCardBadgeText}>Fav</Text>
-        </View>
-      )}
+        {/* Donated flag — replaces Fav badge when donated */}
+        {isDonated ? (
+          <View style={styles.donatedBadge}>
+            <Ionicons name="heart" size={9} color="white" />
+            <Text style={styles.donatedBadgeText}>Donated</Text>
+          </View>
+        ) : item.isFavorite ? (
+          <View style={styles.wCardBadge}>
+            <Text style={styles.wCardBadgeText}>Fav</Text>
+          </View>
+        ) : null}
 
-      {/* Delete button */}
-      <TouchableOpacity
-        style={styles.deleteBtn}
-        onPress={() => onDelete(item._id)}
-        activeOpacity={0.8}
-        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-      >
-        <Ionicons name="trash-outline" size={14} color="white" />
-      </TouchableOpacity>
-    </View>
+        {/* Delete button — always shown */}
+        <TouchableOpacity
+          style={styles.deleteBtn}
+          onPress={() => onDelete(item._id)}
+          activeOpacity={0.8}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+        >
+          <Ionicons name="trash-outline" size={14} color="white" />
+        </TouchableOpacity>
+      </View>
 
-    <View style={styles.wCardInfo}>
-      <Text style={styles.wCardName}>{item.name}</Text>
-      <Text style={styles.wCardDetail}>
-        {[item.brand, item.size].filter(Boolean).join(' · ')}
-      </Text>
-    </View>
-  </TouchableOpacity>
-);
+      <View style={styles.wCardInfo}>
+        <Text style={[styles.wCardName, isDonated && { color: '#aaa' }]}>{item.name}</Text>
+        <Text style={styles.wCardDetail}>
+          {[item.brand, item.size].filter(Boolean).join(' · ')}
+        </Text>
+      </View>
+    </TouchableOpacity>
+  );
+};
 
 export default function WardrobeScreen({ navigation }) {
   const { getToken } = useAuth();
@@ -441,4 +450,28 @@ const styles = StyleSheet.create({
   emptyText: { color: '#888', fontSize: 14, textAlign: 'center', paddingHorizontal: 20 },
   retryBtn: { marginTop: 6, paddingHorizontal: 20, paddingVertical: 8, backgroundColor: '#C17C74', borderRadius: 12 },
   retryText: { color: 'white', fontSize: 13, fontWeight: '600' },
+
+  wCardDonated: {
+    backgroundColor: '#f0eded',
+    borderWidth: 1,
+    borderColor: 'rgba(193,124,116,0.12)',
+  },
+  donatedBadge: {
+    position: 'absolute',
+    top: 10,
+    right: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+    backgroundColor: '#C17C74',
+    borderRadius: 8,
+    paddingHorizontal: 7,
+    paddingVertical: 3,
+  },
+  donatedBadgeText: {
+    color: 'white',
+    fontSize: 9,
+    fontWeight: '700',
+  },
+  
 });

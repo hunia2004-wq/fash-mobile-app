@@ -714,7 +714,6 @@ export async function placeOrderCOD(token, address) {
 }
 
 
-
 // AI STYLING
 export async function chatWithAIStylist(token, message, history = []) {
   return request('/ai-stylist/chat', {
@@ -761,6 +760,7 @@ export async function getUserById(token, userId) {
 export async function getSales(token) {
   return request('/orders/sales', { headers: { Authorization: `Bearer ${token}` } });
 }
+
 
 // SELLER PICKUP INFORMATION
 export async function submitPickupDetails(token, orderId, payload) {
