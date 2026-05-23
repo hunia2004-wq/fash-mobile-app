@@ -1,25 +1,14 @@
 import React, { useState } from 'react';
-import {
-  ViroARScene,
-  ViroAmbientLight,
-  ViroImage,
-  ViroNode,
-} from '@reactvision/react-viro';
 
-/**
- * ARtryonscene.js
- *
- * Filename matches App.js import: ./screens/ARtryonscene
- *
- * Receives from ViroARSceneNavigator via sceneNavigator.viroAppProps:
- *   - garmentUri: string   publicly accessible image URL
- *   - opacity:    number   0–1
- *   - scale:      number   size multiplier (default 1)
- *
- * The garment renders as a flat ViroImage 0.5 m in front of the camera
- * at chest height. The user drags it anywhere with onDrag.
- */
 export default function ARtryonscene({ sceneNavigator }) {
+  const {
+    ViroARScene,
+    ViroAmbientLight,
+    ViroImage,
+    ViroNode,
+    ViroTrackingStateConstants,
+  } = require('@reactvision/react-viro');
+
   const {
     garmentUri,
     opacity = 1,
@@ -29,9 +18,8 @@ export default function ARtryonscene({ sceneNavigator }) {
   const [arInitialized, setArInitialized] = useState(false);
   const [position, setPosition] = useState([0, -0.1, -0.5]);
 
-  // ViroTrackingStateConstants.TRACKING_NORMAL === 3
   const onTrackingUpdated = (state) => {
-    if (state === 3) {
+    if (state === ViroTrackingStateConstants.TRACKING_NORMAL) {
       setArInitialized(true);
     }
   };
@@ -47,7 +35,7 @@ export default function ARtryonscene({ sceneNavigator }) {
       {arInitialized && garmentUri ? (
         <ViroNode
           position={position}
-          dragType="FixedToWorld"
+          dragType="FixedDistance"
           onDrag={onDrag}
         >
           <ViroImage
@@ -55,8 +43,6 @@ export default function ARtryonscene({ sceneNavigator }) {
             scale={[0.4 * scale, 0.6 * scale, 1]}
             opacity={opacity}
             resizeMode="ScaleToFill"
-          // No placeholderSource — avoids missing asset crash.
-          // Add one once you have an assets/placeholder.png in your project.
           />
         </ViroNode>
       ) : null}

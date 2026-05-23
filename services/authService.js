@@ -426,12 +426,7 @@ export const contactSupport = async (token, { subject, orderNumber, message, ima
     formData.append("attachment", { uri: image, type: "image/jpeg", name: "support.jpg" });
   }
 
-  const data = await request("/support/contact", {
-    method: "POST",
-    headers: { Authorization: `Bearer ${token}` },
-    body: formData,
-  });
-
+  const data = await uploadFormData("/support/contact", token, formData);
   return { ticketId: data.ticketId, status: data.status, createdAt: data.createdAt };
 };
 
