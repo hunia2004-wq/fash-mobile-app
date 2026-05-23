@@ -7,7 +7,7 @@ import { Ionicons, Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { COLORS } from './marketplacedata';
 import { useAuth } from '../../context/AuthContext';
-import { deleteListing, saveNewItem, removeSaved } from '../../services/authService';
+import { deleteListing, saveNewItem, removeSaved, makeOffer } from '../../services/authService';
 import { useEffect } from 'react';
 
 const { width } = Dimensions.get('window');
@@ -37,7 +37,8 @@ const StarRating = ({ rating }) => {
 };
 
 // ── Offer Modal ──────────────────────────────────────────────
-const OfferModal = ({ visible, onClose, itemPrice, itemTitle }) => {
+const OfferModal = ({ visible, onClose, itemPrice, itemTitle, itemId, getToken }) => {
+
   const [offerPrice, setOfferPrice] = useState('');
   const [sending, setSending] = useState(false);
   const [offerStatus, setOfferStatus] = useState(null); // null | 'pending' | 'accepted' | 'rejected'
@@ -48,6 +49,7 @@ const OfferModal = ({ visible, onClose, itemPrice, itemTitle }) => {
     { label: '30% off', value: Math.round(itemPrice * 0.7) },
   ];
 
+  // Replace the simulated handleSendOffer:
   const handleSendOffer = async () => {
     const parsed = parseFloat(offerPrice);
     if (!offerPrice || isNaN(parsed) || parsed <= 0) {
@@ -60,12 +62,11 @@ const OfferModal = ({ visible, onClose, itemPrice, itemTitle }) => {
     }
     try {
       setSending(true);
-      // TODO: call your offer API here
-      // await sendOffer(token, { itemId: item._id, offerPrice: parsed });
-      await new Promise(res => setTimeout(res, 1000)); // simulate API
+      const token = await getToken();
+      await makeOffer(token, itemId, parsed);
       setOfferStatus('pending');
     } catch (err) {
-      Alert.alert('Error', 'Could not send offer. Please try again.');
+      Alert.alert('Error', err.message || 'Could not send offer. Please try again.');
     } finally {
       setSending(false);
     }
@@ -459,7 +460,7 @@ export default function ProductDetailScreen({ navigation, route }) {
         ) : (
           <>
             <TouchableOpacity style={styles.offerBtn} onPress={() => setOfferModalVisible(true)} activeOpacity={0.85}>
-              <Text style={styles.offerBtnText}>Make Offer</Text>
+              <Text style={styles.offerBtnText}>Make an Offer</Text>
             </TouchableOpacity>
           </>
         )}
@@ -470,6 +471,8 @@ export default function ProductDetailScreen({ navigation, route }) {
         onClose={() => setOfferModalVisible(false)}
         itemPrice={parseFloat(String(item.price).replace(/[^0-9.]/g, '')) || 0}
         itemTitle={item.title ?? 'Item'}
+        itemId={item._id}
+        getToken={getToken}
       />
 
     </SafeAreaView>
@@ -538,7 +541,7 @@ const styles = StyleSheet.create({
   },
   offerBtn: { flex: 1, borderWidth: 1.5, borderColor: COLORS.accent, borderRadius: 14, paddingVertical: 14, alignItems: 'center', justifyContent: 'center' },
   offerBtnText: { color: COLORS.accent, fontSize: 15, fontWeight: '700' },
- 
+
   deleteListingBtn: { flex: 1, flexDirection: 'row', backgroundColor: '#E05C5C', borderRadius: 14, paddingVertical: 14, alignItems: 'center', justifyContent: 'center' },
   deleteListingBtnText: { color: COLORS.white, fontSize: 15, fontWeight: '700' },
 

@@ -800,3 +800,18 @@ export async function cancelSubscription(token) {
     headers: { Authorization: `Bearer ${token}` },
   });
 }
+
+// MAKE AN OFFER
+export async function makeOffer(token, listingId, offerPrice) {
+  return request(`/listings/${listingId}/offers`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${token}` },
+    body: JSON.stringify({ offerPrice }),
+  });
+}
+
+export async function getMyOffers(token) {
+  return request('/listings/my-offers', {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+}
