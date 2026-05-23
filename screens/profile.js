@@ -178,7 +178,7 @@ export default function ProfileScreen({ navigation }) {
         <MenuRow title="Support" onPress={() => navigation.navigate("SupportScreen")} />
         <View style={styles.rowDivider} />
 
-        <MenuRow title="Premium Plan" onPress={() => navigation.navigate("Premium")} />
+        <MenuRow title="Subscription Plans" onPress={() => navigation.navigate("Premium")} />
         
       </View>
 

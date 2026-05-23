@@ -774,3 +774,29 @@ export async function getPickupDetails(token, orderId) {
     headers: { Authorization: `Bearer ${token}` },
   });
 }
+
+// SUBSCRIPTION PLANS
+export async function getSubscriptionPlans() {
+  return request('/subscriptions/plans');
+}
+
+export async function initiateSubscription(token, plan, billingCycle) {
+  return request('/subscriptions/initiate', {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${token}` },
+    body: JSON.stringify({ plan, billingCycle }),
+  });
+}
+
+export async function getMySubscription(token) {
+  return request('/subscriptions/me', {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+}
+
+export async function cancelSubscription(token) {
+  return request('/subscriptions/cancel', {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${token}` },
+  });
+}

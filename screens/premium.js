@@ -1,44 +1,31 @@
-/**
- * FASH Premium Plan Screen
- * ─────────────────────────
- * Dependencies (all ship with Expo SDK 49+):
- *   @expo/vector-icons  ← Ionicons + MaterialCommunityIcons
- */
-
-import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  ScrollView,
-  StyleSheet,
-  SafeAreaView,
-  StatusBar,
-  Dimensions,
-} from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, StyleSheet, SafeAreaView, StatusBar, Dimensions, } from 'react-native';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { useState, useEffect } from 'react';
+import { Linking, ActivityIndicator } from 'react-native';
+import { useAuth } from '../context/AuthContext';
+import { initiateSubscription, getMySubscription } from '../services/authService';
 
 const { width } = Dimensions.get('window');
 
 // ─── Palette ──────────────────────────────────────────────────────────────────
 const C = {
-  primary:     '#C17C74',
-  bg:          '#F5F5F5',
-  card:        '#F2E6E3',
-  cardDeep:    '#EDD8D4',
-  white:       '#FFFFFF',
-  ink:         '#3D2420',
-  inkMid:      '#7A5550',
-  inkLight:    '#B09490',
-  border:      'rgba(193,124,116,0.20)',
-  green:       '#4CAF82',
-  greenBg:     '#EBF7F1',
+  primary: '#C17C74',
+  bg: '#F5F5F5',
+  card: '#F2E6E3',
+  cardDeep: '#EDD8D4',
+  white: '#FFFFFF',
+  ink: '#3D2420',
+  inkMid: '#7A5550',
+  inkLight: '#B09490',
+  border: 'rgba(193,124,116,0.20)',
+  green: '#4CAF82',
+  greenBg: '#EBF7F1',
 };
 
 // ─── Prices ───────────────────────────────────────────────────────────────────
 const PRICES = {
-  monthly: { basic: 79,  pro: 149 },
-  yearly:  { basic: 55,  pro: 104 },
+  monthly: { basic: 79, pro: 149 },
+  yearly: { basic: 55, pro: 104 },
 };
 
 // ─── All features, tagged with which plans include them ───────────────────────
@@ -46,58 +33,58 @@ const PRICES = {
 const ALL_FEATURES = [
   {
     iconLib: 'ion',
-    icon:    'chatbubble-ellipses',
-    title:   'AI Styling',
-    desc:    'Chat with your personal AI stylist for outfit ideas and daily inspiration.',
-    tag:     { basic: '10 / day', pro: 'Unlimited' },
-    plans:   ['basic', 'pro'],
+    icon: 'chatbubble-ellipses',
+    title: 'AI Styling',
+    desc: 'Chat with your personal AI stylist for outfit ideas and daily inspiration.',
+    tag: { basic: '10 / day', pro: 'Unlimited' },
+    plans: ['basic', 'pro'],
   },
   {
     iconLib: 'ion',
-    icon:    'bar-chart',
-    title:   'Seller Analytics',
-    desc:    'Track views, saves, and conversion rates on all your listings.',
-    tag:     { basic: 'Included', pro: 'Included' },
-    plans:   ['basic', 'pro'],
+    icon: 'bar-chart',
+    title: 'Seller Analytics',
+    desc: 'Track views, saves, and conversion rates on all your listings.',
+    tag: { basic: 'Included', pro: 'Included' },
+    plans: ['basic', 'pro'],
   },
   {
     iconLib: 'ion',
-    icon:    'headset',
-    title:   'Priority Support',
-    desc:    'Skip the queue — dedicated support with faster response times.',
-    tag:     { basic: 'Included', pro: 'Included' },
-    plans:   ['basic', 'pro'],
+    icon: 'headset',
+    title: 'Priority Support',
+    desc: 'Skip the queue — dedicated support with faster response times.',
+    tag: { basic: 'Included', pro: 'Included' },
+    plans: ['basic', 'pro'],
   },
   {
     iconLib: 'mci',
-    icon:    'augmented-reality',
-    title:   'AR Try-On',
-    desc:    'See how any garment looks on you live through your camera.',
-    tag:     { pro: 'Pro only' },
-    plans:   ['pro'],
+    icon: 'augmented-reality',
+    title: 'AR Try-On',
+    desc: 'See how any garment looks on you live through your camera.',
+    tag: { pro: 'Pro only' },
+    plans: ['pro'],
   },
   {
     iconLib: 'ion',
-    icon:    'shield-checkmark',
-    title:   'Trusted Seller Badge',
-    desc:    'A verified badge builds buyer trust and boosts your sales.',
-    tag:     { pro: 'Pro only' },
-    plans:   ['pro'],
+    icon: 'shield-checkmark',
+    title: 'Trusted Seller Badge',
+    desc: 'A verified badge builds buyer trust and boosts your sales.',
+    tag: { pro: 'Pro only' },
+    plans: ['pro'],
   },
   {
     iconLib: 'ion',
-    icon:    'flash',
-    title:   'Priority Listing Boost',
-    desc:    'Your items appear first in search results and category pages.',
-    tag:     { pro: 'Pro only' },
-    plans:   ['pro'],
+    icon: 'flash',
+    title: 'Priority Listing Boost',
+    desc: 'Your items appear first in search results and category pages.',
+    tag: { pro: 'Pro only' },
+    plans: ['pro'],
   },
 ];
 
 const TRUST = [
-  { num: '12k+', label: 'Members'    },
-  { num: '4.9★', label: 'Rating'     },
-  { num: '3×',   label: 'More sales' },
+  { num: '12k+', label: 'Members' },
+  { num: '4.9★', label: 'Rating' },
+  { num: '3×', label: 'More sales' },
 ];
 
 // ─── Icon helper ──────────────────────────────────────────────────────────────
@@ -108,12 +95,41 @@ const FIcon = ({ lib, name, size, color }) =>
 
 // ─── Main Screen ──────────────────────────────────────────────────────────────
 export default function PremiumPlanScreen({ navigation }) {
-  const [billing,  setBilling]  = useState('monthly');
+  const [billing, setBilling] = useState('monthly');
   const [selected, setSelected] = useState('pro');
+  const { getToken } = useAuth();
+  const [subscribing, setSubscribing] = useState(false);
+  const [currentSub, setCurrentSub] = useState(null);
 
-  const price         = PRICES[billing];
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const token = await getToken();
+        const data = await getMySubscription(token);
+        setCurrentSub(data);
+      } catch { }
+    };
+    load();
+  }, []);
+
+  const handleSubscribe = async () => {
+    try {
+      setSubscribing(true);
+      const token = await getToken();
+      const data = await initiateSubscription(token, selected, billing);
+      const url = data.paymentUrl ?? data.data?.paymentUrl;
+      if (!url) throw new Error('Payment URL not returned.');
+      await Linking.openURL(url);
+    } catch (err) {
+      Alert.alert('Error', err.message);
+    } finally {
+      setSubscribing(false);
+    }
+  };
+
+  const price = PRICES[billing];
   const selectedLabel = selected === 'pro' ? 'Pro' : 'Basic';
-  const ctaText       = `Start ${selectedLabel} — EGP ${price[selected]}/mo`;
+  const ctaText = `Start ${selectedLabel} — EGP ${price[selected]}/mo`;
 
   // Filter to only features available for the selected plan
   const visibleFeatures = ALL_FEATURES.filter(f => f.plans.includes(selected));
@@ -157,9 +173,9 @@ export default function PremiumPlanScreen({ navigation }) {
             </Text>
             <View style={s.badgeRow}>
               {[
-                { lib: 'mci', icon: 'augmented-reality', label: 'AR Try-On'      },
-                { lib: 'mci', icon: 'robot-outline',     label: 'AI Styling'     },
-                { lib: 'ion', icon: 'shield-checkmark',  label: 'Verified Badge' },
+                { lib: 'mci', icon: 'augmented-reality', label: 'AR Try-On' },
+                { lib: 'mci', icon: 'robot-outline', label: 'AI Styling' },
+                { lib: 'ion', icon: 'shield-checkmark', label: 'Verified Badge' },
               ].map(b => (
                 <View key={b.label} style={s.heroBadge}>
                   <FIcon lib={b.lib} name={b.icon} size={11} color={C.white} />
@@ -333,17 +349,29 @@ export default function PremiumPlanScreen({ navigation }) {
           </View>
         </View>
 
+        {currentSub?.status === 'active' && (
+          <View style={{ backgroundColor: C.greenBg, borderRadius: 12, padding: 12, marginBottom: 12, alignItems: 'center' }}>
+            <Text style={{ color: C.green, fontWeight: '700', fontSize: 13 }}>
+              ✓ You're on the {currentSub.plan} plan · Active until {new Date(currentSub.endDate).toLocaleDateString('en-GB')}
+            </Text>
+          </View>
+        )}
+
         {/* ── CTA ──────────────────────────────────────────────────────────── */}
         <View style={s.ctaWrap}>
-          <TouchableOpacity style={s.ctaBtn} activeOpacity={0.85}>
-            <Ionicons name="diamond" size={18} color={C.white} />
-            <Text style={s.ctaBtnText}>{ctaText}</Text>
-          </TouchableOpacity>
-          <Text style={s.ctaNote}>
-            Cancel anytime · No hidden fees · Billed securely via Paymob
-          </Text>
-          <TouchableOpacity activeOpacity={0.7}>
-            <Text style={s.restoreLink}>Restore previous purchase</Text>
+          <TouchableOpacity
+            style={[s.ctaBtn, subscribing && { opacity: 0.6 }]}
+            onPress={handleSubscribe}
+            disabled={subscribing}
+            activeOpacity={0.85}
+          >
+            {subscribing
+              ? <ActivityIndicator size="small" color={C.white} />
+              : <Ionicons name="diamond" size={18} color={C.white} />
+            }
+            <Text style={s.ctaBtnText}>
+              {subscribing ? 'Redirecting...' : ctaText}
+            </Text>
           </TouchableOpacity>
         </View>
 
@@ -354,8 +382,8 @@ export default function PremiumPlanScreen({ navigation }) {
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
 const s = StyleSheet.create({
-  safe:          { flex: 1, backgroundColor: C.bg },
-  scroll:        { flex: 1, backgroundColor: C.bg },
+  safe: { flex: 1, backgroundColor: C.bg },
+  scroll: { flex: 1, backgroundColor: C.bg },
   scrollContent: { paddingBottom: 48 },
 
   // Top bar
@@ -373,7 +401,7 @@ const s = StyleSheet.create({
   placeholder: { width: 38 },
 
   // Hero
-  heroPad:  { paddingHorizontal: 20 },
+  heroPad: { paddingHorizontal: 20 },
   heroCard: {
     backgroundColor: C.primary,
     borderRadius: 24, padding: 28, overflow: 'hidden',
@@ -429,15 +457,15 @@ const s = StyleSheet.create({
     flex: 1, paddingVertical: 10, borderRadius: 11,
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
   },
-  toggleBtnActive:    { backgroundColor: C.primary },
-  toggleText:         { fontSize: 13, fontWeight: '500', color: C.inkMid },
-  toggleTextActive:   { color: C.white },
+  toggleBtnActive: { backgroundColor: C.primary },
+  toggleText: { fontSize: 13, fontWeight: '500', color: C.inkMid },
+  toggleTextActive: { color: C.white },
   savePill: {
     backgroundColor: C.cardDeep,
     borderRadius: 20, paddingHorizontal: 7, paddingVertical: 2, marginLeft: 5,
   },
-  savePillActive:     { backgroundColor: 'rgba(255,255,255,0.25)' },
-  savePillText:       { fontSize: 10, fontWeight: '600', color: C.primary },
+  savePillActive: { backgroundColor: 'rgba(255,255,255,0.25)' },
+  savePillText: { fontSize: 10, fontWeight: '600', color: C.primary },
   savePillTextActive: { color: C.white },
 
   // Plan card
@@ -446,7 +474,7 @@ const s = StyleSheet.create({
     padding: 16, marginBottom: 12,
     borderWidth: 1.5, borderColor: 'transparent',
   },
-  planCardOn:     { borderColor: C.primary, backgroundColor: C.white },
+  planCardOn: { borderColor: C.primary, backgroundColor: C.white },
   popularTag: {
     position: 'absolute', top: 0, right: 18,
     backgroundColor: C.primary,
@@ -454,7 +482,7 @@ const s = StyleSheet.create({
     borderBottomLeftRadius: 10, borderBottomRightRadius: 10,
   },
   popularTagText: { fontSize: 10, fontWeight: '600', color: C.white },
-  planRow:        { flexDirection: 'row', alignItems: 'center' },
+  planRow: { flexDirection: 'row', alignItems: 'center' },
   radio: {
     width: 20, height: 20, borderRadius: 10,
     borderWidth: 1.5, borderColor: C.primary,
@@ -464,7 +492,7 @@ const s = StyleSheet.create({
   planName: { fontSize: 15, fontWeight: '600', color: C.ink },
   planDesc: { fontSize: 12, color: C.inkMid, marginTop: 2 },
   planSaveText: { fontSize: 11, color: C.primary, fontWeight: '500', marginTop: 3 },
-  priceBox:    { alignItems: 'flex-end' },
+  priceBox: { alignItems: 'flex-end' },
   priceAmount: { fontSize: 20, fontWeight: '700', color: C.primary },
   pricePeriod: { fontSize: 11, color: C.inkLight },
 
@@ -500,9 +528,9 @@ const s = StyleSheet.create({
     flexShrink: 0,
   },
   featureIconWrapPro: { backgroundColor: C.primary },
-  featureBody:     { flex: 1 },
+  featureBody: { flex: 1 },
   featureTitleRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 4, gap: 6 },
-  featureTitle:    { fontSize: 14, fontWeight: '600', color: C.ink },
+  featureTitle: { fontSize: 14, fontWeight: '600', color: C.ink },
   proOnlyBadge: {
     flexDirection: 'row', alignItems: 'center',
     backgroundColor: '#FDF0EE',
@@ -516,10 +544,10 @@ const s = StyleSheet.create({
     alignSelf: 'flex-start',
     borderRadius: 20, paddingHorizontal: 9, paddingVertical: 3,
   },
-  featureTagPro:        { backgroundColor: '#FDF0EE' },
-  featureTagShared:     { backgroundColor: C.greenBg },
-  featureTagText:       { fontSize: 10, fontWeight: '500' },
-  featureTagTextPro:    { color: C.primary },
+  featureTagPro: { backgroundColor: '#FDF0EE' },
+  featureTagShared: { backgroundColor: C.greenBg },
+  featureTagText: { fontSize: 10, fontWeight: '500' },
+  featureTagTextPro: { color: C.primary },
   featureTagTextShared: { color: C.green },
 
   // Upsell banner
@@ -540,7 +568,7 @@ const s = StyleSheet.create({
     flex: 1, backgroundColor: C.card,
     borderRadius: 14, paddingVertical: 16, alignItems: 'center',
   },
-  trustNum:   { fontSize: 20, fontWeight: '700', color: C.primary },
+  trustNum: { fontSize: 20, fontWeight: '700', color: C.primary },
   trustLabel: { fontSize: 11, color: C.inkMid, marginTop: 3, textAlign: 'center' },
 
   // CTA
