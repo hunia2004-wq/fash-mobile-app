@@ -109,6 +109,7 @@ export default function App() {
   );
 
   const navigationRef = useRef();
+  const pendingUrl = useRef(null);
 
   // ── Push token registration ─────────────────────────────────────
   const tryRegisterPushToken = async (token) => {
@@ -129,7 +130,12 @@ export default function App() {
   const handleDeepLink = (url) => {
     if (!url) return;
 
-    // fash://pickup/ORDER_ID
+    // Not authenticated yet — store and handle after login
+    if (!state.userToken) {
+      pendingUrl.current = url;
+      return;
+    }
+
     const pickupMatch = url.match(/fash:\/\/pickup\/(.+)/);
     if (pickupMatch) {
       const orderId = pickupMatch[1];
@@ -225,11 +231,20 @@ export default function App() {
 
     // App cold started via deep link
     Linking.getInitialURL().then(url => {
-      if (url) setTimeout(() => handleDeepLink(url), 500);
+      if (url) handleDeepLink(url);
     });
 
     return () => subscription.remove();
-  }, []);
+  }, [state.userToken]); // re-runs when auth state changes
+
+  // ── Flush pending URL once authenticated ────────────────────────
+  useEffect(() => {
+    if (state.userToken && pendingUrl.current) {
+      const url = pendingUrl.current;
+      pendingUrl.current = null;
+      setTimeout(() => handleDeepLink(url), 300);
+    }
+  }, [state.userToken]);
 
   // ── All hooks above this line ───────────────────────────────────
   if (state.isLoading) return <SplashScreen />;

@@ -4,6 +4,7 @@ export default {
   expo: {
     name: "frontend",
     slug: "frontend",
+    scheme: "fash",
     version: "1.0.0",
     orientation: "portrait",
     icon: "./assets/icon.png",
