@@ -1,13 +1,16 @@
-import React from 'react';
-import { View, Text, ActivityIndicator } from 'react-native';
+import React, { useRef, useEffect } from 'react';
+import { View, Text, ActivityIndicator, Linking } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import * as SecureStore from 'expo-secure-store';
 import { AuthContext } from './context/AuthContext';
 import { Provider as PaperProvider } from 'react-native-paper';
 import { GalioProvider } from 'galio-framework';
-import { CartProvider } from './context/CartContext';
+import * as Notifications from 'expo-notifications';
+import * as Device from 'expo-device';
 import Constants from 'expo-constants';
+
+import { CartProvider } from './context/CartContext';
 
 export const ANTHROPIC_API_KEY = Constants.expoConfig?.extra?.anthropicApiKey || '';
 
@@ -20,7 +23,6 @@ import VerificationScreen from './screens/verification';
 import WelcomeScreen from './screens/welcome';
 
 import HomeScreen from './screens/home-screen/home';
-
 import EditProfileScreen from './screens/editpersonal';
 
 import SettingsScreen from './screens/settings-screen/settings';
@@ -44,11 +46,8 @@ import ContactSupportScreen from './screens/support-screens/contact';
 import FAQScreen from './screens/support-screens/faq';
 
 import AIStyling from './screens/home-screen/AIStylingScreen';
-
 import ConfirmBid from './screens/home-screen/ConfirmBid';
-
 import PaymentScreen from './screens/home-screen/PaymentScreen';
-
 import MarketplaceHome from './screens/home-screen/MarketplaceHome';
 import ProductDetails from './screens/home-screen/ProductDetails';
 import AddListingScreen from './screens/home-screen/addlisting';
@@ -59,7 +58,6 @@ import PackingPickerScreen from './screens/home-screen/Packingpickerscreen';
 import PackingDetailScreen from './screens/home-screen/Packingdetailscreen';
 
 import DonationScreen from './screens/home-screen/DonationScreen';
-
 import FashCollectionScreen from './screens/home-screen/fashcollection';
 
 import AuctionListScreen from './screens/home-screen/AuctionListScreen';
@@ -67,18 +65,22 @@ import AuctionRoomScreen from './screens/home-screen/AuctionRoomScreen';
 import CreateAuction from './screens/home-screen/CreateAuction';
 
 import MainCart from './screens/home-screen/MainCart';
-
 import ARscreen from './screens/ARscreen';
-
 import Fashproductsdetails from './screens/home-screen/fashproductsdetails';
-
 import SellerPickupScreen from './screens/orders-screen/sellerpickup';
-
 import Premium from './screens/premium';
 
-import { logout, warmupServer } from './services/authService';
+import { logout, warmupServer, submitPushToken } from './services/authService';
 
 const Stack = createNativeStackNavigator();
+
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: true,
+    shouldSetBadge: false,
+  }),
+});
 
 function SplashScreen() {
   return (
@@ -94,26 +96,11 @@ export default function App() {
     (prevState, action) => {
       switch (action.type) {
         case 'RESTORE_TOKEN':
-          return {
-            ...prevState,
-            userToken: action.token,
-            userId: action.userId,
-            isLoading: false,
-          };
+          return { ...prevState, userToken: action.token, userId: action.userId, isLoading: false };
         case 'LOG_IN':
-          return {
-            ...prevState,
-            isLogOut: false,
-            userToken: action.token,
-            userId: action.userId,
-          };
+          return { ...prevState, isLogOut: false, userToken: action.token, userId: action.userId };
         case 'LOG_OUT':
-          return {
-            ...prevState,
-            isLogOut: true,
-            userToken: null,
-            userId: null,
-          };
+          return { ...prevState, isLogOut: true, userToken: null, userId: null };
         default:
           return prevState;
       }
@@ -121,29 +108,47 @@ export default function App() {
     { isLoading: true, isLogOut: false, userToken: null, userId: null }
   );
 
-  React.useEffect(() => {
-    warmupServer();
+  const navigationRef = useRef();
 
-    const bootstrapAsync = async () => {
-      let userToken = null;
-      let userId = null;
-      try {
-        userToken = await SecureStore.getItemAsync('userToken');
-        userId = await SecureStore.getItemAsync('userId');
-      } catch (e) {
-        console.warn('Failed to restore token:', e);
-      }
-      dispatch({ type: 'RESTORE_TOKEN', token: userToken, userId });
-    };
-    bootstrapAsync();
-  }, []);
+  // ── Push token registration ─────────────────────────────────────
+  const tryRegisterPushToken = async (token) => {
+    try {
+      if (!Device.isDevice) return;
+      const { status } = await Notifications.getPermissionsAsync();
+      if (status !== 'granted') return;
+      const pushTokenData = await Notifications.getExpoPushTokenAsync({
+        projectId: Constants.expoConfig?.extra?.eas?.projectId ?? Constants.easConfig?.projectId,
+      });
+      await submitPushToken(token, pushTokenData.data);
+    } catch (e) {
+      // best-effort — never block login
+    }
+  };
 
+  // ── Deep link handler ───────────────────────────────────────────
+  const handleDeepLink = (url) => {
+    if (!url) return;
+
+    // fash://pickup/ORDER_ID
+    const pickupMatch = url.match(/fash:\/\/pickup\/(.+)/);
+    if (pickupMatch) {
+      const orderId = pickupMatch[1];
+      navigationRef.current?.navigate('SellerPickupScreen', {
+        orderId,
+        item: { name: 'Your item', price: 0, imageUrl: null },
+        buyerUsername: 'buyer',
+        readOnly: false,
+      });
+    }
+  };
+
+  // ── Auth context ────────────────────────────────────────────────
   const authContext = React.useMemo(() => ({
-    // Call logIn(token, userId) from your login screen after a successful login
     logIn: async (token, userId) => {
       try {
         await SecureStore.setItemAsync('userToken', token);
         if (userId) await SecureStore.setItemAsync('userId', userId);
+        tryRegisterPushToken(token);
       } catch (e) {
         console.warn('Failed to save token:', e);
       }
@@ -171,14 +176,71 @@ export default function App() {
     userId: state.userId,
   }), [state.userId]);
 
+  // ── Bootstrap on mount ──────────────────────────────────────────
+  React.useEffect(() => {
+    warmupServer();
+    const bootstrapAsync = async () => {
+      let userToken = null;
+      let userId = null;
+      try {
+        userToken = await SecureStore.getItemAsync('userToken');
+        userId = await SecureStore.getItemAsync('userId');
+      } catch (e) {
+        console.warn('Failed to restore token:', e);
+      }
+      dispatch({ type: 'RESTORE_TOKEN', token: userToken, userId });
+      if (userToken) tryRegisterPushToken(userToken);
+    };
+    bootstrapAsync();
+  }, []);
+
+  // ── Notification tap handler ────────────────────────────────────
+  useEffect(() => {
+    const sub = Notifications.addNotificationResponseReceivedListener(response => {
+      const data = response.notification.request.content.data;
+      if (!data?.orderId) return;
+
+      if (data.screen === 'PickupDetails') {
+        navigationRef.current?.navigate('SellerPickupScreen', {
+          orderId: data.orderId,
+          item: { name: 'Your item', price: 0, imageUrl: null },
+          buyerUsername: 'buyer',
+          readOnly: false,
+        });
+      }
+
+      if (data.screen === 'Orders') {
+        navigationRef.current?.navigate('OrdersScreen');
+      }
+    });
+    return () => sub.remove();
+  }, []);
+
+  // ── Deep link listener ──────────────────────────────────────────
+  useEffect(() => {
+    // App already open — listen for incoming links
+    const subscription = Linking.addEventListener('url', ({ url }) => {
+      handleDeepLink(url);
+    });
+
+    // App cold started via deep link
+    Linking.getInitialURL().then(url => {
+      if (url) setTimeout(() => handleDeepLink(url), 500);
+    });
+
+    return () => subscription.remove();
+  }, []);
+
+  // ── All hooks above this line ───────────────────────────────────
   if (state.isLoading) return <SplashScreen />;
 
+  // ── Render ──────────────────────────────────────────────────────
   return (
     <GalioProvider>
       <PaperProvider>
         <AuthContext.Provider value={authContext}>
           <CartProvider>
-            <NavigationContainer>
+            <NavigationContainer ref={navigationRef}>
               <Stack.Navigator screenOptions={{ headerShown: false }}>
                 {state.userToken == null ? (
                   <>
@@ -195,7 +257,6 @@ export default function App() {
                 ) : (
                   <>
                     <Stack.Screen name="Home" component={HomeScreen} />
-
                     <Stack.Screen name="EditProfileScreen" component={EditProfileScreen} />
 
                     <Stack.Screen name="SettingsScreen" component={SettingsScreen} />
@@ -219,9 +280,7 @@ export default function App() {
                     <Stack.Screen name="FAQScreen" component={FAQScreen} />
 
                     <Stack.Screen name="AIStylingScreen" component={AIStyling} />
-
                     <Stack.Screen name="ConfirmBid" component={ConfirmBid} />
-
                     <Stack.Screen name="Payment" component={PaymentScreen} />
 
                     <Stack.Screen name="MarketplaceHome" component={MarketplaceHome} />
@@ -233,7 +292,6 @@ export default function App() {
                     <Stack.Screen name="PackingDetail" component={PackingDetailScreen} options={{ animation: 'slide_from_right' }} />
 
                     <Stack.Screen name="DonationScreen" component={DonationScreen} />
-
                     <Stack.Screen name="FashCollectionScreen" component={FashCollectionScreen} />
 
                     <Stack.Screen name="AuctionListScreen" component={AuctionListScreen} />
@@ -241,15 +299,10 @@ export default function App() {
                     <Stack.Screen name="CreateAuction" component={CreateAuction} options={{ animation: 'slide_from_bottom' }} />
 
                     <Stack.Screen name="MainCart" component={MainCart} />
-
                     <Stack.Screen name="SellerProfileScreen" component={SellerProfileScreen} />
-
                     <Stack.Screen name="ARscreen" component={ARscreen} options={{ headerShown: false }} />
-
                     <Stack.Screen name="Fashproductsdetails" component={Fashproductsdetails} />
-
                     <Stack.Screen name="SellerPickupScreen" component={SellerPickupScreen} />
-
                     <Stack.Screen name="Premium" component={Premium} />
                   </>
                 )}

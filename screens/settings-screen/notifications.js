@@ -7,6 +7,10 @@ import { getSettings } from '../../services/authService';
 import { useFocusEffect } from '@react-navigation/native';
 import { useCallback } from 'react';
 import { Ionicons } from '@expo/vector-icons';
+import * as Notifications from 'expo-notifications';
+import * as Device from 'expo-device';
+import { submitPushToken, removePushToken } from '../../services/authService';
+import Constants from 'expo-constants';
 
 
 const NotificationsScreen = ({ navigation }) => {
@@ -30,6 +34,9 @@ const NotificationsScreen = ({ navigation }) => {
       const token = await getToken();
       const data = await getSettings(token);
 
+      const { status } = await Notifications.getPermissionsAsync();
+      console.log('Current permission status:', status);
+
       const n = data.notifications || {};
 
       setNotifications({
@@ -44,21 +51,57 @@ const NotificationsScreen = ({ navigation }) => {
     }
   };
 
+  const registerPushToken = async (token) => {
+    // On simulator — skip token registration but still allow toggle to turn on
+    if (!Device.isDevice) {
+      console.log('Simulator detected — skipping push token registration');
+      return true;  // ← was: return (undefined) which caused revert
+    }
+  
+    const { status: existingStatus } = await Notifications.getPermissionsAsync();
+    let finalStatus = existingStatus;
+  
+    if (existingStatus !== 'granted') {
+      const { status } = await Notifications.requestPermissionsAsync();
+      finalStatus = status;
+    }
+  
+    if (finalStatus !== 'granted') {
+      Alert.alert(
+        'Permission Required',
+        'Please enable notifications in your device settings to receive push notifications.',
+      );
+      return false;
+    }
+  
+    const pushTokenData = await Notifications.getExpoPushTokenAsync({
+      projectId: Constants.expoConfig?.extra?.eas?.projectId ?? Constants.easConfig?.projectId,
+    });
+    console.log('Push token:', pushTokenData.data);
+    await submitPushToken(token, pushTokenData.data);
+    console.log('Token submitted to backend');
+    return true;
+  };
+
   const handleToggle = async (key, value) => {
     const token = await getToken();
-
-    const updated = {
-      ...notifications,
-      [key]: value,
-    };
-
-    console.log("SENDING TO API:", {
-      emailNotifications: updated.email,
-      pushNotifications: updated.push,
-      orderUpdates: updated.order,
-      promotionsOffers: updated.promotions,
-    });
+    const updated = { ...notifications, [key]: value };
     setNotifications(updated);
+
+    // If toggling push on — register device token
+    // If toggling push off — remove device token from backend
+    if (key === 'push') {
+      if (value) {
+        const success = await registerPushToken(token);
+        if (!success) {
+          // Permission denied — revert the toggle
+          setNotifications(prev => ({ ...prev, push: false }));
+          return;
+        }
+      } else {
+        await removePushToken(token).catch(() => { });
+      }
+    }
 
     try {
       await updateNotifications(token, {
@@ -68,7 +111,7 @@ const NotificationsScreen = ({ navigation }) => {
         promotionsOffers: updated.promotions,
       });
     } catch (err) {
-      console.log("Update failed:", err.message);
+      console.log('Update failed:', err.message);
     }
   };
 

@@ -34,7 +34,8 @@ const InputField = ({ label, placeholder, value, onChangeText, keyboardType, max
 );
 
 export default function PaymentScreen({ navigation, route }) {
-  const { items = [], total = 0 } = route.params || {};
+  const { items = [], total = 0 } = route?.params || {};
+  const safeItems = Array.isArray(items) ? items : [];
   const safeTotal = parseFloat(total) || 0;
 
   const { getToken } = useAuth();
@@ -130,12 +131,12 @@ export default function PaymentScreen({ navigation, route }) {
             </View>
             <View style={styles.successRow}>
               <Text style={styles.successLabel}>Items</Text>
-              <Text style={styles.successValue}>{items.length} item{items.length !== 1 ? 's' : ''}</Text>
+              <Text style={styles.successValue}>{safeItems.length} item{safeItems.length !== 1 ? 's' : ''}</Text>
             </View>
             {orderId && (
               <View style={styles.successRow}>
                 <Text style={styles.successLabel}>Order ID</Text>
-                <Text style={styles.successValue}>#{orderId.slice(-6).toUpperCase()}</Text>
+                <Text style={styles.successValue}>#{orderId.slice(-6).toUpperCase() ?? '------'}</Text>
               </View>
             )}
           </View>
@@ -171,7 +172,7 @@ export default function PaymentScreen({ navigation, route }) {
           {/* Order summary */}
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Order Summary</Text>
-            {items.map((item, i) => (
+            {safeItems.map((item, i) => (
               <View key={item._id ?? i} style={styles.orderItem}>
                 <Text style={styles.orderItemTitle} numberOfLines={1}>{item.title}</Text>
                 <Text style={styles.orderItemPrice}>EGP {item.price}</Text>

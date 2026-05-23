@@ -234,6 +234,21 @@ export async function getSettings(token) {
   });
 }
 
+export async function submitPushToken(token, pushToken) {
+  return request('/devices/push-token', {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${token}` },
+    body: JSON.stringify({ pushToken }),
+  });
+}
+
+export async function removePushToken(token) {
+  return request('/devices/push-token', {
+    method: 'DELETE',
+    headers: { Authorization: `Bearer ${token}` },
+  });
+}
+
 
 // LANGUAGES
 export async function updateLanguage(token, languageSettings) {
@@ -589,14 +604,14 @@ export async function getNearbyCenters(lat, lng) {
   return request(`/donations/centers?lat=${lat}&lng=${lng}&maxDistanceKm=99999`);
 }
 
-export async function createDonation(token, donationCenterId, items) {
+export async function createDonation(token, donationCenterId, donationItems) {
   return request('/donations', {
     method: 'POST',
     headers: { Authorization: `Bearer ${token}` },
     body: JSON.stringify({
       donationCenterId,
-      items,                                    
-      itemIds: items.map(i => i.wardrobeItemId), 
+      items: donationItems,
+      itemIds: donationItems.map(i => i.wardrobeItemId),
     }),
   });
 }
@@ -733,5 +748,19 @@ export async function createSellerReview(token, sellerId, reviewData) {
     method: 'POST',
     headers: { Authorization: `Bearer ${token}` },
     body: JSON.stringify(reviewData),
+  });
+}
+
+// SELLING TAB IN ORDERS
+export async function getSales(token) {
+  return request('/orders/sales', { headers: { Authorization: `Bearer ${token}` } });
+}
+
+// SELLER PICKUP INFORMATION
+export async function submitPickupDetails(token, orderId, payload) {
+  return request(`/orders/${orderId}/pickup`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${token}` },
+    body: JSON.stringify(payload),
   });
 }

@@ -5,7 +5,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { getOrders } from '../../services/authService';
+import { getOrders, getSales } from '../../services/authService';
 import { AuthContext } from '../../context/AuthContext';
 import { useFocusEffect } from '@react-navigation/native';
 
@@ -20,19 +20,19 @@ const COLORS = {
 };
 
 const STATUS_CONFIG = {
-  pending:          { label: 'Pending',          bg: '#FEF3C7', text: '#92400E' },
-  confirmed:        { label: 'Confirmed',         bg: '#DBEAFE', text: '#1E40AF' },
-  preparing:        { label: 'Preparing',         bg: '#FFEDD5', text: '#9A3412' },
-  shipped:          { label: 'Shipped',           bg: '#EDE9FE', text: '#5B21B6' },
-  on_the_way:       { label: 'On the Way',        bg: '#EDE9FE', text: '#5B21B6' },
-  delivered:        { label: 'Delivered',         bg: '#D1FAE5', text: '#065F46' },
-  cancelled:        { label: 'Cancelled',         bg: '#FEE2E2', text: '#991B1B' },
-  cash_on_delivery: { label: 'Cash on Delivery',  bg: '#FEF3C7', text: '#92400E' },
+  pending: { label: 'Pending', bg: '#FEF3C7', text: '#92400E' },
+  confirmed: { label: 'Confirmed', bg: '#DBEAFE', text: '#1E40AF' },
+  preparing: { label: 'Preparing', bg: '#FFEDD5', text: '#9A3412' },
+  shipped: { label: 'Shipped', bg: '#EDE9FE', text: '#5B21B6' },
+  on_the_way: { label: 'On the Way', bg: '#EDE9FE', text: '#5B21B6' },
+  delivered: { label: 'Delivered', bg: '#D1FAE5', text: '#065F46' },
+  cancelled: { label: 'Cancelled', bg: '#FEE2E2', text: '#991B1B' },
+  cash_on_delivery: { label: 'Cash on Delivery', bg: '#FEF3C7', text: '#92400E' },
   // ── Seller-side statuses ──
-  awaiting_pickup:  { label: 'Awaiting Pickup',   bg: '#FEF3C7', text: '#92400E' },
-  courier_dispatched:{ label: 'Courier Dispatched',bg: '#EDE9FE', text: '#5B21B6' },
-  item_verified:    { label: 'Item Verified',     bg: '#D1FAE5', text: '#065F46' },
-  item_rejected:    { label: 'Item Rejected',     bg: '#FEE2E2', text: '#991B1B' },
+  awaiting_pickup: { label: 'Awaiting Pickup', bg: '#FEF3C7', text: '#92400E' },
+  courier_dispatched: { label: 'Courier Dispatched', bg: '#EDE9FE', text: '#5B21B6' },
+  item_verified: { label: 'Item Verified', bg: '#D1FAE5', text: '#065F46' },
+  item_rejected: { label: 'Item Rejected', bg: '#FEE2E2', text: '#991B1B' },
 };
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -113,7 +113,7 @@ const BuyingOrderCard = ({ order, onPress }) => (
 // Selling order card — shows pickup banner based on status
 const SellingOrderCard = ({ order, onNavigateToPickup }) => {
   const needsPickup = order.status === 'awaiting_pickup';
-  const hasPickup   = order.pickupInfo != null; // backend sets this once submitted
+  const hasPickup = order.pickupInfo != null; // backend sets this once submitted
 
   return (
     <View style={styles.card}>
@@ -156,7 +156,7 @@ const SellingOrderCard = ({ order, onNavigateToPickup }) => {
         <ActionRequiredBanner
           onPress={() =>
             onNavigateToPickup({
-              orderId: order._id?.toString().slice(-6).toUpperCase(),
+              orderId: order._id?.toString().toUpperCase(),
               item: {
                 name: order.items?.[0]?.name ?? 'Item',
                 price: order.total ?? 0,
@@ -173,7 +173,7 @@ const SellingOrderCard = ({ order, onNavigateToPickup }) => {
         <PickupScheduledBanner
           onPress={() =>
             onNavigateToPickup({
-              orderId: order._id?.toString().slice(-6).toUpperCase(),
+              orderId: order._id?.toString().toUpperCase(),
               item: {
                 name: order.items?.[0]?.name ?? 'Item',
                 price: order.total ?? 0,
@@ -263,31 +263,26 @@ export default function OrdersScreen({ navigation }) {
           setError(null);
           const token = await getToken();
           if (!token) return;
-
-          const data = await getOrders(token);
-          const all = Array.isArray(data) ? data : data.orders ?? [];
-
-          // Split into buying vs selling
-          // Adjust the field name to match your backend (e.g. order.isSeller, order.role, etc.)
-          setOrders(all.filter((o) => !o.isSeller));
-          setSales(all.filter((o) => o.isSeller));
-
-          // ── TODO: if your backend has separate endpoints ──
-          // const salesData = await getSales(token);
-          // setSales(salesData);
-
+  
+          const [ordersData, salesData] = await Promise.all([
+            getOrders(token),
+            getSales(token).catch(() => []),
+          ]);
+  
+          setOrders(Array.isArray(ordersData) ? ordersData : ordersData.orders ?? []);
+          setSales(Array.isArray(salesData)   ? salesData  : salesData.orders  ?? []);
         } catch (e) {
           setError(e.message);
         } finally {
           setLoading(false);
         }
       };
-      fetchOrders();
+      fetchOrders();   
     }, [])
   );
 
   const handleNavigateToPickup = useCallback((params) => {
-    navigation.navigate('SellerPickup', params);
+    navigation.navigate('SellerPickupScreen', params);
   }, [navigation]);
 
   const listData = activeTab === 'buying' ? orders : sales;
@@ -369,10 +364,10 @@ export default function OrdersScreen({ navigation }) {
 // ─── Styles ───────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
-  safe:         { flex: 1, backgroundColor: COLORS.bg },
-  centered:     { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  logoHeader:   { paddingBottom: 10, alignItems: 'center', backgroundColor: COLORS.bg },
-  logo:         { width: 120, height: 50 },
+  safe: { flex: 1, backgroundColor: COLORS.bg },
+  centered: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  logoHeader: { paddingBottom: 10, alignItems: 'center', backgroundColor: COLORS.bg },
+  logo: { width: 120, height: 50 },
 
   header: {
     flexDirection: 'row', alignItems: 'center',
@@ -421,16 +416,16 @@ const styles = StyleSheet.create({
     shadowColor: COLORS.accent, shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.08, shadowRadius: 6, elevation: 2,
   },
-  cardTop:          { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
-  orderId:          { fontSize: 14, fontWeight: '700', color: COLORS.text },
-  orderDate:        { fontSize: 12, color: COLORS.muted, marginTop: 3 },
-  cardDivider:      { height: StyleSheet.hairlineWidth, backgroundColor: COLORS.border, marginVertical: 12 },
-  cardBottom:       { flexDirection: 'row', alignItems: 'center' },
-  cardStat:         { flex: 1 },
-  cardStatLabel:    { fontSize: 11, color: COLORS.muted, marginBottom: 2 },
-  cardStatValue:    { fontSize: 14, fontWeight: '600', color: COLORS.text },
-  cardStatDivider:  { width: StyleSheet.hairlineWidth, height: 28, backgroundColor: COLORS.border, marginHorizontal: 16 },
-  cardArrow:        { marginLeft: 'auto', paddingLeft: 12 },
+  cardTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
+  orderId: { fontSize: 14, fontWeight: '700', color: COLORS.text },
+  orderDate: { fontSize: 12, color: COLORS.muted, marginTop: 3 },
+  cardDivider: { height: StyleSheet.hairlineWidth, backgroundColor: COLORS.border, marginVertical: 12 },
+  cardBottom: { flexDirection: 'row', alignItems: 'center' },
+  cardStat: { flex: 1 },
+  cardStatLabel: { fontSize: 11, color: COLORS.muted, marginBottom: 2 },
+  cardStatValue: { fontSize: 14, fontWeight: '600', color: COLORS.text },
+  cardStatDivider: { width: StyleSheet.hairlineWidth, height: 28, backgroundColor: COLORS.border, marginHorizontal: 16 },
+  cardArrow: { marginLeft: 'auto', paddingLeft: 12 },
 
   // Selling card extras
   sellingItemName: {
@@ -446,14 +441,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12, paddingVertical: 10,
     borderWidth: 1, borderColor: 'rgba(193,124,116,0.3)',
   },
-  actionBannerLeft:  { flexDirection: 'row', alignItems: 'center' },
+  actionBannerLeft: { flexDirection: 'row', alignItems: 'center' },
   actionDot: {
     width: 8, height: 8, borderRadius: 4,
     backgroundColor: COLORS.accent,
     marginRight: 10,
   },
   actionBannerTitle: { fontSize: 13, fontWeight: '700', color: COLORS.accent },
-  actionBannerSub:   { fontSize: 11, color: COLORS.muted, marginTop: 1 },
+  actionBannerSub: { fontSize: 11, color: COLORS.muted, marginTop: 1 },
 
   // Scheduled banner
   scheduledBanner: {
@@ -467,17 +462,17 @@ const styles = StyleSheet.create({
   scheduledBannerText: { fontSize: 12, fontWeight: '600', color: COLORS.successText },
 
   // Badge
-  badge:     { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 20 },
+  badge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 20 },
   badgeText: { fontSize: 11, fontWeight: '700' },
 
   // Empty state
   emptyContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 40 },
-  emptyIcon:      { fontSize: 56, marginBottom: 16 },
-  emptyTitle:     { fontSize: 20, fontWeight: '700', color: COLORS.text, marginBottom: 8 },
-  emptySubtitle:  { fontSize: 14, color: COLORS.muted, textAlign: 'center', marginBottom: 28, lineHeight: 20 },
-  emptyBtn:       { backgroundColor: COLORS.accent, paddingHorizontal: 32, paddingVertical: 12, borderRadius: 20 },
-  emptyBtnText:   { color: COLORS.white, fontWeight: '700', fontSize: 14 },
+  emptyIcon: { fontSize: 56, marginBottom: 16 },
+  emptyTitle: { fontSize: 20, fontWeight: '700', color: COLORS.text, marginBottom: 8 },
+  emptySubtitle: { fontSize: 14, color: COLORS.muted, textAlign: 'center', marginBottom: 28, lineHeight: 20 },
+  emptyBtn: { backgroundColor: COLORS.accent, paddingHorizontal: 32, paddingVertical: 12, borderRadius: 20 },
+  emptyBtnText: { color: COLORS.white, fontWeight: '700', fontSize: 14 },
 
   errorText: { color: COLORS.muted, fontSize: 14, marginBottom: 12 },
-  retryText:  { color: COLORS.accent, fontWeight: '600', fontSize: 14 },
+  retryText: { color: COLORS.accent, fontWeight: '600', fontSize: 14 },
 });

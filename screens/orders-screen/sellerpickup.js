@@ -1,6 +1,8 @@
 import React, { useState, useCallback } from 'react';
 import {View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, SafeAreaView, Alert, KeyboardAvoidingView, Platform, Image,} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useAuth } from '../../context/AuthContext';  
+import { submitPickupDetails } from '../../services/authService';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -182,6 +184,9 @@ export default function SellerPickupScreen({ route, navigation }) {
     readOnly = false,
   } = route?.params ?? {};
 
+  const { getToken } = useAuth();
+
+
   // Form state
   const [fullName, setFullName] = useState('');
   const [phone, setPhone] = useState('');
@@ -194,35 +199,27 @@ export default function SellerPickupScreen({ route, navigation }) {
   const [submitting, setSubmitting] = useState(false);
 
   const handleSubmit = useCallback(async () => {
-    if (!fullName.trim()) {
-      Alert.alert('Missing field', 'Please enter your full name.');
-      return;
-    }
-    if (!phone.trim()) {
-      Alert.alert('Missing field', 'Please enter your phone number.');
-      return;
-    }
-    if (!street.trim() || !city.trim()) {
-      Alert.alert('Missing field', 'Please complete your pickup address.');
-      return;
-    }
-
+    if (!fullName.trim()) { Alert.alert('Missing field', 'Please enter your full name.'); return; }
+    if (!phone.trim())    { Alert.alert('Missing field', 'Please enter your phone number.'); return; }
+    if (!street.trim() || !city.trim()) { Alert.alert('Missing field', 'Please complete your pickup address.'); return; }
+  
     setSubmitting(true);
-
-    // TODO: replace with your actual API call
-    // await api.post('/orders/${orderId}/pickup', {
-    //   fullName, phone, street, city, postalCode,
-    //   instructions, pickupDate: selectedDate, pickupSlot: selectedSlot,
-    // });
-
-    setTimeout(() => {
-      setSubmitting(false);
+    try {
+      const token = await getToken();
+      await submitPickupDetails(token, orderId, {
+        fullName, phone, street, city, postalCode,
+        instructions, pickupDate: selectedDate, pickupSlot: selectedSlot,
+      });
       Alert.alert(
-        'Pickup confirmed!',
-        'We will dispatch a courier to collect your item.',
+        'Pickup confirmed! 📦',
+        'A courier will be dispatched to collect your item.',
         [{ text: 'OK', onPress: () => navigation?.goBack() }]
       );
-    }, 1200);
+    } catch (err) {
+      Alert.alert('Error', err.message);
+    } finally {
+      setSubmitting(false);
+    }
   }, [fullName, phone, street, city, postalCode, instructions, selectedDate, selectedSlot, orderId, navigation]);
 
   const inputStyle = (disabled) => [
