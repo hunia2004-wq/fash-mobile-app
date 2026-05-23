@@ -1,8 +1,8 @@
-import React, { useState, useCallback } from 'react';
-import {View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, SafeAreaView, Alert, KeyboardAvoidingView, Platform, Image,} from 'react-native';
+import React, { useState, useCallback, useEffect } from 'react';
+import {View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, SafeAreaView, Alert, KeyboardAvoidingView, Platform, Image, ActivityIndicator} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../../context/AuthContext';  
-import { submitPickupDetails } from '../../services/authService';
+import { submitPickupDetails, getPickupDetails } from '../../services/authService';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -198,6 +198,37 @@ export default function SellerPickupScreen({ route, navigation }) {
   const [selectedSlot, setSelectedSlot] = useState(TIME_SLOTS[1]);
   const [submitting, setSubmitting] = useState(false);
 
+  const [loading, setLoading] = useState(true);
+
+useEffect(() => {
+  async function fetchPickup() {
+    try {
+      const token = await getToken();
+      const data = await getPickupDetails(token, orderId);
+
+      // Pre-fill item + buyer from server
+      // (route.params may already have these, but server is source of truth)
+      if (data.pickup?.fullName)   setFullName(data.pickup.fullName);
+      if (data.pickup?.phone)      setPhone(data.pickup.phone);
+      if (data.pickup?.street)     setStreet(data.pickup.street);
+      if (data.pickup?.city)       setCity(data.pickup.city);
+      if (data.pickup?.postalCode) setPostalCode(data.pickup.postalCode);
+      if (data.pickup?.additionalInstructions) setInstructions(data.pickup.additionalInstructions);
+      if (data.pickup?.preferredDate)
+        setSelectedDate(data.pickup.preferredDate.split('T')[0]);
+      if (data.pickup?.timeWindow) setSelectedSlot(data.pickup.timeWindow);
+
+    } catch (err) {
+      // Non-fatal — screen still usable for first-time submission
+      console.warn('Could not load pickup details:', err.message);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  fetchPickup();
+}, [orderId]);
+
   const handleSubmit = useCallback(async () => {
     if (!fullName.trim()) { Alert.alert('Missing field', 'Please enter your full name.'); return; }
     if (!phone.trim())    { Alert.alert('Missing field', 'Please enter your phone number.'); return; }
@@ -208,7 +239,7 @@ export default function SellerPickupScreen({ route, navigation }) {
       const token = await getToken();
       await submitPickupDetails(token, orderId, {
         fullName, phone, street, city, postalCode,
-        instructions, pickupDate: selectedDate, pickupSlot: selectedSlot,
+        additionalInstructions: instructions,   preferredDate: selectedDate, timeWindow: selectedSlot,
       });
       Alert.alert(
         'Pickup confirmed! 📦',
@@ -226,6 +257,16 @@ export default function SellerPickupScreen({ route, navigation }) {
     styles.input,
     disabled && styles.inputDisabled,
   ];
+
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.safeArea}>
+        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+          <ActivityIndicator size="large" color={COLORS.button} />
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.safeArea}>

@@ -765,3 +765,9 @@ export async function submitPickupDetails(token, orderId, payload) {
     body: JSON.stringify(payload),
   });
 }
+
+export async function getPickupDetails(token, orderId) {
+  return request(`/orders/${orderId}/pickup`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+}
