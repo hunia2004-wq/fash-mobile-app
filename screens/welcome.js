@@ -16,7 +16,7 @@ export default function WelcomeScreen({ navigation }) {
       {/* title */}
       <Text style={styles.title}>Welcome to FASH</Text>
       <Text style={styles.subtitle}>
-        Your Personal Fashion Companion
+        Your Style, Your Way
       </Text>
 
       {/* buttons */}
