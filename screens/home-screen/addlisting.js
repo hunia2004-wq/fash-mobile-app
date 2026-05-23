@@ -25,12 +25,18 @@ const SIZE_OPTIONS = {
 
 const getSizesForCategory = (cat) => SIZE_OPTIONS[cat] ?? SIZE_OPTIONS.default;
 
-const Field = ({ label, required, children }) => (
+const Field = ({ label, required, children, error }) => (
   <View style={styles.field}>
     <Text style={styles.fieldLabel}>
       {label}{required && <Text style={styles.required}> *</Text>}
     </Text>
     {children}
+    {error ? (
+      <View style={styles.errorRow}>
+        <Ionicons name="alert-circle-outline" size={13} color="#c2185b" />
+        <Text style={styles.errorText}>{error}</Text>
+      </View>
+    ) : null}
   </View>
 );
 
@@ -65,16 +71,48 @@ export default function AddListingScreen({ navigation }) {
   const [size,        setSize]        = useState('');
   const [images,      setImages]      = useState([]);
   const [saving,      setSaving]      = useState(false);
+  const [errors,      setErrors]      = useState({});
 
-  // ── Image validation state ─────────────────────────────────────
   const [validatingImage, setValidatingImage] = useState(false);
-  const [imageValidation, setImageValidation] = useState(null); // { valid, message }
+  const [imageValidation, setImageValidation] = useState(null);
+
+  const clearError = (field) => setErrors(prev => ({ ...prev, [field]: '' }));
+
+  const validate = () => {
+    const newErrors = {};
+    if (!title.trim())
+      newErrors.title = 'Please enter a title';
+    else if (title.trim().length < 3)
+      newErrors.title = 'Title must be at least 3 characters';
+
+    if (!price)
+      newErrors.price = 'Please enter a price';
+    else if (isNaN(parseFloat(price)) || parseFloat(price) <= 0)
+      newErrors.price = 'Enter a valid price greater than 0';
+
+    if (!category)
+      newErrors.category = 'Please select a category';
+
+    if (!condition)
+      newErrors.condition = 'Please select a condition';
+
+    if (!effectiveSize)
+      newErrors.size = 'Please select a size';
+
+    if (!description.trim())
+      newErrors.description = 'Please add a description';
+    else if (description.trim().length < 10)
+      newErrors.description = 'Description must be at least 10 characters';
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleCategorySelect = (cat) => {
     setCategory(cat);
+    clearError('category');
     const validSizes = getSizesForCategory(cat);
     if (size && !validSizes.includes(size)) setSize('');
-    // Re-validate existing image against new category
     if (images.length > 0) validateImageForCategory(images[0], cat);
   };
 
@@ -82,39 +120,33 @@ export default function AddListingScreen({ navigation }) {
   const autoOneSize    = availableSizes.length === 1 && availableSizes[0] === 'One Size';
   const effectiveSize  = autoOneSize ? 'One Size' : size;
 
-  const isValid = title && price && description && category && condition && effectiveSize
-    && imageValidation?.valid !== false; // only blocks on explicit false
+  const isValid = !Object.values(errors).some(Boolean);
 
-  // ── Validate image via Gemini ──────────────────────────────────
   const validateImageForCategory = async (imageUri, cat) => {
     if (!cat) return;
     try {
       setValidatingImage(true);
       setImageValidation(null);
       const token = await getToken();
-
       const formData = new FormData();
       formData.append('image',    { uri: imageUri, type: 'image/jpeg', name: 'validate.jpg' });
       formData.append('category', cat);
-
       const response = await fetch(`${BASE_URL}/listings/validate-image`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` },
         body: formData,
       });
       const data = await response.json();
-      setImageValidation(data); // { valid: bool, message: string }
+      setImageValidation(data);
     } catch {
-      setImageValidation({ valid: true, message: '' }); // fail open
+      setImageValidation({ valid: true, message: '' });
     } finally {
       setValidatingImage(false);
     }
   };
 
-  // ── Image pickers ──────────────────────────────────────────────
   const pickImage = async (fromCamera = false) => {
     if (images.length >= 5) { Alert.alert('Limit reached', 'You can add up to 5 photos.'); return; }
-
     if (fromCamera) {
       const perm = await ImagePicker.requestCameraPermissionsAsync();
       if (!perm.granted) { Alert.alert('Permission required', 'Please allow camera access.'); return; }
@@ -128,9 +160,7 @@ export default function AddListingScreen({ navigation }) {
       const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (!perm.granted) { Alert.alert('Permission required', 'Please allow photo library access.'); return; }
       const result = await ImagePicker.launchImageLibraryAsync({
-        quality: 0.8,
-        allowsMultipleSelection: true,
-        selectionLimit: 5 - images.length,
+        quality: 0.8, allowsMultipleSelection: true, selectionLimit: 5 - images.length,
       });
       if (!result.canceled) {
         const uris = result.assets.map(a => a.uri);
@@ -145,21 +175,15 @@ export default function AddListingScreen({ navigation }) {
     if (index === 0) setImageValidation(null);
   };
 
-  // ── Submit ─────────────────────────────────────────────────────
   const handleSubmit = async () => {
-    if (!isValid) {
-      Alert.alert('Missing info', 'Please fill in all required fields.');
-      return;
-    }
+    if (!validate()) return;
     if (imageValidation?.valid === false) {
       Alert.alert('Wrong category', imageValidation.message);
       return;
     }
-
     try {
       setSaving(true);
       const token = await getToken();
-
       const formData = new FormData();
       formData.append('title',       title.trim());
       formData.append('price',       price);
@@ -169,16 +193,11 @@ export default function AddListingScreen({ navigation }) {
       formData.append('size',        effectiveSize);
       if (brand)    formData.append('brand',    brand.trim());
       if (location) formData.append('location', location.trim());
-
       images.forEach((uri, i) => {
         formData.append('images', { uri, type: 'image/jpeg', name: `photo_${i}.jpg` });
       });
-
       await createListing(token, formData);
-
-      Alert.alert(
-        'Listing Posted! 🎉',
-        'Your item is now live on the Marketplace.',
+      Alert.alert('Listing Posted! 🎉', 'Your item is now live on the Marketplace.',
         [{ text: 'OK', onPress: () => navigation.goBack() }]
       );
     } catch (err) {
@@ -200,12 +219,8 @@ export default function AddListingScreen({ navigation }) {
         <View style={{ width: 40 }} />
       </View>
 
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
-        keyboardShouldPersistTaps="handled"
-      >
-        {/* Photo upload */}
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
+
         <View style={styles.photoSection}>
           {images.length === 0 ? (
             <TouchableOpacity style={styles.photoUpload} onPress={() => pickImage(false)} activeOpacity={0.8}>
@@ -220,11 +235,7 @@ export default function AddListingScreen({ navigation }) {
               {images.map((uri, index) => (
                 <View key={index} style={styles.imageThumb}>
                   <Image source={{ uri }} style={styles.thumbImg} />
-                  {index === 0 && (
-                    <View style={styles.coverBadge}>
-                      <Text style={styles.coverBadgeText}>Cover</Text>
-                    </View>
-                  )}
+                  {index === 0 && <View style={styles.coverBadge}><Text style={styles.coverBadgeText}>Cover</Text></View>}
                   <TouchableOpacity style={styles.removeImgBtn} onPress={() => removeImage(index)}>
                     <Ionicons name="close-circle" size={18} color="#E05C5C" />
                   </TouchableOpacity>
@@ -238,7 +249,6 @@ export default function AddListingScreen({ navigation }) {
             </View>
           )}
 
-          {/* Image validation feedback */}
           {validatingImage && (
             <View style={styles.validationRow}>
               <ActivityIndicator size="small" color={COLORS.accent} />
@@ -247,14 +257,8 @@ export default function AddListingScreen({ navigation }) {
           )}
           {imageValidation && !validatingImage && (
             <View style={[styles.validationRow, { backgroundColor: imageValidation.valid ? '#e8f5e9' : '#fce4ec' }]}>
-              <Ionicons
-                name={imageValidation.valid ? 'checkmark-circle' : 'close-circle'}
-                size={16}
-                color={imageValidation.valid ? '#388e3c' : '#c2185b'}
-              />
-              <Text style={[styles.validationText, { color: imageValidation.valid ? '#388e3c' : '#c2185b' }]}>
-                {imageValidation.message}
-              </Text>
+              <Ionicons name={imageValidation.valid ? 'checkmark-circle' : 'close-circle'} size={16} color={imageValidation.valid ? '#388e3c' : '#c2185b'} />
+              <Text style={[styles.validationText, { color: imageValidation.valid ? '#388e3c' : '#c2185b' }]}>{imageValidation.message}</Text>
             </View>
           )}
 
@@ -272,14 +276,27 @@ export default function AddListingScreen({ navigation }) {
 
         <View style={styles.form}>
 
-          <Field label="Title" required>
-            <TextInput style={styles.input} placeholder="e.g. Nike Air Max Size 42" placeholderTextColor={COLORS.muted} value={title} onChangeText={setTitle} />
+          <Field label="Title" required error={errors.title}>
+            <TextInput
+              style={[styles.input, errors.title && styles.inputError]}
+              placeholder="e.g. Nike Air Max Size 42"
+              placeholderTextColor={COLORS.muted}
+              value={title}
+              onChangeText={v => { setTitle(v); clearError('title'); }}
+            />
           </Field>
 
-          <Field label="Price (EGP)" required>
-            <View style={styles.priceInput}>
+          <Field label="Price (EGP)" required error={errors.price}>
+            <View style={[styles.priceInput, errors.price && styles.inputError]}>
               <Text style={styles.currencySign}>EGP</Text>
-              <TextInput style={[styles.input, { flex: 1, borderWidth: 0, paddingLeft: 4 }]} placeholder="0.00" placeholderTextColor={COLORS.muted} keyboardType="decimal-pad" value={price} onChangeText={setPrice} />
+              <TextInput
+                style={[styles.input, { flex: 1, borderWidth: 0, paddingLeft: 4 }]}
+                placeholder="0.00"
+                placeholderTextColor={COLORS.muted}
+                keyboardType="decimal-pad"
+                value={price}
+                onChangeText={v => { setPrice(v); clearError('price'); }}
+              />
             </View>
           </Field>
 
@@ -287,15 +304,15 @@ export default function AddListingScreen({ navigation }) {
             <TextInput style={styles.input} placeholder="e.g. Nike, Zara, H&M" placeholderTextColor={COLORS.muted} value={brand} onChangeText={setBrand} />
           </Field>
 
-          <Field label="Category" required>
+          <Field label="Category" required error={errors.category}>
             <TagRow options={CATEGORIES.filter(c => c !== 'All')} selected={category} onSelect={handleCategorySelect} />
           </Field>
 
-          <Field label="Condition" required>
-            <TagRow options={CONDITIONS} selected={condition} onSelect={setCondition} />
+          <Field label="Condition" required error={errors.condition}>
+            <TagRow options={CONDITIONS} selected={condition} onSelect={v => { setCondition(v); clearError('condition'); }} />
           </Field>
 
-          <Field label="Size" required>
+          <Field label="Size" required error={errors.size}>
             {autoOneSize ? (
               <View style={styles.autoSizeNote}>
                 <Ionicons name="checkmark-circle" size={16} color={COLORS.accent} />
@@ -307,13 +324,20 @@ export default function AddListingScreen({ navigation }) {
                   ? <Text style={styles.sizeHint}>{category === 'Shoes' ? 'EU shoe sizes' : category === 'Perfumes' ? 'Bottle size' : 'One size fits all'}</Text>
                   : <Text style={styles.sizeHint}>Select a category first to see size options</Text>
                 }
-                <TagRow options={availableSizes} selected={size} onSelect={setSize} />
+                <TagRow options={availableSizes} selected={size} onSelect={v => { setSize(v); clearError('size'); }} />
               </>
             )}
           </Field>
 
-          <Field label="Description" required>
-            <TextInput style={[styles.input, styles.textArea]} placeholder="Describe your item — fit, fabric, any flaws..." placeholderTextColor={COLORS.muted} value={description} onChangeText={setDescription} multiline numberOfLines={4} textAlignVertical="top" />
+          <Field label="Description" required error={errors.description}>
+            <TextInput
+              style={[styles.input, styles.textArea, errors.description && styles.inputError]}
+              placeholder="Describe your item — fit, fabric, any flaws..."
+              placeholderTextColor={COLORS.muted}
+              value={description}
+              onChangeText={v => { setDescription(v); clearError('description'); }}
+              multiline numberOfLines={4} textAlignVertical="top"
+            />
           </Field>
 
           <Field label="Location">
@@ -334,26 +358,24 @@ export default function AddListingScreen({ navigation }) {
         <View style={{ height: 120 }} />
       </ScrollView>
 
-      {/* Submit bar */}
       <View style={styles.ctaBar}>
         <View style={styles.ctaInfo}>
           <Text style={styles.ctaInfoText}>
             {images.length > 0 ? `${images.length} photo${images.length > 1 ? 's' : ''} added` : 'No photos'}
             {' · '}
-            {validatingImage ? 'Validating image...' : isValid ? 'Ready to post' : 'Fill required fields'}
+            {validatingImage ? 'Validating image...' : 'Fill required fields to post'}
           </Text>
         </View>
         <TouchableOpacity
-          style={[styles.submitBtn, (!isValid || saving || validatingImage) && styles.submitBtnDisabled]}
+          style={[styles.submitBtn, (saving || validatingImage) && styles.submitBtnDisabled]}
           onPress={handleSubmit}
-          disabled={!isValid || saving || validatingImage}
+          disabled={saving || validatingImage}
           activeOpacity={0.85}
         >
-          {saving ? (
-            <ActivityIndicator size="small" color={COLORS.white} style={{ marginRight: 8 }} />
-          ) : (
-            <Feather name="check" size={16} color={COLORS.white} style={{ marginRight: 8 }} />
-          )}
+          {saving
+            ? <ActivityIndicator size="small" color={COLORS.white} style={{ marginRight: 8 }} />
+            : <Feather name="check" size={16} color={COLORS.white} style={{ marginRight: 8 }} />
+          }
           <Text style={styles.submitBtnText}>{saving ? 'Posting...' : 'Post Listing'}</Text>
         </TouchableOpacity>
       </View>
@@ -382,16 +404,17 @@ const styles = StyleSheet.create({
   coverBadgeText: { color: COLORS.white, fontSize: 9, fontWeight: '700' },
   removeImgBtn:   { position: 'absolute', top: -6, right: -6, backgroundColor: COLORS.white, borderRadius: 10 },
   addMoreBtn:     { width: 80, height: 80, borderRadius: 12, borderWidth: 1.5, borderColor: COLORS.accent, borderStyle: 'dashed', backgroundColor: COLORS.card, alignItems: 'center', justifyContent: 'center' },
-
-  validationRow:   { flexDirection: 'row', alignItems: 'center', gap: 8, borderRadius: 12, padding: 10, marginBottom: 8 },
-  validatingText:  { fontSize: 12, color: COLORS.muted },
-  validationText:  { flex: 1, fontSize: 12, fontWeight: '600' },
-
+  validationRow:  { flexDirection: 'row', alignItems: 'center', gap: 8, borderRadius: 12, padding: 10, marginBottom: 8 },
+  validatingText: { fontSize: 12, color: COLORS.muted },
+  validationText: { flex: 1, fontSize: 12, fontWeight: '600' },
   form:           { paddingHorizontal: 20 },
   field:          { marginBottom: 22 },
   fieldLabel:     { fontSize: 11, fontWeight: '700', color: COLORS.accent, marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.9 },
   required:       { color: COLORS.accent },
   input:          { backgroundColor: COLORS.white, borderWidth: 1, borderColor: '#e0c8c5', borderRadius: 12, paddingHorizontal: 14, paddingVertical: 11, fontSize: 14, color: '#2c2c2c' },
+  inputError:     { borderColor: '#c2185b', backgroundColor: '#fce4ec' },
+  errorRow:       { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 5 },
+  errorText:      { fontSize: 11, color: '#c2185b', fontWeight: '600', flex: 1 },
   textArea:       { height: 100, paddingTop: 13 },
   priceInput:     { flexDirection: 'row', alignItems: 'center', backgroundColor: COLORS.white, borderWidth: 1, borderColor: '#e0c8c5', borderRadius: 12, paddingHorizontal: 14 },
   currencySign:   { fontSize: 16, fontWeight: '700', color: COLORS.accent },

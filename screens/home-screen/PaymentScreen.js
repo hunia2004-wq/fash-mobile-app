@@ -17,11 +17,11 @@ const COLORS = {
   success: '#6abf7b', successLight: '#e8f5e9',
 };
 
-const InputField = ({ label, placeholder, value, onChangeText, keyboardType, maxLength, secureTextEntry, style }) => (
+const InputField = ({ label, placeholder, value, onChangeText, keyboardType, maxLength, secureTextEntry, style, error }) => (
   <View style={[styles.inputWrap, style]}>
     <Text style={styles.inputLabel}>{label}</Text>
     <TextInput
-      style={styles.input}
+      style={[styles.input, error && styles.inputError]}
       placeholder={placeholder}
       placeholderTextColor={COLORS.muted}
       value={value}
@@ -30,6 +30,12 @@ const InputField = ({ label, placeholder, value, onChangeText, keyboardType, max
       maxLength={maxLength}
       secureTextEntry={secureTextEntry}
     />
+    {error ? (
+      <View style={styles.errorRow}>
+        <Ionicons name="alert-circle-outline" size={13} color="#c2185b" />
+        <Text style={styles.errorText}>{error}</Text>
+      </View>
+    ) : null}
   </View>
 );
 
@@ -45,6 +51,7 @@ export default function PaymentScreen({ navigation, route }) {
   const [placing, setPlacing]             = useState(false);
   const [orderSuccess, setOrderSuccess]   = useState(false);
   const [orderId, setOrderId]             = useState(null);
+  const [errors, setErrors]               = useState({});
 
   const [fullName, setFullName]         = useState('');
   const [postalCode, setPostalCode]     = useState('');
@@ -57,7 +64,6 @@ export default function PaymentScreen({ navigation, route }) {
   const [usePoints, setUsePoints]         = useState(false);
   const [pointsLoading, setPointsLoading] = useState(true);
 
-  // 1 pt = 0.10 EGP, discount capped at 30% of order total
   const POINTS_RATE    = 0.1;
   const pointsDiscount = usePoints
     ? Math.min(userPoints * POINTS_RATE, safeTotal * 0.3)
@@ -70,7 +76,6 @@ export default function PaymentScreen({ navigation, route }) {
   const isAddressValid = fullName && address && city && phone;
   const canProceed     = isAddressValid;
 
-  // ── Load user points ───────────────────────────────────────────
   useEffect(() => {
     const loadPoints = async () => {
       try {
@@ -84,12 +89,38 @@ export default function PaymentScreen({ navigation, route }) {
     loadPoints();
   }, []);
 
+  // ── Validation ─────────────────────────────────────────────────
+  const validate = () => {
+    const newErrors = {};
+
+    if (!fullName.trim())
+      newErrors.fullName = 'Please enter your full name';
+    else if (fullName.trim().length < 3)
+      newErrors.fullName = 'Name must be at least 3 characters';
+
+    if (!phone.trim())
+      newErrors.phone = 'Please enter a phone number';
+    else if (!/^[0-9+\s\-]{7,15}$/.test(phone.trim()))
+      newErrors.phone = 'Enter a valid phone number (e.g. 01012345678)';
+
+    if (!address.trim())
+      newErrors.address = 'Please enter your street address';
+    else if (address.trim().length < 5)
+      newErrors.address = 'Address is too short';
+
+    if (!city.trim())
+      newErrors.city = 'Please enter your city';
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const clearError = (field) => setErrors(prev => ({ ...prev, [field]: '' }));
+
   // ── Place order ────────────────────────────────────────────────
   const handlePlaceOrder = async () => {
-    if (!canProceed) {
-      Alert.alert('Missing info', 'Please fill in all required fields.');
-      return;
-    }
+    if (!validate()) return;
+
     try {
       setPlacing(true);
       const token = await getToken();
@@ -99,7 +130,6 @@ export default function PaymentScreen({ navigation, route }) {
           fullName, street: address, city, postalCode, phone, instructions,
           pointsToRedeem: pointsToRedeem > 0 ? pointsToRedeem : undefined,
         });
-        console.log('COD response:', JSON.stringify(data, null, 2));
         setOrderId(data.data?._id ?? data._id ?? null);
         await clearCart();
         setOrderSuccess(true);
@@ -169,9 +199,7 @@ export default function PaymentScreen({ navigation, route }) {
             {orderId && (
               <View style={styles.successRow}>
                 <Text style={styles.successLabel}>Order ID</Text>
-                <Text style={styles.successValue}>
-                  #{orderId.slice(-6).toUpperCase()}
-                </Text>
+                <Text style={styles.successValue}>#{orderId.slice(-6).toUpperCase()}</Text>
               </View>
             )}
           </View>
@@ -187,7 +215,58 @@ export default function PaymentScreen({ navigation, route }) {
     );
   }
 
-  // ── Payment form ───────────────────────────────────────────────
+  // ── Address fields — shared between card and COD ───────────────
+  const AddressFields = () => (
+    <>
+      <InputField
+        label="Full Name *"
+        placeholder="Your full name"
+        value={fullName}
+        onChangeText={v => { setFullName(v); clearError('fullName'); }}
+        error={errors.fullName}
+      />
+      <InputField
+        label="Phone Number *"
+        placeholder="+20 100 000 0000"
+        value={phone}
+        onChangeText={v => { setPhone(v); clearError('phone'); }}
+        keyboardType="phone-pad"
+        error={errors.phone}
+      />
+      <InputField
+        label="Street Address *"
+        placeholder="32 Maadi, Apt 4"
+        value={address}
+        onChangeText={v => { setAddress(v); clearError('address'); }}
+        error={errors.address}
+      />
+      <View style={styles.rowFields}>
+        <InputField
+          label="City *"
+          placeholder="Cairo"
+          value={city}
+          onChangeText={v => { setCity(v); clearError('city'); }}
+          style={{ flex: 1, marginRight: 8 }}
+          error={errors.city}
+        />
+        <InputField
+          label="Postal Code"
+          placeholder="11511"
+          value={postalCode}
+          onChangeText={setPostalCode}
+          keyboardType="numeric"
+          style={{ flex: 1 }}
+        />
+      </View>
+      <InputField
+        label="Additional Instructions (optional)"
+        placeholder="e.g. Ring bell 2, leave with doorman…"
+        value={instructions}
+        onChangeText={setInstructions}
+      />
+    </>
+  );
+
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
       <StatusBar barStyle="dark-content" />
@@ -203,26 +282,21 @@ export default function PaymentScreen({ navigation, route }) {
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
 
-          {/* ── Order Summary ── */}
+          {/* Order Summary */}
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Order Summary</Text>
-
             {safeItems.map((item, i) => (
               <View key={item._id ?? i} style={styles.orderItem}>
                 <Text style={styles.orderItemTitle} numberOfLines={1}>{item.title}</Text>
                 <Text style={styles.orderItemPrice}>EGP {item.price}</Text>
               </View>
             ))}
-
             <View style={styles.orderDivider} />
-
-            {/* Subtotal row */}
             <View style={styles.orderItem}>
               <Text style={styles.orderSubLabel}>Subtotal</Text>
               <Text style={styles.orderSubValue}>EGP {safeTotal.toFixed(2)}</Text>
             </View>
 
-            {/* Points redemption card */}
             {!pointsLoading && userPoints > 0 && (
               <View style={styles.pointsCard}>
                 <View style={styles.pointsCardLeft}>
@@ -248,7 +322,6 @@ export default function PaymentScreen({ navigation, route }) {
               </View>
             )}
 
-            {/* Discount row — only shown when points applied */}
             {usePoints && (
               <View style={styles.orderItem}>
                 <Text style={[styles.orderItemTitle, { color: '#388e3c' }]}>Points discount</Text>
@@ -258,7 +331,6 @@ export default function PaymentScreen({ navigation, route }) {
               </View>
             )}
 
-            {/* Total row */}
             <View style={[styles.orderDivider, { marginTop: 4 }]} />
             <View style={styles.orderItem}>
               <Text style={styles.orderTotalLabel}>Total</Text>
@@ -266,7 +338,7 @@ export default function PaymentScreen({ navigation, route }) {
             </View>
           </View>
 
-          {/* ── Payment Method ── */}
+          {/* Payment Method */}
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Payment Method</Text>
             <View style={styles.methodRow}>
@@ -289,7 +361,7 @@ export default function PaymentScreen({ navigation, route }) {
             </View>
           </View>
 
-          {/* ── Card Payment ── */}
+          {/* Card Payment */}
           {paymentMethod === 'card' && (
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>Card Payment</Text>
@@ -305,19 +377,12 @@ export default function PaymentScreen({ navigation, route }) {
               </View>
               <View style={{ marginTop: 20 }}>
                 <Text style={styles.sectionTitle}>Delivery Address</Text>
-                <InputField label="Full Name" placeholder="Your full name" value={fullName} onChangeText={setFullName} />
-                <InputField label="Phone Number" placeholder="+20 100 000 0000" value={phone} onChangeText={setPhone} keyboardType="phone-pad" />
-                <InputField label="Street Address" placeholder="32 Maadi, Apt 4" value={address} onChangeText={setAddress} />
-                <View style={styles.rowFields}>
-                  <InputField label="City" placeholder="Cairo" value={city} onChangeText={setCity} style={{ flex: 1, marginRight: 8 }} />
-                  <InputField label="Postal Code" placeholder="11511" value={postalCode} onChangeText={setPostalCode} keyboardType="numeric" style={{ flex: 1 }} />
-                </View>
-                <InputField label="Additional Instructions (optional)" placeholder="e.g. Ring bell 2, leave with doorman…" value={instructions} onChangeText={setInstructions} />
+                <AddressFields />
               </View>
             </View>
           )}
 
-          {/* ── Cash on Delivery ── */}
+          {/* Cash on Delivery */}
           {paymentMethod === 'cash' && (
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>Delivery Details</Text>
@@ -325,27 +390,19 @@ export default function PaymentScreen({ navigation, route }) {
                 <Ionicons name="cash-outline" size={16} color={COLORS.accent} />
                 <Text style={styles.cashInfoText}>Pay with cash when your order arrives</Text>
               </View>
-              <InputField label="Full Name" placeholder="Your full name" value={fullName} onChangeText={setFullName} />
-              <InputField label="Phone Number" placeholder="+20 100 000 0000" value={phone} onChangeText={setPhone} keyboardType="phone-pad" />
-              <InputField label="Street Address" placeholder="32 Maadi, Apt 4" value={address} onChangeText={setAddress} />
-              <View style={styles.rowFields}>
-                <InputField label="City" placeholder="Cairo" value={city} onChangeText={setCity} style={{ flex: 1, marginRight: 8 }} />
-                <InputField label="Postal Code" placeholder="11511" value={postalCode} onChangeText={setPostalCode} keyboardType="numeric" style={{ flex: 1 }} />
-              </View>
-              <InputField label="Additional Instructions (optional)" placeholder="e.g. Ring bell 2, leave with doorman…" value={instructions} onChangeText={setInstructions} />
+              <AddressFields />
             </View>
           )}
 
           <View style={{ height: 120 }} />
         </ScrollView>
 
-        {/* ── CTA Bar ── */}
         <View style={styles.ctaBar}>
           <TouchableOpacity
             style={[styles.placeOrderBtn, (!canProceed || placing) && { opacity: 0.5 }]}
             onPress={handlePlaceOrder}
             activeOpacity={0.85}
-            disabled={!canProceed || placing}
+            disabled={placing}
           >
             {placing
               ? <ActivityIndicator size="small" color={COLORS.white} style={{ marginRight: 8 }} />
@@ -370,11 +427,9 @@ const styles = StyleSheet.create({
   header:      { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 12, backgroundColor: COLORS.white, borderBottomWidth: 1, borderBottomColor: COLORS.border },
   navBtn:      { width: 40, height: 40, borderRadius: 12, backgroundColor: COLORS.card, alignItems: 'center', justifyContent: 'center' },
   headerTitle: { fontSize: 18, fontWeight: '800', color: COLORS.accent },
-
   scrollContent: { paddingBottom: 20 },
   section:       { backgroundColor: COLORS.white, marginTop: 12, paddingHorizontal: 20, paddingVertical: 18, borderTopWidth: 1, borderBottomWidth: 1, borderColor: COLORS.border },
   sectionTitle:  { fontSize: 13, fontWeight: '700', color: COLORS.accent, textTransform: 'uppercase', letterSpacing: 0.7, marginBottom: 14 },
-
   orderItem:      { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
   orderItemTitle: { fontSize: 13, color: COLORS.text, flex: 1, marginRight: 8 },
   orderItemPrice: { fontSize: 13, fontWeight: '700', color: COLORS.text },
@@ -383,13 +438,7 @@ const styles = StyleSheet.create({
   orderSubValue:  { fontSize: 13, fontWeight: '600', color: COLORS.text },
   orderTotalLabel:{ fontSize: 15, fontWeight: '800', color: COLORS.text },
   orderTotalValue:{ fontSize: 17, fontWeight: '900', color: COLORS.accent },
-
-  // Points redemption
-  pointsCard: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    backgroundColor: '#fff8e1', borderRadius: 14, padding: 14,
-    marginVertical: 10, borderWidth: 1, borderColor: '#f9e0a0',
-  },
+  pointsCard:            { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: '#fff8e1', borderRadius: 14, padding: 14, marginVertical: 10, borderWidth: 1, borderColor: '#f9e0a0' },
   pointsCardLeft:        { flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1 },
   pointsCardEmoji:       { fontSize: 22 },
   pointsCardTitle:       { fontSize: 13, fontWeight: '700', color: '#2c2c2c' },
@@ -398,31 +447,27 @@ const styles = StyleSheet.create({
   pointsToggleActive:    { backgroundColor: '#C17C74', borderColor: '#C17C74' },
   pointsToggleText:      { fontSize: 12, fontWeight: '700', color: '#C17C74' },
   pointsToggleTextActive:{ color: '#fff' },
-
-  methodRow:      { flexDirection: 'row', gap: 12 },
-  methodBtn:      { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, borderRadius: 14, paddingVertical: 14, borderWidth: 1.5, borderColor: COLORS.accent, backgroundColor: COLORS.white },
-  methodBtnActive:{ backgroundColor: COLORS.accent },
-  methodText:     { fontSize: 13, fontWeight: '700', color: COLORS.accent },
+  methodRow:       { flexDirection: 'row', gap: 12 },
+  methodBtn:       { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, borderRadius: 14, paddingVertical: 14, borderWidth: 1.5, borderColor: COLORS.accent, backgroundColor: COLORS.white },
+  methodBtnActive: { backgroundColor: COLORS.accent },
+  methodText:      { fontSize: 13, fontWeight: '700', color: COLORS.accent },
   methodTextActive:{ color: COLORS.white },
-
   paymobInfo:     { flexDirection: 'row', alignItems: 'flex-start', gap: 10, backgroundColor: COLORS.accentLight, borderRadius: 12, padding: 14, marginBottom: 12 },
   paymobInfoText: { flex: 1, fontSize: 13, color: COLORS.accent, lineHeight: 20 },
   secureNote:     { flexDirection: 'row', alignItems: 'center', gap: 6 },
   secureText:     { fontSize: 11, color: COLORS.muted },
-
   inputWrap:  { marginBottom: 14 },
   inputLabel: { fontSize: 11, fontWeight: '700', color: COLORS.text, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 7 },
   input:      { backgroundColor: COLORS.white, borderWidth: 1, borderColor: COLORS.border, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 13, fontSize: 14, color: COLORS.text },
-
+  inputError: { borderColor: '#c2185b', backgroundColor: '#fce4ec' },
+  errorRow:   { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 5 },
+  errorText:  { fontSize: 11, color: '#c2185b', fontWeight: '600', flex: 1 },
   cashInfo:    { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: COLORS.accentLight, borderRadius: 12, padding: 12, marginBottom: 16 },
   cashInfoText:{ fontSize: 13, color: COLORS.accent, fontWeight: '600' },
-
-  rowFields: { flexDirection: 'row' },
-
+  rowFields:  { flexDirection: 'row' },
   ctaBar:        { position: 'absolute', bottom: 0, left: 0, right: 0, paddingHorizontal: 20, paddingVertical: 16, paddingBottom: 32, backgroundColor: COLORS.white, borderTopWidth: 1, borderTopColor: COLORS.border },
   placeOrderBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: COLORS.accent, borderRadius: 16, paddingVertical: 16 },
   placeOrderText:{ fontSize: 16, fontWeight: '800', color: COLORS.white },
-
   successScreen: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 32 },
   successIcon:   { width: 110, height: 110, borderRadius: 55, backgroundColor: COLORS.successLight, alignItems: 'center', justifyContent: 'center', marginBottom: 24 },
   successTitle:  { fontSize: 28, fontWeight: '900', color: COLORS.text, marginBottom: 10 },
