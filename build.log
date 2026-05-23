@@ -1,0 +1,62 @@
+env: load .env
+env: export GEMINI_API_KEY
+env: export GEMINI_API_KEY
+- Creating native directory (./ios)
+✔ Created native directory
+- Updating package.json
+✔ Updated package.json
+- Running prebuild
+✔ Finished prebuild
+- Installing CocoaPods...
+  CocoaPods CLI not found in your PATH, installing it now.
+› Attempting to install CocoaPods CLI with Gem
+› Failed to install CocoaPods CLI with Gem
+Failed to install CocoaPods CLI with gem (recommended)
+└─ Cause: gem install cocoapods --no-document exited with non-zero code: 1
+› Attempting to install CocoaPods CLI with Homebrew
+Inspect the formula dependency plan before installing with `brew install --ask`.
+Enable ask mode by setting `HOMEBREW_ASK=1`.
+Hide these hints with `HOMEBREW_NO_ENV_HINTS=1` (see `man brew`).
+==> Fetching downloads for: cocoapods
+==> Installing dependencies for cocoapods: libyaml and ruby
+==> Installing cocoapods dependency: libyaml
+==> Pouring libyaml--0.2.5.arm64_tahoe.bottle.tar.gz
+🍺  /opt/homebrew/Cellar/libyaml/0.2.5: 11 files, 360.6KB
+==> Installing cocoapods dependency: ruby
+==> Installing ruby dependency: ca-certificates
+==> Pouring ca-certificates--2026-05-14.all.bottle.tar.gz
+[34m==>[0m [1mRegenerating CA certificate bundle from keychain, this may take a while...[0m
+🍺  /opt/homebrew/Cellar/ca-certificates/2026-05-14: 4 files, 200.7KB
+==> Pouring ruby--4.0.5.arm64_tahoe.bottle.tar.gz
+🍺  /opt/homebrew/Cellar/ruby/4.0.5: 19,310 files, 60.9MB
+==> Installing cocoapods
+==> Pouring cocoapods--1.16.2_2.arm64_tahoe.bottle.tar.gz
+🍺  /opt/homebrew/Cellar/cocoapods/1.16.2_2: 13,729 files, 30.3MB
+==> Running `brew cleanup cocoapods`...
+Disable this behaviour by setting `HOMEBREW_NO_INSTALL_CLEANUP=1`.
+Hide these hints with `HOMEBREW_NO_ENV_HINTS=1` (see `man brew`).
+1.16.2
+› Successfully installed CocoaPods CLI with Homebrew
+✔ Installed CocoaPods CLI.
+- Running `pod install` in the `ios` directory.
+✔ Installed CocoaPods
+› Skipping dev server
+› Planning build
+
+› 0 error(s), and 0 warning(s)
+
+CommandError: Failed to build iOS project. "xcodebuild" exited with error code 70.
+To view more error logs, try building the app with Xcode directly, by opening /Users/aynormohamed15gmail.com/Documents/GitHub/fash-mobile-app/ios/frontend.xcworkspace.
+
+Command line invocation:
+    /Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild -workspace /Users/aynormohamed15gmail.com/Documents/GitHub/fash-mobile-app/ios/frontend.xcworkspace -configuration Debug -scheme frontend -destination id=5CDF53FC-C440-428A-B488-8460DAACCB86
+
+
+
+2026-05-24 00:56:12.348 xcodebuild[14900:172707] Writing error result bundle to /var/folders/vy/m81kts7x3r1bhb5_qs4slv080000gn/T/ResultBundle_2026-24-05_00-56-0012.xcresult
+xcodebuild: error: Unable to find a destination matching the provided destination specifier:
+		{ id:5CDF53FC-C440-428A-B488-8460DAACCB86 }
+
+	Ineligible destinations for the "frontend" scheme:
+		{ platform:iOS, id:dvtdevice-DVTiPhonePlaceholder-iphoneos:placeholder, name:Any iOS Device, error:iOS 26.5 is not installed. Please download and install the platform from Xcode > Settings > Components. }
+Build logs written to /Users/aynormohamed15gmail.com/Documents/GitHub/fash-mobile-app/.expo/xcodebuild.log

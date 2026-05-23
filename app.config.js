@@ -15,18 +15,20 @@ export default {
       backgroundColor: "#ffffff"
     },
     ios: {
-      supportsTablet: true
+      supportsTablet: true,
+      bundleIdentifier: "com.anonymous.frontend",
     },
     android: {
       adaptiveIcon: {
         backgroundColor: "#E6F4FE",
         foregroundImage: "./assets/android-icon-foreground.png",
         backgroundImage: "./assets/android-icon-background.png",
-        monochromeImage: "./assets/android-icon-monochrome.png"
-      }
+        monochromeImage: "./assets/android-icon-monochrome.png",
+      },
+      package: "com.anonymous.frontend",
     },
     web: {
-      favicon: "./assets/favicon.png"
+      favicon: "./assets/favicon.png",
     },
     plugins: ["expo-secure-store"],
     extra: {
