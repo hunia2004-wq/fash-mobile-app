@@ -751,6 +751,12 @@ export async function createSellerReview(token, sellerId, reviewData) {
   });
 }
 
+export async function getUserById(token, userId) {
+  return request(`/user/${userId}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+}
+
 // SELLING TAB IN ORDERS
 export async function getSales(token) {
   return request('/orders/sales', { headers: { Authorization: `Bearer ${token}` } });

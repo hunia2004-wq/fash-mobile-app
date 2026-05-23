@@ -217,11 +217,20 @@ export default function SellerProfileScreen({ navigation, route }) {
         getSellerProfile(token, sellerId),
         getSellerReviews(token, sellerId),
       ]);
+
+      // ── Debug: remove after confirming shape ──────────────────
+      console.log('SELLER PROFILE RAW:', JSON.stringify(profileData, null, 2));
+      // ─────────────────────────────────────────────────────────
+
+      // Handle both { seller: { user: {...}, ... } } and flat { user: {...}, ... }
       const s = profileData.seller ?? profileData;
       setSeller(s);
-      if (!isFollowingRef.current) setFollowed(profileData.isFollowing ?? false);
-      setReviews(reviewsData.data?.reviews ?? reviewsData.reviews ?? []);
+      if (!isFollowingRef.current) {
+        setFollowed(profileData.isFollowing ?? s.isFollowing ?? false);
+      }
+      setReviews(reviewsData.data?.reviews ?? reviewsData.reviews ?? reviewsData ?? []);
     } catch (err) {
+      console.error('fetchData error:', err);
       setError(err.message);
     } finally {
       setLoading(false);
@@ -237,17 +246,30 @@ export default function SellerProfileScreen({ navigation, route }) {
     const prevCount = seller?.followersCount ?? 0;
     isFollowingRef.current = true;
     setFollowLoading(true);
+
+    // Optimistic update
     setFollowed(!prevFollowed);
     setSeller(prev => ({
       ...prev,
       followersCount: !prevFollowed ? prevCount + 1 : Math.max(0, prevCount - 1),
     }));
+
     try {
       const token = await getToken();
       const data = await toggleFollowSeller(token, sellerId);
-      setFollowed(data.isFollowing);
-      setSeller(prev => ({ ...prev, followersCount: data.followersCount }));
+
+      // ── Debug ──
+      console.log('FOLLOW TOGGLE RESPONSE:', JSON.stringify(data, null, 2));
+      // ──────────
+
+      // Handle both flat and nested responses
+      const newIsFollowing = data.isFollowing ?? data.data?.isFollowing ?? !prevFollowed;
+      const newCount = data.followersCount ?? data.data?.followersCount ?? prevCount;
+
+      setFollowed(newIsFollowing);
+      setSeller(prev => ({ ...prev, followersCount: newCount }));
     } catch (err) {
+      // Rollback on error
       setFollowed(prevFollowed);
       setSeller(prev => ({ ...prev, followersCount: prevCount }));
       Alert.alert('Error', err.message);
@@ -259,7 +281,7 @@ export default function SellerProfileScreen({ navigation, route }) {
 
   // ── Share ──────────────────────────────────────────────────────
   const handleShare = async () => {
-    const user = seller?.user ?? {};
+    const user = seller?.user ?? seller ?? {};
     const name = `${user.firstName ?? ''} ${user.lastName ?? ''}`.trim() || 'this seller';
     try {
       await Share.share({
@@ -273,8 +295,6 @@ export default function SellerProfileScreen({ navigation, route }) {
 
   // ── Message ────────────────────────────────────────────────────
   const handleSendMessage = async (message) => {
-    // In a real app this would call a messages/chat API endpoint.
-    // For now we show a success confirmation.
     setMessageModal(false);
     Alert.alert(
       'Message Sent! ✉️',
@@ -285,7 +305,8 @@ export default function SellerProfileScreen({ navigation, route }) {
 
   // ── Call seller phone (if available) ──────────────────────────
   const handleCall = () => {
-    const phone = seller?.user?.phone;
+    const userObj = seller?.user ?? seller ?? {};
+    const phone = userObj.phone;
     if (!phone) {
       Alert.alert('No phone number', 'This seller has not provided a phone number.');
       return;
@@ -347,9 +368,17 @@ export default function SellerProfileScreen({ navigation, route }) {
     );
   }
 
-  const user = seller.user ?? {};
-  const sellerName = `${user.firstName ?? ''} ${user.lastName ?? ''}`.trim() || 'Seller';
-  const initials = `${user.firstName?.[0] ?? ''}${user.lastName?.[0] ?? ''}`.toUpperCase() || '??';
+  // ── KEY FIX: fall back to seller itself if user is not nested ──
+  const user = seller.user ?? seller;
+  const sellerName =
+    `${user.firstName ?? ''} ${user.lastName ?? ''}`.trim() ||
+    user.username ||
+    user.name ||
+    'Seller';
+  const initials =
+    `${user.firstName?.[0] ?? ''}${user.lastName?.[0] ?? ''}`.toUpperCase() ||
+    sellerName.slice(0, 2).toUpperCase();
+
   const breakdown = seller.ratingBreakdown ?? {};
   const totalReviews = seller.totalReviews ?? reviews.length;
 
@@ -362,6 +391,9 @@ export default function SellerProfileScreen({ navigation, route }) {
 
   const displayedReviews = showAllReviews ? reviews : reviews.slice(0, 3);
 
+  // ── Derive avatar URI from either nesting shape ────────────────
+  const avatarUri = user.avatar ?? null;
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="dark-content" backgroundColor={COLORS.bg} />
@@ -371,7 +403,6 @@ export default function SellerProfileScreen({ navigation, route }) {
           <Ionicons name="arrow-back" size={20} color={COLORS.dark} />
         </TouchableOpacity>
         <Text style={styles.navTitle}>Seller Profile</Text>
-        {/* Share button — functional */}
         <TouchableOpacity style={styles.iconBtn} onPress={handleShare} activeOpacity={0.8}>
           <Ionicons name="share-outline" size={20} color={COLORS.dark} />
         </TouchableOpacity>
@@ -383,7 +414,7 @@ export default function SellerProfileScreen({ navigation, route }) {
         <View style={styles.card}>
           <View style={styles.profileRow}>
             <View style={styles.avatarWrap}>
-              <Avatar uri={user.avatar} initials={initials} size={76} />
+              <Avatar uri={avatarUri} initials={initials} size={76} />
               {seller.isVerified && (
                 <View style={styles.verifiedBadge}>
                   <Ionicons name="checkmark" size={10} color={COLORS.white} />
@@ -398,7 +429,6 @@ export default function SellerProfileScreen({ navigation, route }) {
                 <Text style={styles.roleText}>Seller</Text>
               </View>
               {user.bio ? <Text style={styles.bio}>{user.bio}</Text> : null}
-              {/* Member since */}
               {seller.createdAt && (
                 <Text style={styles.memberSince}>
                   Member since {new Date(seller.createdAt).toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })}
@@ -420,9 +450,8 @@ export default function SellerProfileScreen({ navigation, route }) {
           </View>
         </View>
 
-        {/* Action buttons — all functional */}
+        {/* Action buttons */}
         <View style={styles.actionRow}>
-          {/* Follow / Following */}
           <TouchableOpacity
             style={[styles.btnPrimary, followed && styles.btnPrimaryFollowed]}
             onPress={handleToggleFollow}
@@ -445,13 +474,11 @@ export default function SellerProfileScreen({ navigation, route }) {
             }
           </TouchableOpacity>
 
-          {/* Message — opens message modal */}
           <TouchableOpacity style={styles.btnOutline} onPress={() => setMessageModal(true)} activeOpacity={0.85}>
             <Ionicons name="chatbubble-outline" size={15} color={COLORS.primary} style={{ marginRight: 5 }} />
             <Text style={styles.btnOutlineText}>Message</Text>
           </TouchableOpacity>
 
-          {/* Share icon */}
           <TouchableOpacity style={styles.btnIcon} onPress={handleShare} activeOpacity={0.85}>
             <Ionicons name="share-outline" size={19} color={COLORS.primary} />
           </TouchableOpacity>
@@ -709,6 +736,6 @@ const styles = StyleSheet.create({
   charCount: { fontSize: 11, color: COLORS.muted, textAlign: 'right', marginTop: 4, marginBottom: 4 },
   templateChip: { paddingHorizontal: 12, paddingVertical: 8, borderRadius: 12, backgroundColor: COLORS.card, borderWidth: 1, borderColor: COLORS.border },
   templateChipText: { fontSize: 12, color: COLORS.primary, fontWeight: '500' },
-  submitReviewBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: COLORS.primary, borderRadius: 16, paddingVertical: 16, alignItems: 'center', marginTop: 12 },
+  submitReviewBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: COLORS.primary, borderRadius: 16, paddingVertical: 16, marginTop: 12 },
   submitReviewBtnText: { fontSize: 15, fontWeight: '700', color: COLORS.white },
 });
