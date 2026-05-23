@@ -712,7 +712,6 @@ export async function placeOrderCOD(token, address) {
   });
 }
 
-
 // AI STYLING
 export async function chatWithAIStylist(token, message, history = []) {
   return request('/ai-stylist/chat', {
