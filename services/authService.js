@@ -593,6 +593,10 @@ export async function cancelRental(token, rentalId) {
   });
 }
 
+export async function getBookedPeriods(itemId) {
+  return request(`/collection/${itemId}/booked-periods`);
+}
+
 
 // DONATIONS
 export async function getNearbyCenters(lat, lng) {
