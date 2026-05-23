@@ -292,13 +292,6 @@ export default function ProductDetailScreen({ navigation, route }) {
     }
   };
 
-  const handleMessage = () => {
-    Alert.alert('Message Seller', `Start a conversation with ${sellerName || 'this seller'}?`, [
-      { text: 'Cancel', style: 'cancel' },
-      { text: 'Message', onPress: () => { } },
-    ]);
-  };
-
   const handleDeleteListing = () => {
     Alert.alert('Delete Listing', 'Are you sure you want to remove this listing?', [
       { text: 'Cancel', style: 'cancel' },
@@ -465,16 +458,8 @@ export default function ProductDetailScreen({ navigation, route }) {
           </TouchableOpacity>
         ) : (
           <>
-            <TouchableOpacity
-              style={styles.offerBtn}
-              onPress={() => setOfferModalVisible(true)}
-              activeOpacity={0.85}
-            >
+            <TouchableOpacity style={styles.offerBtn} onPress={() => setOfferModalVisible(true)} activeOpacity={0.85}>
               <Text style={styles.offerBtnText}>Make Offer</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.messageBtn} onPress={handleMessage} activeOpacity={0.85}>
-              <Ionicons name="chatbubble-outline" size={16} color={COLORS.white} style={{ marginRight: 6 }} />
-              <Text style={styles.messageBtnText}>Message Seller</Text>
             </TouchableOpacity>
           </>
         )}
@@ -553,8 +538,7 @@ const styles = StyleSheet.create({
   },
   offerBtn: { flex: 1, borderWidth: 1.5, borderColor: COLORS.accent, borderRadius: 14, paddingVertical: 14, alignItems: 'center', justifyContent: 'center' },
   offerBtnText: { color: COLORS.accent, fontSize: 15, fontWeight: '700' },
-  messageBtn: { flex: 2, flexDirection: 'row', backgroundColor: COLORS.accent, borderRadius: 14, paddingVertical: 14, alignItems: 'center', justifyContent: 'center' },
-  messageBtnText: { color: COLORS.white, fontSize: 15, fontWeight: '700' },
+ 
   deleteListingBtn: { flex: 1, flexDirection: 'row', backgroundColor: '#E05C5C', borderRadius: 14, paddingVertical: 14, alignItems: 'center', justifyContent: 'center' },
   deleteListingBtnText: { color: COLORS.white, fontSize: 15, fontWeight: '700' },
 

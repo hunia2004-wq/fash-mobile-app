@@ -199,7 +199,6 @@ export default function SellerProfileScreen({ navigation, route }) {
 
   // Modals
   const [reviewModal, setReviewModal] = useState(false);
-  const [messageModal, setMessageModal] = useState(false);
 
   // Review form
   const [reviewRating, setReviewRating] = useState(0);
@@ -294,14 +293,7 @@ export default function SellerProfileScreen({ navigation, route }) {
   };
 
   // ── Message ────────────────────────────────────────────────────
-  const handleSendMessage = async (message) => {
-    setMessageModal(false);
-    Alert.alert(
-      'Message Sent! ✉️',
-      `Your message has been sent to ${sellerName}. They usually reply within 24 hours.`,
-      [{ text: 'OK' }]
-    );
-  };
+  
 
   // ── Call seller phone (if available) ──────────────────────────
   const handleCall = () => {
@@ -474,11 +466,6 @@ export default function SellerProfileScreen({ navigation, route }) {
             }
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.btnOutline} onPress={() => setMessageModal(true)} activeOpacity={0.85}>
-            <Ionicons name="chatbubble-outline" size={15} color={COLORS.primary} style={{ marginRight: 5 }} />
-            <Text style={styles.btnOutlineText}>Message</Text>
-          </TouchableOpacity>
-
           <TouchableOpacity style={styles.btnIcon} onPress={handleShare} activeOpacity={0.85}>
             <Ionicons name="share-outline" size={19} color={COLORS.primary} />
           </TouchableOpacity>
@@ -585,14 +572,6 @@ export default function SellerProfileScreen({ navigation, route }) {
         <View style={{ height: 32 }} />
       </ScrollView>
 
-      {/* ── Message Modal ──────────────────────────────────────── */}
-      <MessageModal
-        visible={messageModal}
-        onClose={() => setMessageModal(false)}
-        sellerName={sellerName}
-        onSend={handleSendMessage}
-      />
-
       {/* ── Review Modal ───────────────────────────────────────── */}
       <Modal visible={reviewModal} transparent animationType="slide" onRequestClose={() => setReviewModal(false)}>
         <KeyboardAvoidingView style={styles.modalOverlay} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
@@ -680,8 +659,6 @@ const styles = StyleSheet.create({
   btnPrimary: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: COLORS.primary, borderRadius: 14, paddingVertical: 13 },
   btnPrimaryFollowed: { backgroundColor: COLORS.card },
   btnPrimaryText: { color: COLORS.white, fontSize: 14, fontWeight: '600' },
-  btnOutline: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: COLORS.primary, borderRadius: 14, paddingVertical: 13, backgroundColor: COLORS.white },
-  btnOutlineText: { color: COLORS.primary, fontSize: 14, fontWeight: '600' },
   btnIcon: { backgroundColor: COLORS.card, borderRadius: 14, paddingHorizontal: 14, alignItems: 'center', justifyContent: 'center' },
   contactStrip: { flexDirection: 'row', gap: 10, marginBottom: 12 },
   contactBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, backgroundColor: COLORS.card, borderRadius: 12, paddingVertical: 10, borderWidth: 1, borderColor: COLORS.border },
@@ -723,19 +700,9 @@ const styles = StyleSheet.create({
   noReviews: { alignItems: 'center', paddingVertical: 30, gap: 8 },
   noReviewsText: { fontSize: 15, fontWeight: '600', color: COLORS.dark },
   noReviewsSub: { fontSize: 13, color: COLORS.muted },
-  modalOverlay: { flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.4)' },
-  modalSheet: { backgroundColor: COLORS.white, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 24, paddingBottom: Platform.OS === 'ios' ? 40 : 28 },
-  modalHandle: { width: 40, height: 4, backgroundColor: COLORS.card, borderRadius: 2, alignSelf: 'center', marginBottom: 16 },
-  modalHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 },
-  modalTitle: { fontSize: 18, fontWeight: '700', color: COLORS.dark },
-  modalCloseBtn: { width: 32, height: 32, borderRadius: 16, backgroundColor: COLORS.card, alignItems: 'center', justifyContent: 'center' },
-  modalSub: { fontSize: 13, color: COLORS.muted, marginBottom: 20 },
-  modalLabel: { fontSize: 12, fontWeight: '700', color: COLORS.dark, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 10 },
   ratingHint: { fontSize: 13, color: COLORS.primary, fontWeight: '600', marginTop: 6 },
   commentInput: { backgroundColor: COLORS.bg, borderRadius: 14, padding: 14, fontSize: 14, color: COLORS.dark, minHeight: 100, borderWidth: 1, borderColor: COLORS.border },
   charCount: { fontSize: 11, color: COLORS.muted, textAlign: 'right', marginTop: 4, marginBottom: 4 },
-  templateChip: { paddingHorizontal: 12, paddingVertical: 8, borderRadius: 12, backgroundColor: COLORS.card, borderWidth: 1, borderColor: COLORS.border },
-  templateChipText: { fontSize: 12, color: COLORS.primary, fontWeight: '500' },
   submitReviewBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: COLORS.primary, borderRadius: 16, paddingVertical: 16, marginTop: 12 },
   submitReviewBtnText: { fontSize: 15, fontWeight: '700', color: COLORS.white },
 });
