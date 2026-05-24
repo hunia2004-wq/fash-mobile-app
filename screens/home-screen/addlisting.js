@@ -194,7 +194,7 @@ export default function AddListingScreen({ navigation }) {
       if (brand)    formData.append('brand',    brand.trim());
       if (location) formData.append('location', location.trim());
       images.forEach((uri, i) => {
-        formData.append('images', { uri, type: 'image/jpeg', name: `photo_${i}.jpg` });
+        formData.append('image', { uri, type: 'image/jpeg', name: `photo_${i}.jpg` });
       });
       await createListing(token, formData);
       Alert.alert('Listing Posted! 🎉', 'Your item is now live on the Marketplace.',
