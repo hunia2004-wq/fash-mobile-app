@@ -4,6 +4,9 @@ import { FontAwesome } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
 import { AuthContext } from '../context/AuthContext';
 import { login } from '../services/authService';
+import { useSignInWithGoogle, useSignInWithApple } from '@clerk/expo';
+import { useContext } from 'react';
+import { loginWithSocialToken } from '../services/socialAuthService';
 
 export default function LoginScreen({ navigation }) {
   const { logIn } = useContext(AuthContext);
@@ -12,6 +15,8 @@ export default function LoginScreen({ navigation }) {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const { signIn: googleSignIn } = useSignInWithGoogle();
+  const { signIn: appleSignIn } = useSignInWithApple();
 
   const handleLogin = async () => {
     setError("");
@@ -29,6 +34,35 @@ export default function LoginScreen({ navigation }) {
       setError(err.message || "Login failed. Please try again.");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    try {
+      const result = await googleSignIn();
+      if (result?.createdSessionId) {
+        // Get Clerk token and exchange for your backend JWT
+        const token = await result.getToken();
+        const data = await loginWithSocialToken(token, 'google');
+        const userId = data.user?._id ?? data.user?.id ?? null;
+        await logIn(data.access_token, userId);
+      }
+    } catch (err) {
+      setError(err.message || 'Google sign-in failed');
+    }
+  };
+
+  const handleAppleSignIn = async () => {
+    try {
+      const result = await appleSignIn();
+      if (result?.createdSessionId) {
+        const token = await result.getToken();
+        const data = await loginWithSocialToken(token, 'apple');
+        const userId = data.user?._id ?? data.user?.id ?? null;
+        await logIn(data.access_token, userId);
+      }
+    } catch (err) {
+      setError(err.message || 'Apple sign-in failed');
     }
   };
 
@@ -99,15 +133,13 @@ export default function LoginScreen({ navigation }) {
         <Text style={styles.or}>Or continue with</Text>
 
         <View style={styles.socialContainer}>
-          <TouchableOpacity style={[styles.social, { backgroundColor: '#DB4437' }]} onPress={() => alert('Google login')}>
+          <TouchableOpacity style={[styles.social, { backgroundColor: '#DB4437' }]} onPress={handleGoogleSignIn}>
             <FontAwesome name="google" size={20} color="white" />
           </TouchableOpacity>
-          <TouchableOpacity style={[styles.social, { backgroundColor: '#000' }]} onPress={() => alert('Apple login')}>
+          <TouchableOpacity style={[styles.social, { backgroundColor: '#000' }]} onPress={handleAppleSignIn}>
             <FontAwesome name="apple" size={20} color="white" />
           </TouchableOpacity>
-          <TouchableOpacity style={[styles.social, { backgroundColor: '#1877F2' }]} onPress={() => alert('Facebook login')}>
-            <FontAwesome name="facebook" size={20} color="white" />
-          </TouchableOpacity>
+          {/* Facebook stays as browser-based OAuth via Clerk — add later */}
         </View>
       </ScrollView>
     </KeyboardAvoidingView>

@@ -13,9 +13,11 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.fash.fash"
     },
     "android": {
+      "package": "com.fash.fash",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/android-icon-foreground.png",
@@ -27,6 +29,7 @@
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
+      "@clerk/expo",
       "expo-secure-store",
       ["expo-camera", { "cameraPermission": "FASH needs camera access for AR try-on." }],
       ["expo-media-library", { "photosPermission": "FASH needs photo access to save your looks." }],

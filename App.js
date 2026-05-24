@@ -9,6 +9,8 @@ import { GalioProvider } from 'galio-framework';
 import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
 import Constants from 'expo-constants';
+import { ClerkProvider, ClerkLoaded } from '@clerk/expo';
+
 
 import { CartProvider } from './context/CartContext';
 
@@ -91,6 +93,12 @@ function SplashScreen() {
     </View>
   );
 }
+
+const tokenCache = {
+  async getToken(key) { return SecureStore.getItemAsync(key); },
+  async saveToken(key, value) { return SecureStore.setItemAsync(key, value); },
+  async clearToken(key) { return SecureStore.deleteItemAsync(key); },
+};
 
 export default function App() {
   const [state, dispatch] = React.useReducer(
@@ -254,79 +262,84 @@ export default function App() {
   return (
     <GalioProvider>
       <PaperProvider>
-        <AuthContext.Provider value={authContext}>
-          <CartProvider>
-            <NavigationContainer ref={navigationRef}>
-              <Stack.Navigator screenOptions={{ headerShown: false }}>
-                {state.userToken == null ? (
-                  <>
-                    <Stack.Screen name="Welcome" component={WelcomeScreen} />
-                    <Stack.Screen
-                      name="Login"
-                      component={LoginScreen}
-                      options={{ animationTypeForReplace: state.isLogOut ? 'pop' : 'push' }}
-                    />
-                    <Stack.Screen name="Signup" component={SignupScreen} />
-                    <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
-                    <Stack.Screen name="Verification" component={VerificationScreen} />
-                  </>
-                ) : (
-                  <>
-                    <Stack.Screen name="Home" component={HomeScreen} />
-                    <Stack.Screen name="EditProfileScreen" component={EditProfileScreen} />
+        <ClerkProvider publishableKey={process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY}
+          tokenCache={tokenCache}>
+          <ClerkLoaded>
+            <AuthContext.Provider value={authContext}>
+              <CartProvider>
+                <NavigationContainer ref={navigationRef}>
+                  <Stack.Navigator screenOptions={{ headerShown: false }}>
+                    {state.userToken == null ? (
+                      <>
+                        <Stack.Screen name="Welcome" component={WelcomeScreen} />
+                        <Stack.Screen
+                          name="Login"
+                          component={LoginScreen}
+                          options={{ animationTypeForReplace: state.isLogOut ? 'pop' : 'push' }}
+                        />
+                        <Stack.Screen name="Signup" component={SignupScreen} />
+                        <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
+                        <Stack.Screen name="Verification" component={VerificationScreen} />
+                      </>
+                    ) : (
+                      <>
+                        <Stack.Screen name="Home" component={HomeScreen} />
+                        <Stack.Screen name="EditProfileScreen" component={EditProfileScreen} />
 
-                    <Stack.Screen name="SettingsScreen" component={SettingsScreen} />
-                    <Stack.Screen name="AddressScreen" component={AddressScreen} />
-                    <Stack.Screen name="CardsScreen" component={CardsScreen} />
-                    <Stack.Screen name="EmailScreen" component={EmailScreen} />
-                    <Stack.Screen name="LanguagesScreen" component={LanguagesScreen} />
-                    <Stack.Screen name="NotificationsScreen" component={NotificationsScreen} />
-                    <Stack.Screen name="PrivacyScreen" component={PrivacyScreen} />
-                    <Stack.Screen name="ChangePasswordScreen" component={ChangePasswordScreen} />
-                    <Stack.Screen name="VerifyEmailScreen" component={VerifyEmailScreen} />
-                    <Stack.Screen name="OrdersScreen" component={OrdersScreen} />
-                    <Stack.Screen name="OrderDetailScreen" component={OrderDetailScreen} />
+                        <Stack.Screen name="SettingsScreen" component={SettingsScreen} />
+                        <Stack.Screen name="AddressScreen" component={AddressScreen} />
+                        <Stack.Screen name="CardsScreen" component={CardsScreen} />
+                        <Stack.Screen name="EmailScreen" component={EmailScreen} />
+                        <Stack.Screen name="LanguagesScreen" component={LanguagesScreen} />
+                        <Stack.Screen name="NotificationsScreen" component={NotificationsScreen} />
+                        <Stack.Screen name="PrivacyScreen" component={PrivacyScreen} />
+                        <Stack.Screen name="ChangePasswordScreen" component={ChangePasswordScreen} />
+                        <Stack.Screen name="VerifyEmailScreen" component={VerifyEmailScreen} />
+                        <Stack.Screen name="OrdersScreen" component={OrdersScreen} />
+                        <Stack.Screen name="OrderDetailScreen" component={OrderDetailScreen} />
 
-                    <Stack.Screen name="SecurityScreen" component={SecurityScreen} />
-                    <Stack.Screen name="TwoFactorAuthScreen" component={TwoFactorAuthScreen} />
-                    <Stack.Screen name="LoginDevicesScreen" component={LoginDevicesScreen} />
+                        <Stack.Screen name="SecurityScreen" component={SecurityScreen} />
+                        <Stack.Screen name="TwoFactorAuthScreen" component={TwoFactorAuthScreen} />
+                        <Stack.Screen name="LoginDevicesScreen" component={LoginDevicesScreen} />
 
-                    <Stack.Screen name="SupportScreen" component={SupportScreen} />
-                    <Stack.Screen name="ContactSupportScreen" component={ContactSupportScreen} />
-                    <Stack.Screen name="FAQScreen" component={FAQScreen} />
+                        <Stack.Screen name="SupportScreen" component={SupportScreen} />
+                        <Stack.Screen name="ContactSupportScreen" component={ContactSupportScreen} />
+                        <Stack.Screen name="FAQScreen" component={FAQScreen} />
 
-                    <Stack.Screen name="AIStylingScreen" component={AIStyling} />
-                    <Stack.Screen name="ConfirmBid" component={ConfirmBid} />
-                    <Stack.Screen name="Payment" component={PaymentScreen} />
+                        <Stack.Screen name="AIStylingScreen" component={AIStyling} />
+                        <Stack.Screen name="ConfirmBid" component={ConfirmBid} />
+                        <Stack.Screen name="Payment" component={PaymentScreen} />
 
-                    <Stack.Screen name="MarketplaceHome" component={MarketplaceHome} />
-                    <Stack.Screen name="ProductDetails" component={ProductDetails} />
-                    <Stack.Screen name="AddListingScreen" component={AddListingScreen} />
+                        <Stack.Screen name="MarketplaceHome" component={MarketplaceHome} />
+                        <Stack.Screen name="ProductDetails" component={ProductDetails} />
+                        <Stack.Screen name="AddListingScreen" component={AddListingScreen} />
 
-                    <Stack.Screen name="PackingBuilderscreen" component={PackingBuilderscreen} options={{ animation: 'slide_from_bottom' }} />
-                    <Stack.Screen name="PackingPicker" component={PackingPickerScreen} />
-                    <Stack.Screen name="PackingDetail" component={PackingDetailScreen} options={{ animation: 'slide_from_right' }} />
+                        <Stack.Screen name="PackingBuilderscreen" component={PackingBuilderscreen} options={{ animation: 'slide_from_bottom' }} />
+                        <Stack.Screen name="PackingPicker" component={PackingPickerScreen} />
+                        <Stack.Screen name="PackingDetail" component={PackingDetailScreen} options={{ animation: 'slide_from_right' }} />
 
-                    <Stack.Screen name="DonationScreen" component={DonationScreen} />
-                    <Stack.Screen name="FashCollectionScreen" component={FashCollectionScreen} />
+                        <Stack.Screen name="DonationScreen" component={DonationScreen} />
+                        <Stack.Screen name="FashCollectionScreen" component={FashCollectionScreen} />
 
-                    <Stack.Screen name="AuctionListScreen" component={AuctionListScreen} />
-                    <Stack.Screen name="AuctionRoomScreen" component={AuctionRoomScreen} initialParams={{ auctionId: null }} options={{ animation: 'slide_from_right' }} />
-                    <Stack.Screen name="CreateAuction" component={CreateAuction} options={{ animation: 'slide_from_bottom' }} />
+                        <Stack.Screen name="AuctionListScreen" component={AuctionListScreen} />
+                        <Stack.Screen name="AuctionRoomScreen" component={AuctionRoomScreen} initialParams={{ auctionId: null }} options={{ animation: 'slide_from_right' }} />
+                        <Stack.Screen name="CreateAuction" component={CreateAuction} options={{ animation: 'slide_from_bottom' }} />
 
-                    <Stack.Screen name="MainCart" component={MainCart} />
-                    <Stack.Screen name="SellerProfileScreen" component={SellerProfileScreen} />
-                    <Stack.Screen name="ARscreen" component={ARscreen} options={{ headerShown: false }} />
-                    <Stack.Screen name="Fashproductsdetails" component={Fashproductsdetails} />
-                    <Stack.Screen name="SellerPickupScreen" component={SellerPickupScreen} />
-                    <Stack.Screen name="Premium" component={Premium} />
-                    <Stack.Screen name="Offer" component={Offer} />
-                  </>
-                )}
-              </Stack.Navigator>
-            </NavigationContainer>
-          </CartProvider>
-        </AuthContext.Provider>
+                        <Stack.Screen name="MainCart" component={MainCart} />
+                        <Stack.Screen name="SellerProfileScreen" component={SellerProfileScreen} />
+                        <Stack.Screen name="ARscreen" component={ARscreen} options={{ headerShown: false }} />
+                        <Stack.Screen name="Fashproductsdetails" component={Fashproductsdetails} />
+                        <Stack.Screen name="SellerPickupScreen" component={SellerPickupScreen} />
+                        <Stack.Screen name="Premium" component={Premium} />
+                        <Stack.Screen name="Offer" component={Offer} />
+                      </>
+                    )}
+                  </Stack.Navigator>
+                </NavigationContainer>
+              </CartProvider>
+            </AuthContext.Provider>
+          </ClerkLoaded>
+        </ClerkProvider>
       </PaperProvider>
     </GalioProvider>
   );
