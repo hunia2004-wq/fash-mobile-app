@@ -1,17 +1,5 @@
 import React, { useState, useContext } from 'react';
-import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  StyleSheet,
-  ScrollView,
-  KeyboardAvoidingView,
-  Platform,
-  ActivityIndicator,
-  Image,
-  StatusBar,
-} from 'react-native';
+import {View, Text, ScrollView, StyleSheet, TouchableOpacity, TextInput, Image, Alert, ActivityIndicator, KeyboardAvoidingView, Platform, StatusBar,} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { AuthContext } from '../context/AuthContext';
 import { login } from '../services/authService';
@@ -70,31 +58,13 @@ export default function CourierLoginScreen({ navigation }) {
   // Login Handler
   // ─────────────────────────────────────────────
   async function handleLogin() {
-    setError('');
     if (!validate()) return;
     setLoading(true);
-  
     try {
-      // ── TEMP: skip real auth until backend is ready ──
       await SecureStore.setItemAsync('courierId', courierId.trim());
+      await SecureStore.setItemAsync('courierToken', 'test-token-123');
       await SecureStore.setItemAsync('courierRole', 'courier');
-      navigation.replace('CourierPickupScreen');
-  
-      // ── REAL: uncomment this block when backend is ready ──
-      // const data = await login({ email: email.trim(), password });
-      // const userId = data.user?._id ?? data.user?.id ?? data.userId ?? null;
-      // const role = data.user?.role ?? data.role ?? 'courier';
-      // if (role !== 'courier' && role !== 'admin') {
-      //   setError('This account does not have courier access.');
-      //   return;
-      // }
-      // await SecureStore.setItemAsync('courierRole', role);
-      // await SecureStore.setItemAsync('courierId', courierId.trim());
-      // await logIn(data.access_token, userId);
-      // navigation.replace('CourierPickup');
-  
-    } catch (err) {
-      setError(err.message || 'Login failed. Please check your credentials.');
+      navigation.replace('CourierStatusScreen');
     } finally {
       setLoading(false);
     }

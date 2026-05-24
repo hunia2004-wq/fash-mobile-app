@@ -1,23 +1,9 @@
 import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  ScrollView,
-  StyleSheet,
-  TouchableOpacity,
-  TextInput,
-  Image,
-  Alert,
-  ActivityIndicator,
-  KeyboardAvoidingView,
-  Platform,
-  StatusBar,
-} from 'react-native';
-
+import {View, Text, ScrollView, StyleSheet, TouchableOpacity, TextInput, Image, Alert, ActivityIndicator, KeyboardAvoidingView, Platform, StatusBar,} from 'react-native';
 import { Ionicons, Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
-
+import * as SecureStore from 'expo-secure-store';
 import { useAuth } from '../context/AuthContext';
 
 // ── Theme ─────────────────────────────────────────
@@ -163,26 +149,22 @@ export default function CourierPickupScreen({ navigation }) {
     setLoading(true);
   
     try {
-      // ── TEMP: skip real API until backend is ready ──
+      // ✅ Use courierToken, not getToken()
+      const token = await SecureStore.getItemAsync('courierToken');
+  
+      await submitCourierPickup(token, {
+        orderId: orderId.trim(),
+        itemId: itemId.trim(),
+        sellerId: sellerId.trim(),
+        courierName: courierName.trim(),
+        courierNotes: courierNotes.trim(),
+        photoUri: photo?.uri,
+      });
+  
       navigation.navigate('CourierStatusScreen', {
         orderId: orderId.trim(),
         status: 'pending',
       });
-  
-      // ── REAL: uncomment when backend is ready ──
-      // const token = await getToken();
-      // await submitCourierPickup(token, {
-      //   orderId: orderId.trim(),
-      //   itemId: itemId.trim(),
-      //   sellerId: sellerId.trim(),
-      //   courierName: courierName.trim(),
-      //   courierNotes: courierNotes.trim(),
-      //   photoUri: photo?.uri,
-      // });
-      // navigation.navigate('CourierStatusScreen', {
-      //   orderId: orderId.trim(),
-      //   status: 'pending',
-      // });
   
     } catch (err) {
       Alert.alert('Submission Failed', err.message || 'Please try again.');

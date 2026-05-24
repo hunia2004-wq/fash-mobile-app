@@ -179,6 +179,10 @@ export default function ProfileScreen({ navigation }) {
         <View style={styles.rowDivider} />
 
         <MenuRow title="Subscription Plans" onPress={() => navigation.navigate("Premium")} />
+
+        <TouchableOpacity onPress={() => navigation.navigate('AdminReviewScreen')}>
+  <Text>Admin Review (dev only)</Text>
+</TouchableOpacity>
         
       </View>
 

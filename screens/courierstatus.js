@@ -1,13 +1,10 @@
 import React, { useState, useCallback } from 'react';
-import {
-  View, Text, StyleSheet, FlatList, TouchableOpacity,
-  ActivityIndicator, StatusBar, RefreshControl,
-} from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, StatusBar, RefreshControl, } from 'react-native';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useAuth } from '../context/AuthContext';
 import { useFocusEffect } from '@react-navigation/native';
 import * as SecureStore from 'expo-secure-store';
+
 
 const C = {
   bg: '#F5F5F5', white: '#FFFFFF', accent: '#C17C74',
@@ -21,14 +18,14 @@ const C = {
 const BASE_URL = 'https://fash-backend-cp3n.vercel.app/api/v1';
 
 const STATUS = {
-  pending:  { label: 'Pending Review', bg: C.warningLight, color: C.warning, icon: 'time-outline' },
-  accepted: { label: 'Accepted ✓',     bg: C.successLight, color: C.success, icon: 'checkmark-circle-outline' },
-  rejected: { label: 'Rejected ✗',     bg: C.dangerLight,  color: C.danger,  icon: 'close-circle-outline' },
+  pending: { label: 'Pending Review', bg: C.warningLight, color: C.warning, icon: 'time-outline' },
+  accepted: { label: 'Accepted ✓', bg: C.successLight, color: C.success, icon: 'checkmark-circle-outline' },
+  rejected: { label: 'Rejected ✗', bg: C.dangerLight, color: C.danger, icon: 'close-circle-outline' },
 };
 
 const MOCK_JOBS = [
   { _id: 'j1', orderId: 'ORD-789456', itemId: 'ITEM-123ABC', status: 'accepted', createdAt: new Date(Date.now() - 7200000).toISOString(), rejectionReason: null },
-  { _id: 'j2', orderId: 'ORD-654321', itemId: 'ITEM-789DEF', status: 'pending',  createdAt: new Date(Date.now() - 3600000).toISOString(), rejectionReason: null },
+  { _id: 'j2', orderId: 'ORD-654321', itemId: 'ITEM-789DEF', status: 'pending', createdAt: new Date(Date.now() - 3600000).toISOString(), rejectionReason: null },
   { _id: 'j3', orderId: 'ORD-111000', itemId: 'ITEM-CCCDDD', status: 'rejected', createdAt: new Date(Date.now() - 86400000).toISOString(), rejectionReason: 'Item condition mismatch' },
 ];
 
@@ -53,11 +50,10 @@ function StatCard({ label, count, color }) {
 }
 
 export default function CourierStatusScreen({ navigation }) {
-  const { getToken } = useAuth();
-  const [jobs, setJobs]           = useState([]);
-  const [loading, setLoading]     = useState(true);
+  const [jobs, setJobs] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [filter, setFilter]       = useState('all');
+  const [filter, setFilter] = useState('all');
   const [courierId, setCourierId] = useState('');
 
   async function load(silent = false) {
@@ -65,18 +61,17 @@ export default function CourierStatusScreen({ navigation }) {
     try {
       const id = await SecureStore.getItemAsync('courierId').catch(() => '');
       setCourierId(id || '');
-      const token = await getToken();
-      let data;
-      try {
-        const res = await fetch(`${BASE_URL}/courier/jobs`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        const json = await res.json().catch(() => ({}));
-        data = json.data ?? json ?? [];
-        if (!res.ok) throw new Error();
-      } catch {
-        data = MOCK_JOBS;
-      }
+
+      // ✅ Use courierToken, not getToken()
+      const token = await SecureStore.getItemAsync('courierToken');
+
+      const res = await fetch(`${BASE_URL}/courier/jobs`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const json = await res.json().catch(() => ({}));
+      const data = json.data ?? json ?? [];
+      if (!res.ok) throw new Error();
+
       setJobs(Array.isArray(data) ? data : []);
     } catch {
       setJobs(MOCK_JOBS);
@@ -84,6 +79,14 @@ export default function CourierStatusScreen({ navigation }) {
       setLoading(false);
       setRefreshing(false);
     }
+  }
+
+  // Add logout function:
+  async function handleLogout() {
+    await SecureStore.deleteItemAsync('courierToken');
+    await SecureStore.deleteItemAsync('courierId');
+    await SecureStore.deleteItemAsync('courierRole');
+    navigation.replace('Welcome');
   }
 
   useFocusEffect(useCallback(() => { load(); }, []));
@@ -163,16 +166,22 @@ export default function CourierStatusScreen({ navigation }) {
         <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
           <Ionicons name="chevron-back" size={22} color={C.text} />
         </TouchableOpacity>
+
         <View style={{ flex: 1 }}>
           <Text style={styles.headerTitle}>My Pickups</Text>
           {courierId ? <Text style={styles.headerSub}>Courier ID: {courierId}</Text> : null}
         </View>
+
         <TouchableOpacity
           style={styles.newPickupBtn}
           onPress={() => navigation.navigate('CourierPickupScreen')}
         >
           <Ionicons name="add" size={18} color={C.white} />
           <Text style={styles.newPickupText}>New</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity onPress={handleLogout} style={{ marginLeft: 8 }}>
+          <Ionicons name="log-out-outline" size={22} color={C.danger} />
         </TouchableOpacity>
       </View>
 

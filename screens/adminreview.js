@@ -1,9 +1,5 @@
-import React, { useState, useCallback } from 'react';
-import {
-  View, Text, StyleSheet, FlatList, TouchableOpacity,
-  Image, ActivityIndicator, TextInput, Alert, Modal,
-  StatusBar, RefreshControl,
-} from 'react-native';
+import React, { useState, useCallback, useEffect } from 'react';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image, ActivityIndicator, TextInput, Alert, Modal, StatusBar, RefreshControl, } from 'react-native';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../context/AuthContext';
@@ -79,9 +75,9 @@ const MOCK_SUBMISSIONS = [
 // ── Sub-components ────────────────────────────────────────────────────
 function StatusBadge({ status }) {
   const cfg = {
-    pending:  { bg: C.warningLight, color: C.warning, label: 'Pending Review' },
+    pending: { bg: C.warningLight, color: C.warning, label: 'Pending Review' },
     accepted: { bg: C.successLight, color: C.success, label: 'Accepted' },
-    rejected: { bg: C.dangerLight,  color: C.danger,  label: 'Rejected' },
+    rejected: { bg: C.dangerLight, color: C.danger, label: 'Rejected' },
   }[status] ?? { bg: C.warningLight, color: C.warning, label: status };
   return (
     <View style={[styles.badge, { backgroundColor: cfg.bg }]}>
@@ -93,6 +89,11 @@ function StatusBadge({ status }) {
 function RejectModal({ visible, onClose, onConfirm, loading }) {
   const [reason, setReason] = useState('');
   const QUICK = ['Item condition mismatch', 'Wrong item sent', 'Photo unclear', 'Missing tags/labels'];
+
+  useEffect(() => {
+    if (!visible) setReason('');
+  }, [visible]);
+
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
       <View style={styles.modalOverlay}>
@@ -149,12 +150,12 @@ function RejectModal({ visible, onClose, onConfirm, loading }) {
 export default function AdminReviewScreen({ navigation }) {
   const { getToken } = useAuth();
   const [submissions, setSubmissions] = useState([]);
-  const [loading, setLoading]         = useState(true);
-  const [refreshing, setRefreshing]   = useState(false);
-  const [filter, setFilter]           = useState('pending');
-  const [actionLoading, setActionLoading] = useState(null); // submission id being actioned
-  const [rejectModal, setRejectModal] = useState(null);   // submission being rejected
-  const [photoModal, setPhotoModal]   = useState(null);   // photo uri to preview
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [filter, setFilter] = useState('pending');
+  const [actionLoading, setActionLoading] = useState(null);
+  const [rejectModal, setRejectModal] = useState(null);
+  const [photoModal, setPhotoModal] = useState(null);
 
   async function load(silent = false) {
     if (!silent) setLoading(true);
@@ -177,6 +178,10 @@ export default function AdminReviewScreen({ navigation }) {
   }
 
   useFocusEffect(useCallback(() => { load(); }, []));
+
+  useEffect(() => {
+    Notifications.requestPermissionsAsync();
+  }, []);
 
   async function handleAccept(item) {
     Alert.alert(
@@ -206,7 +211,7 @@ export default function AdminReviewScreen({ navigation }) {
                   data: { screen: 'Orders', orderId: item.orderId },
                 },
                 trigger: { seconds: 2 },
-              }).catch(() => {});
+              }).catch(() => { });
 
             } catch (e) {
               Alert.alert('Error', e.message);
@@ -240,7 +245,7 @@ export default function AdminReviewScreen({ navigation }) {
           data: { screen: 'Orders', orderId: item.orderId },
         },
         trigger: { seconds: 2 },
-      }).catch(() => {});
+      }).catch(() => { });
 
     } catch (e) {
       Alert.alert('Error', e.message);
@@ -272,8 +277,8 @@ export default function AdminReviewScreen({ navigation }) {
         <View style={styles.detailGrid}>
           {[
             { icon: 'pricetag-outline', label: 'Item ID', value: item.itemId },
-            { icon: 'person-outline',   label: 'Seller ID', value: item.sellerId },
-            { icon: 'car-outline',      label: 'Courier',   value: item.courierName },
+            { icon: 'person-outline', label: 'Seller ID', value: item.sellerId },
+            { icon: 'car-outline', label: 'Courier', value: item.courierName },
           ].map(row => (
             <View key={row.label} style={styles.detailRow}>
               <Ionicons name={row.icon} size={14} color={C.accent} />
@@ -359,17 +364,26 @@ export default function AdminReviewScreen({ navigation }) {
         <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
           <Ionicons name="chevron-back" size={22} color={C.text} />
         </TouchableOpacity>
+
         <View style={{ flex: 1 }}>
           <Text style={styles.headerTitle}>Admin Review</Text>
           <Text style={styles.headerSub}>Courier pickup submissions</Text>
         </View>
+
         {pendingCount > 0 && (
           <View style={styles.pendingBadge}>
             <Text style={styles.pendingBadgeText}>{pendingCount} pending</Text>
           </View>
         )}
-      </View>
 
+        {/* Logout */}
+        <TouchableOpacity
+          style={{ marginLeft: 8 }}
+          onPress={() => navigation.goBack()}
+        >
+          <Ionicons name="log-out-outline" size={22} color={C.danger} />
+        </TouchableOpacity>
+      </View>
       {/* Filter tabs */}
       <View style={styles.filterRow}>
         {['pending', 'accepted', 'rejected', 'all'].map(f => (
