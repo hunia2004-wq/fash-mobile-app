@@ -2,10 +2,9 @@ import { useState } from 'react';
 import { Image, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View, ActivityIndicator } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
-import { signup } from '../services/authService';
+import { signup, loginWithSocialToken } from '../services/authService';
 import { useSignInWithGoogle, useSignInWithApple } from '@clerk/expo';
 import { useContext } from 'react';
-import { loginWithSocialToken } from '../services/socialAuthService';
 
 
 export default function SignupScreen({ navigation }) {

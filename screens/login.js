@@ -3,10 +3,8 @@ import { Image, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, Te
 import { FontAwesome } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
 import { AuthContext } from '../context/AuthContext';
-import { login } from '../services/authService';
+import { login, loginWithSocialToken } from '../services/authService';
 import { useSignInWithGoogle, useSignInWithApple } from '@clerk/expo';
-import { useContext } from 'react';
-import { loginWithSocialToken } from '../services/socialAuthService';
 
 export default function LoginScreen({ navigation }) {
   const { logIn } = useContext(AuthContext);
