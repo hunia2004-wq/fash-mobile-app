@@ -14,7 +14,7 @@ const { width } = Dimensions.get('window');
 const CARD_WIDTH = (width - 44) / 2;
 const CATEGORIES = ['All', 'Soirée', 'Suits', 'Umrah & Hajj', 'Kids Costumes'];
 
-const ProductCard = ({ item, saved, onToggleSave, onPress, t }) => (
+const ProductCard = ({ item, saved, onToggleSave, onPress, t, inCart }) => (
   <TouchableOpacity style={styles.wCard} activeOpacity={0.85} onPress={onPress}>
     <View style={styles.wCardImg}>
       {item.image ? (
@@ -54,12 +54,22 @@ const ProductCard = ({ item, saved, onToggleSave, onPress, t }) => (
         <Text style={styles.wCardPrice}>EGP {item.price}</Text>
         <Text style={styles.perDay}>{t('per_day')}</Text>
       </View>
-      <TouchableOpacity style={styles.rentBtn} onPress={onPress} activeOpacity={0.85}>
-        <Ionicons name="calendar-outline" size={13} color="white" style={{ marginRight: 5 }} />
-        <Text style={styles.rentBtnText}>{t('rent_now')}</Text>
-      </TouchableOpacity>
     </View>
+
+    <TouchableOpacity
+      style={[styles.rentBtn, inCart && { backgroundColor: '#a0635d' }]}
+      onPress={onPress}
+      activeOpacity={0.85}
+    >
+      <Ionicons
+        name={inCart ? "checkmark-circle-outline" : "calendar-outline"}
+        size={13} color="white" style={{ marginRight: 5 }}
+      />
+      <Text style={styles.rentBtnText}>{inCart ? t('in_cart') : t('rent_now')}</Text>
+    </TouchableOpacity>
   </TouchableOpacity>
+
+
 );
 
 const ComingSoonCard = ({ t }) => (
@@ -77,7 +87,7 @@ const ComingSoonCard = ({ t }) => (
 
 export default function FashCollectionScreen({ navigation }) {
   const { getToken } = useAuth();
-  const { cartCount } = useCart();
+  const { cartCount, isInCart } = useCart();
   const { t } = useTranslation();
 
   const [activeCategory, setActiveCategory] = useState('All');
@@ -242,6 +252,7 @@ export default function FashCollectionScreen({ navigation }) {
                   saved={!!savedMap[item._id]}
                   onToggleSave={handleToggleSave}
                   t={t}
+                  inCart={isInCart(item._id)}  
                   onPress={() => navigation.navigate('Fashproductsdetails', {
                     item,
                     isSaved: !!savedMap[item._id],

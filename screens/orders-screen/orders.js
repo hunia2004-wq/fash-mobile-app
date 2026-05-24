@@ -113,7 +113,9 @@ const BuyingOrderCard = ({ order, onPress }) => (
 // Selling order card — shows pickup banner based on status
 const SellingOrderCard = ({ order, onNavigateToPickup }) => {
   const needsPickup = order.status === 'awaiting_pickup';
-  const hasPickup = order.pickupInfo != null; // backend sets this once submitted
+  const hasPickup = order.pickup?.status === 'scheduled' || 
+                  order.pickup?.status === 'collected' || 
+                  order.pickup?.status === 'completed';
 
   return (
     <View style={styles.card}>
