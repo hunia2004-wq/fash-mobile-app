@@ -58,13 +58,35 @@ export default function CourierLoginScreen({ navigation }) {
   // Login Handler
   // ─────────────────────────────────────────────
   async function handleLogin() {
+    setError('');
     if (!validate()) return;
     setLoading(true);
+  
     try {
+      const data = await login({
+        email: email.trim(),
+        password,
+      });
+  
+      const role = data.user?.role ?? data.role;
+  
+      // Role check — must be courier or admin
+      if (role !== 'courier' && role !== 'admin') {
+        setError('This account does not have courier access.');
+        setLoading(false);
+        return;
+      }
+  
+      // ✅ Store courier token SEPARATELY — never call logIn()
+      // Calling logIn() would set userToken and flip navigator to Home
+      await SecureStore.setItemAsync('courierToken', data.access_token);
       await SecureStore.setItemAsync('courierId', courierId.trim());
-      await SecureStore.setItemAsync('courierToken', 'test-token-123');
-      await SecureStore.setItemAsync('courierRole', 'courier');
+      await SecureStore.setItemAsync('courierRole', role);
+  
       navigation.replace('CourierStatusScreen');
+  
+    } catch (err) {
+      setError(err.message || 'Login failed. Please check your credentials.');
     } finally {
       setLoading(false);
     }
