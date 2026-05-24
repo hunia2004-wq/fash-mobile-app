@@ -215,4 +215,11 @@ const styles = StyleSheet.create({
   ctaTotalValue: { fontSize: 20, fontWeight: '900', color: COLORS.accent },
   checkoutBtn: { flex: 2, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: COLORS.accent, borderRadius: 14, paddingVertical: 16 },
   checkoutBtnText: { fontSize: 15, fontWeight: '700', color: COLORS.white },
+  offerAcceptedTag: {
+    flexDirection: 'row', alignItems: 'center',
+    alignSelf: 'flex-start',
+    backgroundColor: '#D1FAE5', borderRadius: 6,
+    paddingHorizontal: 7, paddingVertical: 2, marginTop: 4,
+  },
+  offerAcceptedText: { fontSize: 10, fontWeight: '700', color: '#065F46' },
 });

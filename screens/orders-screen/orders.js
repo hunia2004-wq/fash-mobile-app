@@ -113,9 +113,9 @@ const BuyingOrderCard = ({ order, onPress }) => (
 // Selling order card — shows pickup banner based on status
 const SellingOrderCard = ({ order, onNavigateToPickup }) => {
   const needsPickup = order.status === 'awaiting_pickup';
-  const hasPickup = order.pickup?.status === 'scheduled' || 
-                  order.pickup?.status === 'collected' || 
-                  order.pickup?.status === 'completed';
+  const hasPickup = order.pickup?.status === 'scheduled' ||
+    order.pickup?.status === 'collected' ||
+    order.pickup?.status === 'completed';
 
   return (
     <View style={styles.card}>
@@ -265,21 +265,21 @@ export default function OrdersScreen({ navigation }) {
           setError(null);
           const token = await getToken();
           if (!token) return;
-  
+
           const [ordersData, salesData] = await Promise.all([
             getOrders(token),
             getSales(token).catch(() => []),
           ]);
-  
+
           setOrders(Array.isArray(ordersData) ? ordersData : ordersData.orders ?? []);
-          setSales(Array.isArray(salesData)   ? salesData  : salesData.orders  ?? []);
+          setSales(Array.isArray(salesData) ? salesData : salesData.orders ?? []);
         } catch (e) {
           setError(e.message);
         } finally {
           setLoading(false);
         }
       };
-      fetchOrders();   
+      fetchOrders();
     }, [])
   );
 
@@ -322,7 +322,7 @@ export default function OrdersScreen({ navigation }) {
         <Text style={styles.headerTitle}>My Orders</Text>
         <View style={{ width: 40 }} />
 
-        <TouchableOpacity onPress={() => navigation.navigate('SellerPickupScreen')}><Text>try here</Text></TouchableOpacity>
+        <TouchableOpacity onPress={() => navigation.navigate('SellerPickupScreen')}><Text>Seller Pickup Details</Text></TouchableOpacity>
       </View>
 
       {/* ── Tab toggle ── */}

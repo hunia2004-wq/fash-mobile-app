@@ -7,8 +7,9 @@ import { Ionicons, Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { COLORS } from './marketplacedata';
 import { useAuth } from '../../context/AuthContext';
-import { deleteListing, saveNewItem, removeSaved, makeOffer } from '../../services/authService';
-import { useEffect } from 'react';
+import { deleteListing, saveNewItem, removeSaved, makeOffer, getMyOffers } from '../../services/authService';
+import { useEffect, useRef } from 'react';
+import { useCart } from '../../context/CartContext';
 
 const { width } = Dimensions.get('window');
 
@@ -37,11 +38,47 @@ const StarRating = ({ rating }) => {
 };
 
 // ── Offer Modal ──────────────────────────────────────────────
-const OfferModal = ({ visible, onClose, itemPrice, itemTitle, itemId, getToken }) => {
-
+const OfferModal = ({ visible, onClose, itemPrice, itemTitle, itemId, getToken, navigation, itemImage, itemOriginalPrice }) => {
   const [offerPrice, setOfferPrice] = useState('');
   const [sending, setSending] = useState(false);
   const [offerStatus, setOfferStatus] = useState(null); // null | 'pending' | 'accepted' | 'rejected'
+  const [existingOffer, setExistingOffer] = useState(null);
+  const pollRef = useRef(null);
+  const { addToCart } = useCart();
+
+
+  // Check for existing offer on this listing when modal opens
+  useEffect(() => {
+    if (!visible) {
+      clearInterval(pollRef.current);
+      return;
+    }
+
+    const checkOffer = async () => {
+      try {
+        const token = await getToken();
+        const data = await getMyOffers(token);
+        const offers = data.offers ?? data ?? [];
+        const match = offers.find(o =>
+          o.listing?._id?.toString() === itemId?.toString() ||
+          o.listing?.toString() === itemId?.toString()
+        );
+        if (match) {
+          setExistingOffer(match);
+          setOfferPrice(String(match.offerPrice));
+          setOfferStatus(match.status === 'pending' ? 'pending'
+            : match.status === 'accepted' ? 'accepted'
+              : match.status === 'rejected' ? 'rejected'
+                : null);
+        }
+      } catch { }
+    };
+
+    checkOffer();
+    // Poll every 10 seconds while modal is open
+    pollRef.current = setInterval(checkOffer, 10000);
+    return () => clearInterval(pollRef.current);
+  }, [visible, itemId]);
 
   const suggested = [
     { label: '10% off', value: Math.round(itemPrice * 0.9) },
@@ -152,7 +189,28 @@ const OfferModal = ({ visible, onClose, itemPrice, itemTitle, itemId, getToken }
                 </TouchableOpacity>
               )}
 
-              <TouchableOpacity style={styles.closeOfferBtn} onPress={handleClose} activeOpacity={0.85}>
+              <TouchableOpacity
+                style={styles.closeOfferBtn}
+                onPress={async () => {
+                  if (offerStatus === 'accepted') {
+                    onClose();
+                    // Add the accepted offer item to cart at offer price
+                    await addToCart({
+                      _id: itemId,
+                      itemId: itemId,
+                      title: itemTitle,
+                      price: parseFloat(offerPrice),
+                      image: itemImage,
+                      isAcceptedOffer: true,
+                      originalPrice: itemOriginalPrice,
+                    }, 'marketplace');
+                    navigation.navigate('MainCart');
+                  } else {
+                    handleClose();
+                  }
+                }}
+                activeOpacity={0.85}
+              >
                 <Text style={styles.closeOfferBtnText}>
                   {offerStatus === 'accepted' ? 'Go to Checkout' : 'Close'}
                 </Text>
@@ -453,18 +511,38 @@ export default function ProductDetailScreen({ navigation, route }) {
 
       <View style={styles.ctaBar}>
         {isOwnListing ? (
-          <TouchableOpacity style={styles.deleteListingBtn} onPress={handleDeleteListing} activeOpacity={0.85}>
-            <Ionicons name="trash-outline" size={16} color={COLORS.white} style={{ marginRight: 8 }} />
-            <Text style={styles.deleteListingBtnText}>Delete Listing</Text>
-          </TouchableOpacity>
-        ) : (
           <>
-            <TouchableOpacity style={styles.offerBtn} onPress={() => setOfferModalVisible(true)} activeOpacity={0.85}>
-              <Text style={styles.offerBtnText}>Make an Offer</Text>
+            <TouchableOpacity
+              style={styles.deleteListingBtn}
+              onPress={handleDeleteListing}
+              activeOpacity={0.85}
+            >
+              <Ionicons name="trash-outline" size={16} color={COLORS.white} style={{ marginRight: 8 }} />
+              <Text style={styles.deleteListingBtnText}>Delete Listing</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.offerBtn}
+              onPress={() => navigation.navigate('Offer', {
+                listingId: item._id,
+                listingTitle: item.title,
+              })}
+              activeOpacity={0.85}
+            >
+              <Text style={styles.offerBtnText}>View Offers</Text>
             </TouchableOpacity>
           </>
+        ) : (
+          <TouchableOpacity
+            style={styles.offerBtn}
+            onPress={() => setOfferModalVisible(true)}
+            activeOpacity={0.85}
+          >
+            <Text style={styles.offerBtnText}>Make an Offer</Text>
+          </TouchableOpacity>
         )}
       </View>
+
+
 
       <OfferModal
         visible={offerModalVisible}
@@ -473,6 +551,9 @@ export default function ProductDetailScreen({ navigation, route }) {
         itemTitle={item.title ?? 'Item'}
         itemId={item._id}
         getToken={getToken}
+        navigation={navigation}
+        itemImage={item.image ?? null}
+        itemOriginalPrice={item.originalPrice ?? item.price}
       />
 
     </SafeAreaView>

@@ -69,6 +69,7 @@ import ARscreen from './screens/ARscreen';
 import Fashproductsdetails from './screens/home-screen/fashproductsdetails';
 import SellerPickupScreen from './screens/orders-screen/sellerpickup';
 import Premium from './screens/premium';
+import Offer from './screens/home-screen/offer';
 
 import { logout, warmupServer, submitPushToken } from './services/authService';
 
@@ -319,6 +320,7 @@ export default function App() {
                     <Stack.Screen name="Fashproductsdetails" component={Fashproductsdetails} />
                     <Stack.Screen name="SellerPickupScreen" component={SellerPickupScreen} />
                     <Stack.Screen name="Premium" component={Premium} />
+                    <Stack.Screen name="Offer" component={Offer} />
                   </>
                 )}
               </Stack.Navigator>

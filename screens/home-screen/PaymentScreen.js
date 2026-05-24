@@ -48,33 +48,33 @@ export default function PaymentScreen({ navigation, route }) {
   const { clearCart } = useCart();
 
   const [paymentMethod, setPaymentMethod] = useState('card');
-  const [placing, setPlacing]             = useState(false);
-  const [orderSuccess, setOrderSuccess]   = useState(false);
-  const [orderId, setOrderId]             = useState(null);
-  const [errors, setErrors]               = useState({});
+  const [placing, setPlacing] = useState(false);
+  const [orderSuccess, setOrderSuccess] = useState(false);
+  const [orderId, setOrderId] = useState(null);
+  const [errors, setErrors] = useState({});
 
-  const [fullName, setFullName]         = useState('');
-  const [postalCode, setPostalCode]     = useState('');
+  const [fullName, setFullName] = useState('');
+  const [postalCode, setPostalCode] = useState('');
   const [instructions, setInstructions] = useState('');
-  const [address, setAddress]           = useState('');
-  const [city, setCity]                 = useState('');
-  const [phone, setPhone]               = useState('');
+  const [address, setAddress] = useState('');
+  const [city, setCity] = useState('');
+  const [phone, setPhone] = useState('');
 
-  const [userPoints, setUserPoints]       = useState(0);
-  const [usePoints, setUsePoints]         = useState(false);
+  const [userPoints, setUserPoints] = useState(0);
+  const [usePoints, setUsePoints] = useState(false);
   const [pointsLoading, setPointsLoading] = useState(true);
 
-  const POINTS_RATE    = 0.1;
+  const POINTS_RATE = 0.1;
   const pointsDiscount = usePoints
     ? Math.min(userPoints * POINTS_RATE, safeTotal * 0.3)
     : 0;
-  const finalTotal     = Math.max(0, safeTotal - pointsDiscount);
+  const finalTotal = Math.max(0, safeTotal - pointsDiscount);
   const pointsToRedeem = usePoints
     ? Math.min(userPoints, Math.ceil(pointsDiscount / POINTS_RATE))
     : 0;
 
   const isAddressValid = fullName && address && city && phone;
-  const canProceed     = isAddressValid;
+  const canProceed = isAddressValid;
 
   useEffect(() => {
     const loadPoints = async () => {
@@ -286,9 +286,21 @@ export default function PaymentScreen({ navigation, route }) {
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Order Summary</Text>
             {safeItems.map((item, i) => (
-              <View key={item._id ?? i} style={styles.orderItem}>
-                <Text style={styles.orderItemTitle} numberOfLines={1}>{item.title}</Text>
-                <Text style={styles.orderItemPrice}>EGP {item.price}</Text>
+              <View key={item._id ?? i}>
+                <View style={styles.orderItem}>
+                  <Text style={styles.orderItemTitle} numberOfLines={1}>{item.title}</Text>
+                  <Text style={styles.orderItemPrice}>EGP {item.price}</Text>
+                </View>
+
+                {/* ── Offer clarification ── */}
+                {item.isAcceptedOffer && (
+                  <View style={styles.offerNote}>
+                    <Ionicons name="checkmark-circle" size={13} color="#065F46" />
+                    <Text style={styles.offerNoteText}>
+                      Seller accepted your offer · Original price EGP {item.originalPrice}
+                    </Text>
+                  </View>
+                )}
               </View>
             ))}
             <View style={styles.orderDivider} />
@@ -423,59 +435,68 @@ export default function PaymentScreen({ navigation, route }) {
 }
 
 const styles = StyleSheet.create({
-  safe:        { flex: 1, backgroundColor: COLORS.bg },
-  header:      { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 12, backgroundColor: COLORS.white, borderBottomWidth: 1, borderBottomColor: COLORS.border },
-  navBtn:      { width: 40, height: 40, borderRadius: 12, backgroundColor: COLORS.card, alignItems: 'center', justifyContent: 'center' },
+  safe: { flex: 1, backgroundColor: COLORS.bg },
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 12, backgroundColor: COLORS.white, borderBottomWidth: 1, borderBottomColor: COLORS.border },
+  navBtn: { width: 40, height: 40, borderRadius: 12, backgroundColor: COLORS.card, alignItems: 'center', justifyContent: 'center' },
   headerTitle: { fontSize: 18, fontWeight: '800', color: COLORS.accent },
   scrollContent: { paddingBottom: 20 },
-  section:       { backgroundColor: COLORS.white, marginTop: 12, paddingHorizontal: 20, paddingVertical: 18, borderTopWidth: 1, borderBottomWidth: 1, borderColor: COLORS.border },
-  sectionTitle:  { fontSize: 13, fontWeight: '700', color: COLORS.accent, textTransform: 'uppercase', letterSpacing: 0.7, marginBottom: 14 },
-  orderItem:      { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
+  section: { backgroundColor: COLORS.white, marginTop: 12, paddingHorizontal: 20, paddingVertical: 18, borderTopWidth: 1, borderBottomWidth: 1, borderColor: COLORS.border },
+  sectionTitle: { fontSize: 13, fontWeight: '700', color: COLORS.accent, textTransform: 'uppercase', letterSpacing: 0.7, marginBottom: 14 },
+  orderItem: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
   orderItemTitle: { fontSize: 13, color: COLORS.text, flex: 1, marginRight: 8 },
   orderItemPrice: { fontSize: 13, fontWeight: '700', color: COLORS.text },
-  orderDivider:   { height: 1, backgroundColor: COLORS.border, marginVertical: 10 },
-  orderSubLabel:  { fontSize: 13, color: COLORS.muted },
-  orderSubValue:  { fontSize: 13, fontWeight: '600', color: COLORS.text },
-  orderTotalLabel:{ fontSize: 15, fontWeight: '800', color: COLORS.text },
-  orderTotalValue:{ fontSize: 17, fontWeight: '900', color: COLORS.accent },
-  pointsCard:            { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: '#fff8e1', borderRadius: 14, padding: 14, marginVertical: 10, borderWidth: 1, borderColor: '#f9e0a0' },
-  pointsCardLeft:        { flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1 },
-  pointsCardEmoji:       { fontSize: 22 },
-  pointsCardTitle:       { fontSize: 13, fontWeight: '700', color: '#2c2c2c' },
-  pointsCardSub:         { fontSize: 11, color: '#888', marginTop: 2 },
-  pointsToggle:          { borderRadius: 10, paddingHorizontal: 14, paddingVertical: 8, borderWidth: 1.5, borderColor: '#C17C74', backgroundColor: '#fff' },
-  pointsToggleActive:    { backgroundColor: '#C17C74', borderColor: '#C17C74' },
-  pointsToggleText:      { fontSize: 12, fontWeight: '700', color: '#C17C74' },
-  pointsToggleTextActive:{ color: '#fff' },
-  methodRow:       { flexDirection: 'row', gap: 12 },
-  methodBtn:       { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, borderRadius: 14, paddingVertical: 14, borderWidth: 1.5, borderColor: COLORS.accent, backgroundColor: COLORS.white },
+  orderDivider: { height: 1, backgroundColor: COLORS.border, marginVertical: 10 },
+  orderSubLabel: { fontSize: 13, color: COLORS.muted },
+  orderSubValue: { fontSize: 13, fontWeight: '600', color: COLORS.text },
+  orderTotalLabel: { fontSize: 15, fontWeight: '800', color: COLORS.text },
+  orderTotalValue: { fontSize: 17, fontWeight: '900', color: COLORS.accent },
+  pointsCard: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: '#fff8e1', borderRadius: 14, padding: 14, marginVertical: 10, borderWidth: 1, borderColor: '#f9e0a0' },
+  pointsCardLeft: { flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1 },
+  pointsCardEmoji: { fontSize: 22 },
+  pointsCardTitle: { fontSize: 13, fontWeight: '700', color: '#2c2c2c' },
+  pointsCardSub: { fontSize: 11, color: '#888', marginTop: 2 },
+  pointsToggle: { borderRadius: 10, paddingHorizontal: 14, paddingVertical: 8, borderWidth: 1.5, borderColor: '#C17C74', backgroundColor: '#fff' },
+  pointsToggleActive: { backgroundColor: '#C17C74', borderColor: '#C17C74' },
+  pointsToggleText: { fontSize: 12, fontWeight: '700', color: '#C17C74' },
+  pointsToggleTextActive: { color: '#fff' },
+  methodRow: { flexDirection: 'row', gap: 12 },
+  methodBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, borderRadius: 14, paddingVertical: 14, borderWidth: 1.5, borderColor: COLORS.accent, backgroundColor: COLORS.white },
   methodBtnActive: { backgroundColor: COLORS.accent },
-  methodText:      { fontSize: 13, fontWeight: '700', color: COLORS.accent },
-  methodTextActive:{ color: COLORS.white },
-  paymobInfo:     { flexDirection: 'row', alignItems: 'flex-start', gap: 10, backgroundColor: COLORS.accentLight, borderRadius: 12, padding: 14, marginBottom: 12 },
+  methodText: { fontSize: 13, fontWeight: '700', color: COLORS.accent },
+  methodTextActive: { color: COLORS.white },
+  paymobInfo: { flexDirection: 'row', alignItems: 'flex-start', gap: 10, backgroundColor: COLORS.accentLight, borderRadius: 12, padding: 14, marginBottom: 12 },
   paymobInfoText: { flex: 1, fontSize: 13, color: COLORS.accent, lineHeight: 20 },
-  secureNote:     { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  secureText:     { fontSize: 11, color: COLORS.muted },
-  inputWrap:  { marginBottom: 14 },
+  secureNote: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  secureText: { fontSize: 11, color: COLORS.muted },
+  inputWrap: { marginBottom: 14 },
   inputLabel: { fontSize: 11, fontWeight: '700', color: COLORS.text, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 7 },
-  input:      { backgroundColor: COLORS.white, borderWidth: 1, borderColor: COLORS.border, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 13, fontSize: 14, color: COLORS.text },
+  input: { backgroundColor: COLORS.white, borderWidth: 1, borderColor: COLORS.border, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 13, fontSize: 14, color: COLORS.text },
   inputError: { borderColor: '#c2185b', backgroundColor: '#fce4ec' },
-  errorRow:   { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 5 },
-  errorText:  { fontSize: 11, color: '#c2185b', fontWeight: '600', flex: 1 },
-  cashInfo:    { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: COLORS.accentLight, borderRadius: 12, padding: 12, marginBottom: 16 },
-  cashInfoText:{ fontSize: 13, color: COLORS.accent, fontWeight: '600' },
-  rowFields:  { flexDirection: 'row' },
-  ctaBar:        { position: 'absolute', bottom: 0, left: 0, right: 0, paddingHorizontal: 20, paddingVertical: 16, paddingBottom: 32, backgroundColor: COLORS.white, borderTopWidth: 1, borderTopColor: COLORS.border },
+  errorRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 5 },
+  errorText: { fontSize: 11, color: '#c2185b', fontWeight: '600', flex: 1 },
+  cashInfo: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: COLORS.accentLight, borderRadius: 12, padding: 12, marginBottom: 16 },
+  cashInfoText: { fontSize: 13, color: COLORS.accent, fontWeight: '600' },
+  rowFields: { flexDirection: 'row' },
+  ctaBar: { position: 'absolute', bottom: 0, left: 0, right: 0, paddingHorizontal: 20, paddingVertical: 16, paddingBottom: 32, backgroundColor: COLORS.white, borderTopWidth: 1, borderTopColor: COLORS.border },
   placeOrderBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: COLORS.accent, borderRadius: 16, paddingVertical: 16 },
-  placeOrderText:{ fontSize: 16, fontWeight: '800', color: COLORS.white },
+  placeOrderText: { fontSize: 16, fontWeight: '800', color: COLORS.white },
   successScreen: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 32 },
-  successIcon:   { width: 110, height: 110, borderRadius: 55, backgroundColor: COLORS.successLight, alignItems: 'center', justifyContent: 'center', marginBottom: 24 },
-  successTitle:  { fontSize: 28, fontWeight: '900', color: COLORS.text, marginBottom: 10 },
-  successSub:    { fontSize: 14, color: COLORS.muted, textAlign: 'center', lineHeight: 22, marginBottom: 28 },
-  successDetails:{ width: '100%', backgroundColor: COLORS.card, borderRadius: 16, padding: 18, gap: 12, marginBottom: 28 },
-  successRow:    { flexDirection: 'row', justifyContent: 'space-between' },
-  successLabel:  { fontSize: 13, color: COLORS.muted },
-  successValue:  { fontSize: 13, fontWeight: '700', color: COLORS.text },
+  successIcon: { width: 110, height: 110, borderRadius: 55, backgroundColor: COLORS.successLight, alignItems: 'center', justifyContent: 'center', marginBottom: 24 },
+  successTitle: { fontSize: 28, fontWeight: '900', color: COLORS.text, marginBottom: 10 },
+  successSub: { fontSize: 14, color: COLORS.muted, textAlign: 'center', lineHeight: 22, marginBottom: 28 },
+  successDetails: { width: '100%', backgroundColor: COLORS.card, borderRadius: 16, padding: 18, gap: 12, marginBottom: 28 },
+  successRow: { flexDirection: 'row', justifyContent: 'space-between' },
+  successLabel: { fontSize: 13, color: COLORS.muted },
+  successValue: { fontSize: 13, fontWeight: '700', color: COLORS.text },
   backToShopBtn: { backgroundColor: COLORS.accent, borderRadius: 16, paddingVertical: 16, paddingHorizontal: 40 },
   backToShopBtnText: { fontSize: 15, fontWeight: '700', color: COLORS.white },
+  offerNote: {
+    flexDirection: 'row', alignItems: 'center', gap: 6,
+    backgroundColor: '#D1FAE5', borderRadius: 8,
+    paddingHorizontal: 10, paddingVertical: 6,
+    marginBottom: 8,
+  },
+  offerNoteText: {
+    fontSize: 11, color: '#065F46', fontWeight: '600', flex: 1,
+  },
 });

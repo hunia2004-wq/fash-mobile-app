@@ -815,3 +815,17 @@ export async function getMyOffers(token) {
     headers: { Authorization: `Bearer ${token}` },
   });
 }
+
+export async function getMyListingOffers(token, listingId) {
+  return request(`/listings/${listingId}/offers`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+}
+
+export async function respondToOffer(token, listingId, offerId, status) {
+  return request(`/listings/${listingId}/offers/${offerId}`, {
+    method: 'PATCH',
+    headers: { Authorization: `Bearer ${token}` },
+    body: JSON.stringify({ status }),
+  });
+}

@@ -28,6 +28,8 @@ export function CartProvider({ children }) {
     rentalLabel: item.rentalLabel ?? null,
     rentalSize: item.rentalSize ?? null,
     rentalColor: item.rentalColor ?? null,
+    isAcceptedOffer: item.isAcceptedOffer ?? false,
+    originalPrice: item.originalPrice ?? null,
   });
 
   // ── Load cart on mount ──────────────────────────────────────────
@@ -70,7 +72,7 @@ export function CartProvider({ children }) {
       rentalColor: item.rentalColor,
       price: item.price,
     } : {};
-
+  
     // Optimistic update
     setCartItems(prev => {
       const exists = prev.find(
@@ -88,10 +90,12 @@ export function CartProvider({ children }) {
         quantity: 1,
         brand: item.brand,
         condition: item.condition,
+        isAcceptedOffer: item.isAcceptedOffer ?? false,   // ← add
+        originalPrice: item.originalPrice ?? null,         // ← add
         ...rentalOptions,
       })];
     });
-
+  
     try {
       const token = await getToken();
       const data = await addToCartAPI(
@@ -100,7 +104,10 @@ export function CartProvider({ children }) {
         itemType,
         { ...options, ...rentalOptions }
       );
-      syncFromResponse(data);
+      // Don't sync from backend for accepted offers — it would overwrite the offer price
+      if (!item.isAcceptedOffer) {
+        syncFromResponse(data);
+      }
     } catch (err) {
       setCartItems(prev =>
         prev.filter(i => i._id?.toString() !== item._id?.toString())
@@ -108,6 +115,8 @@ export function CartProvider({ children }) {
       console.error('Add to cart failed:', err.message);
     }
   }, [getToken]);
+
+  
 
   // ── Remove ──────────────────────────────────────────────────────
   const removeFromCart = useCallback(async (cartItemId) => {
