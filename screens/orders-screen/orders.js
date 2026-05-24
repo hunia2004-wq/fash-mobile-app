@@ -1,4 +1,4 @@
-import React, { useContext, useState, useCallback } from 'react';
+import React, { useContext, useState, useCallback, useEffect } from 'react';
 import {
   View, Text, StyleSheet, FlatList, TouchableOpacity,
   ActivityIndicator, Image, StatusBar,
@@ -283,6 +283,19 @@ export default function OrdersScreen({ navigation }) {
     }, [])
   );
 
+  useEffect(() => {
+    if (activeTab !== 'selling') return;
+    const interval = setInterval(async () => {
+      try {
+        const token = await getToken();
+        if (!token) return;
+        const salesData = await getSales(token).catch(() => []);
+        setSales(Array.isArray(salesData) ? salesData : salesData.orders ?? []);
+      } catch {}
+    }, 10000);
+    return () => clearInterval(interval);
+  }, [activeTab, getToken]);
+
   const handleNavigateToPickup = useCallback((params) => {
     navigation.navigate('SellerPickupScreen', params);
   }, [navigation]);
@@ -321,8 +334,6 @@ export default function OrdersScreen({ navigation }) {
         </TouchableOpacity>
         <Text style={styles.headerTitle}>My Orders</Text>
         <View style={{ width: 40 }} />
-
-        <TouchableOpacity onPress={() => navigation.navigate('SellerPickupScreen')}><Text>Seller Pickup Details</Text></TouchableOpacity>
       </View>
 
       {/* ── Tab toggle ── */}
