@@ -1,9 +1,9 @@
-import { View, Text, TouchableOpacity, ScrollView, StyleSheet, SafeAreaView, StatusBar, Dimensions, } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, StyleSheet, SafeAreaView, StatusBar, Dimensions, Alert } from 'react-native';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Linking, ActivityIndicator } from 'react-native';
 import { useAuth } from '../context/AuthContext';
-import { initiateSubscription, getMySubscription } from '../services/authService';
+import { initiateSubscription, getMySubscription, getSubscriptionPlans } from '../services/authService';
 
 const { width } = Dimensions.get('window');
 
@@ -22,62 +22,36 @@ const C = {
   greenBg: '#EBF7F1',
 };
 
-// ─── Prices ───────────────────────────────────────────────────────────────────
-const PRICES = {
-  monthly: { basic: 79, pro: 149 },
-  yearly: { basic: 55, pro: 104 },
-};
-
-// ─── All features, tagged with which plans include them ───────────────────────
-// plans: ['basic'] | ['pro'] | ['basic','pro']
 const ALL_FEATURES = [
   {
-    iconLib: 'ion',
-    icon: 'chatbubble-ellipses',
-    title: 'AI Styling',
+    iconLib: 'ion', icon: 'chatbubble-ellipses', title: 'AI Styling',
     desc: 'Chat with your personal AI stylist for outfit ideas and daily inspiration.',
-    tag: { basic: '10 / day', pro: 'Unlimited' },
-    plans: ['basic', 'pro'],
+    tag: { basic: '10 / day', pro: 'Unlimited' }, plans: ['basic', 'pro'],
   },
   {
-    iconLib: 'ion',
-    icon: 'bar-chart',
-    title: 'Seller Analytics',
+    iconLib: 'ion', icon: 'bar-chart', title: 'Seller Analytics',
     desc: 'Track views, saves, and conversion rates on all your listings.',
-    tag: { basic: 'Included', pro: 'Included' },
-    plans: ['basic', 'pro'],
+    tag: { basic: 'Included', pro: 'Included' }, plans: ['basic', 'pro'],
   },
   {
-    iconLib: 'ion',
-    icon: 'headset',
-    title: 'Priority Support',
+    iconLib: 'ion', icon: 'headset', title: 'Priority Support',
     desc: 'Skip the queue — dedicated support with faster response times.',
-    tag: { basic: 'Included', pro: 'Included' },
-    plans: ['basic', 'pro'],
+    tag: { basic: 'Included', pro: 'Included' }, plans: ['basic', 'pro'],
   },
   {
-    iconLib: 'mci',
-    icon: 'augmented-reality',
-    title: 'AR Try-On',
+    iconLib: 'mci', icon: 'augmented-reality', title: 'AR Try-On',
     desc: 'See how any garment looks on you live through your camera.',
-    tag: { pro: 'Pro only' },
-    plans: ['pro'],
+    tag: { pro: 'Pro only' }, plans: ['pro'],
   },
   {
-    iconLib: 'ion',
-    icon: 'shield-checkmark',
-    title: 'Trusted Seller Badge',
+    iconLib: 'ion', icon: 'shield-checkmark', title: 'Trusted Seller Badge',
     desc: 'A verified badge builds buyer trust and boosts your sales.',
-    tag: { pro: 'Pro only' },
-    plans: ['pro'],
+    tag: { pro: 'Pro only' }, plans: ['pro'],
   },
   {
-    iconLib: 'ion',
-    icon: 'flash',
-    title: 'Priority Listing Boost',
+    iconLib: 'ion', icon: 'flash', title: 'Priority Listing Boost',
     desc: 'Your items appear first in search results and category pages.',
-    tag: { pro: 'Pro only' },
-    plans: ['pro'],
+    tag: { pro: 'Pro only' }, plans: ['pro'],
   },
 ];
 
@@ -100,6 +74,8 @@ export default function PremiumPlanScreen({ navigation }) {
   const { getToken } = useAuth();
   const [subscribing, setSubscribing] = useState(false);
   const [currentSub, setCurrentSub] = useState(null);
+
+  const selectedLabel = selected === 'pro' ? 'Pro' : 'Basic';
 
   useEffect(() => {
     const load = async () => {
@@ -127,14 +103,43 @@ export default function PremiumPlanScreen({ navigation }) {
     }
   };
 
-  const price = PRICES[billing];
-  const selectedLabel = selected === 'pro' ? 'Pro' : 'Basic';
-  const ctaText = `Start ${selectedLabel} — EGP ${price[selected]}/mo`;
+  const [plans, setPlans] = useState([]);
+  const [plansLoading, setPlansLoading] = useState(true);
+
+  useEffect(() => {
+    const loadPlans = async () => {
+      try {
+        const data = await getSubscriptionPlans();
+        setPlans(data.data ?? data ?? []);
+      } catch (err) {
+        console.warn('Could not load plans:', err.message);
+      } finally {
+        setPlansLoading(false);
+      }
+    };
+    loadPlans();
+  }, []);
+
+  const getPlanPrice = (planName) => {
+    const match = plans.find(p => p.plan === planName && p.billingCycle === billing);
+    return match?.price ?? '—';
+  };
+
+  // Then replace price[selected] and price[plan] usages:
+  const ctaText = `Start ${selectedLabel} — EGP ${getPlanPrice(selected)}/mo`;
 
   // Filter to only features available for the selected plan
   const visibleFeatures = ALL_FEATURES.filter(f => f.plans.includes(selected));
   // Features shared across both plans (shown when pro is selected, to highlight value)
   const isProOnly = (f) => f.plans.length === 1 && f.plans[0] === 'pro';
+
+  if (plansLoading) {
+    return (
+      <SafeAreaView style={s.safe}>
+        <ActivityIndicator size="large" color={C.primary} style={{ flex: 1 }} />
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={s.safe}>
@@ -246,7 +251,7 @@ export default function PremiumPlanScreen({ navigation }) {
                   )}
                 </View>
                 <View style={s.priceBox}>
-                  <Text style={s.priceAmount}>EGP {price[plan]}</Text>
+                  <Text style={s.priceAmount}>EGP {getPlanPrice(plan)}</Text>
                   <Text style={s.pricePeriod}>/ mo</Text>
                 </View>
               </View>
@@ -372,6 +377,13 @@ export default function PremiumPlanScreen({ navigation }) {
             <Text style={s.ctaBtnText}>
               {subscribing ? 'Redirecting...' : ctaText}
             </Text>
+          </TouchableOpacity>
+
+          <Text style={s.ctaNote}>
+            Cancel anytime · No hidden fees · Billed securely via Paymob
+          </Text>
+          <TouchableOpacity activeOpacity={0.7}>
+            <Text style={s.restoreLink}>Restore previous purchase</Text>
           </TouchableOpacity>
         </View>
 
