@@ -102,12 +102,14 @@ export function CartProvider({ children }) {
         token,
         item.itemId ?? item._id,
         itemType,
-        { ...options, ...rentalOptions }
+        { 
+          ...options, 
+          ...rentalOptions,
+          isAcceptedOffer: item.isAcceptedOffer ?? false,  
+          price: item.price,                                
+        }
       );
-      // Don't sync from backend for accepted offers — it would overwrite the offer price
-      if (!item.isAcceptedOffer) {
         syncFromResponse(data);
-      }
     } catch (err) {
       setCartItems(prev =>
         prev.filter(i => i._id?.toString() !== item._id?.toString())

@@ -3,8 +3,9 @@ import { Image, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, Te
 import { FontAwesome } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
 import { signup, loginWithSocialToken } from '../services/authService';
-import { useSignInWithGoogle, useSignInWithApple } from '@clerk/expo';
 import { useContext } from 'react';
+import { useOAuth } from '@clerk/expo';
+import { AuthContext } from '../context/AuthContext';
 
 
 export default function SignupScreen({ navigation }) {
@@ -18,8 +19,8 @@ export default function SignupScreen({ navigation }) {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const { logIn } = useContext(AuthContext);
-  const { signIn: googleSignIn } = useSignInWithGoogle();
-  const { signIn: appleSignIn } = useSignInWithApple();
+  const { startOAuthFlow: googleSignIn } = useOAuth({ strategy: 'oauth_google' });
+  const { startOAuthFlow: appleSignIn } = useOAuth({ strategy: 'oauth_apple' });
 
   const handleSignUp = async () => {
     setError("");
@@ -47,10 +48,10 @@ export default function SignupScreen({ navigation }) {
 
   const handleGoogleSignIn = async () => {
     try {
-      const result = await googleSignIn();
-      if (result?.createdSessionId) {
-        // Get Clerk token and exchange for your backend JWT
-        const token = await result.getToken();
+      const { createdSessionId, setActive, signUp, signIn } = await googleSignIn();
+      if (createdSessionId) {
+        await setActive({ session: createdSessionId });
+        const token = await signIn?.getToken() ?? await signUp?.getToken();
         const data = await loginWithSocialToken(token, 'google');
         const userId = data.user?._id ?? data.user?.id ?? null;
         await logIn(data.access_token, userId);
@@ -62,9 +63,10 @@ export default function SignupScreen({ navigation }) {
 
   const handleAppleSignIn = async () => {
     try {
-      const result = await appleSignIn();
-      if (result?.createdSessionId) {
-        const token = await result.getToken();
+      const { createdSessionId, setActive, signUp, signIn } = await appleSignIn();
+      if (createdSessionId) {
+        await setActive({ session: createdSessionId });
+        const token = await signIn?.getToken() ?? await signUp?.getToken();
         const data = await loginWithSocialToken(token, 'apple');
         const userId = data.user?._id ?? data.user?.id ?? null;
         await logIn(data.access_token, userId);

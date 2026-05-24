@@ -4,7 +4,7 @@ import { FontAwesome } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
 import { AuthContext } from '../context/AuthContext';
 import { login, loginWithSocialToken } from '../services/authService';
-import { useSignInWithGoogle, useSignInWithApple } from '@clerk/expo';
+import { useOAuth } from '@clerk/expo';
 
 export default function LoginScreen({ navigation }) {
   const { logIn } = useContext(AuthContext);
@@ -13,8 +13,9 @@ export default function LoginScreen({ navigation }) {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const { signIn: googleSignIn } = useSignInWithGoogle();
-  const { signIn: appleSignIn } = useSignInWithApple();
+
+  const { startOAuthFlow: googleSignIn } = useOAuth({ strategy: 'oauth_google' });
+  const { startOAuthFlow: appleSignIn } = useOAuth({ strategy: 'oauth_apple' });
 
   const handleLogin = async () => {
     setError("");
@@ -37,13 +38,10 @@ export default function LoginScreen({ navigation }) {
 
   const handleGoogleSignIn = async () => {
     try {
-      const result = await googleSignIn();
-      if (result?.createdSessionId) {
-        // Get Clerk token and exchange for your backend JWT
-        const token = await result.getToken();
-        const data = await loginWithSocialToken(token, 'google');
-        const userId = data.user?._id ?? data.user?.id ?? null;
-        await logIn(data.access_token, userId);
+      const { createdSessionId, setActive } = await googleSignIn();
+      if (createdSessionId) {
+        await setActive({ session: createdSessionId });
+        // then exchange for your backend JWT as before
       }
     } catch (err) {
       setError(err.message || 'Google sign-in failed');
@@ -52,17 +50,15 @@ export default function LoginScreen({ navigation }) {
 
   const handleAppleSignIn = async () => {
     try {
-      const result = await appleSignIn();
-      if (result?.createdSessionId) {
-        const token = await result.getToken();
-        const data = await loginWithSocialToken(token, 'apple');
-        const userId = data.user?._id ?? data.user?.id ?? null;
-        await logIn(data.access_token, userId);
+      const { createdSessionId, setActive } = await appleSignIn();
+      if (createdSessionId) {
+        await setActive({ session: createdSessionId });
       }
     } catch (err) {
       setError(err.message || 'Apple sign-in failed');
     }
   };
+
 
   return (
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>

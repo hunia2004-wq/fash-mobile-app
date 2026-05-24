@@ -111,6 +111,10 @@ export default function MainCart({ navigation }) {
                       <Ionicons name="calendar-outline" size={10} color={COLORS.accent} style={{ marginRight: 3 }} />
                       <Text style={styles.rentalTagText}>{item.rentalLabel}</Text>
                     </View>
+                  ) : item.isAcceptedOffer ? (
+                    <View style={styles.offerAcceptedTag}>
+                      <Text style={styles.offerAcceptedText}>✓ Offer accepted</Text>
+                    </View>
                   ) : item.condition ? (
                     <View style={styles.conditionTag}>
                       <Text style={styles.conditionText}>{item.condition}</Text>
