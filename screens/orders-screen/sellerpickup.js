@@ -178,7 +178,7 @@ function ReadOnlyBanner() {
 
 export default function SellerPickupScreen({ route, navigation }) {
   const {
-    orderId = 'EA4E1D',
+    orderId,
     item = { name: 'Item', price: 0, imageUrl: null },
     buyerUsername = 'buyer',
     readOnly = false,
@@ -200,7 +200,12 @@ export default function SellerPickupScreen({ route, navigation }) {
 
   const [loading, setLoading] = useState(true);
 
-useEffect(() => {
+  useEffect(() => {
+    if (!orderId) {
+      setLoading(false);
+      return;
+    }
+  
   async function fetchPickup() {
     try {
       const token = await getToken();
