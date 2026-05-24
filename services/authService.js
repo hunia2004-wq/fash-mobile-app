@@ -811,7 +811,7 @@ export async function makeOffer(token, listingId, offerPrice) {
 }
 
 export async function getMyOffers(token) {
-  return request('/listings/my-offers', {
+  return request('/listings/my/offers', {  
     headers: { Authorization: `Bearer ${token}` },
   });
 }
