@@ -73,6 +73,11 @@ import SellerPickupScreen from './screens/orders-screen/sellerpickup';
 import Premium from './screens/premium';
 import Offer from './screens/home-screen/offer';
 
+import CourierLoginScreen from './screens/courierlogin';
+import CourierPickupScreen from './screens/courierpickup';
+import CourierStatusScreen from './screens/courierstatus';
+import AdminReviewScreen from './screens/adminreview';
+
 import { logout, warmupServer, submitPushToken } from './services/authService';
 
 const Stack = createNativeStackNavigator();
@@ -280,6 +285,10 @@ export default function App() {
                         <Stack.Screen name="Signup" component={SignupScreen} />
                         <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
                         <Stack.Screen name="Verification" component={VerificationScreen} />
+
+                        <Stack.Screen name="CourierLoginScreen" component={CourierLoginScreen}  options={{ headerShown: false }}/>
+                        <Stack.Screen name="CourierPickupScreen" component={CourierPickupScreen}  options={{ headerShown: false }}/>
+                        <Stack.Screen name="CourierStatusScreen" component={CourierStatusScreen}  options={{ headerShown: false }}/>
                       </>
                     ) : (
                       <>
@@ -332,6 +341,8 @@ export default function App() {
                         <Stack.Screen name="SellerPickupScreen" component={SellerPickupScreen} />
                         <Stack.Screen name="Premium" component={Premium} />
                         <Stack.Screen name="Offer" component={Offer} />
+
+                        <Stack.Screen name="AdminReviewScreen" component={AdminReviewScreen}  options={{ headerShown: false }}/>
                       </>
                     )}
                   </Stack.Navigator>

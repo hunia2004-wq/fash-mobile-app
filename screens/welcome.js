@@ -44,7 +44,7 @@ export default function WelcomeScreen({ navigation }) {
 
         <TouchableOpacity
           style={styles.courierLink}
-          onPress={() => navigation.navigate("CourierLogin")}>
+          onPress={() => navigation.navigate("CourierLoginScreen")}>
           <Text style={styles.courierLinkText}>Are you a courier? Log in here</Text>
         </TouchableOpacity>
 
