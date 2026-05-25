@@ -411,7 +411,7 @@ export default function MarketplaceScreen({ navigation, route }) {
                     </View>
                     <View style={styles.modalItemInfo}>
                       <Text style={styles.modalItemTitle} numberOfLines={1}>{item.title}</Text>
-                      <Text style={styles.modalItemBrand}>{item.brand || t('no_brand')} · {item.size || 'N/A'}</Text>
+                      <Text style={styles.modalItemBrand}>{item.brand || t('no_brand')} · {item.condition || 'N/A'}</Text>
                       <Text style={styles.modalItemPrice}>EGP {item.price}</Text>
                     </View>
                     <TouchableOpacity onPress={() => removeFromCart(item._id)} style={styles.modalRemoveBtn}>

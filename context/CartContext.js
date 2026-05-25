@@ -72,13 +72,28 @@ export function CartProvider({ children }) {
       rentalColor: item.rentalColor,
       price: item.price,
     } : {};
-  
+
     // Optimistic update
     setCartItems(prev => {
-      const exists = prev.find(
+      const existingIndex = prev.findIndex(
         i => !i.isRental && i.itemId?.toString() === item._id?.toString()
       );
-      if (exists && !item.isRental) return prev;
+
+      // If item exists and this is an accepted offer — update price instead of blocking
+      if (existingIndex !== -1 && item.isAcceptedOffer) {
+        const updated = [...prev];
+        updated[existingIndex] = {
+          ...updated[existingIndex],
+          price: item.price,
+          isAcceptedOffer: true,
+          originalPrice: item.originalPrice,
+        };
+        return updated;
+      }
+
+      // Regular item already in cart — don't add duplicate
+      if (existingIndex !== -1 && !item.isRental) return prev;
+
       return [...prev, normalizeBackend({
         _id: item._id,
         itemId: item._id,
@@ -90,26 +105,28 @@ export function CartProvider({ children }) {
         quantity: 1,
         brand: item.brand,
         condition: item.condition,
-        isAcceptedOffer: item.isAcceptedOffer ?? false,   // ← add
-        originalPrice: item.originalPrice ?? null,         // ← add
+        isAcceptedOffer: item.isAcceptedOffer ?? false,
+        originalPrice: item.originalPrice ?? null,
         ...rentalOptions,
       })];
     });
-  
+
     try {
       const token = await getToken();
       const data = await addToCartAPI(
         token,
         item.itemId ?? item._id,
         itemType,
-        { 
-          ...options, 
+        {
+          ...options,
           ...rentalOptions,
-          isAcceptedOffer: item.isAcceptedOffer ?? false,  
-          price: item.price,                                
+          isAcceptedOffer: item.isAcceptedOffer ?? false,
+          price: item.price,
         }
       );
+      if (!item.isAcceptedOffer) {
         syncFromResponse(data);
+      }
     } catch (err) {
       setCartItems(prev =>
         prev.filter(i => i._id?.toString() !== item._id?.toString())
@@ -118,7 +135,6 @@ export function CartProvider({ children }) {
     }
   }, [getToken]);
 
-  
 
   // ── Remove ──────────────────────────────────────────────────────
   const removeFromCart = useCallback(async (cartItemId) => {
