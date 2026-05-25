@@ -19,10 +19,6 @@ const C = {
 export default function CourierLoginScreen({ navigation }) {
 
   const [courierId, setCourierId] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [showPw, setShowPw] = useState(false);
-
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [errors, setErrors] = useState({});
@@ -35,16 +31,6 @@ export default function CourierLoginScreen({ navigation }) {
 
     if (!courierId.trim()) {
       e.courierId = 'Courier ID is required';
-    }
-
-    if (!email.trim()) {
-      e.email = 'Email is required';
-    } else if (!email.includes('@')) {
-      e.email = 'Enter a valid email';
-    }
-
-    if (!password) {
-      e.password = 'Password is required';
     }
 
     setErrors(e);
@@ -61,7 +47,7 @@ export default function CourierLoginScreen({ navigation }) {
     setLoading(true);
   
     try {
-      const data = await courierLogin({ courierId, email, password });
+      const data = await courierLogin({ courierId });
   
       await SecureStore.setItemAsync('courierToken', data.access_token);
       await SecureStore.setItemAsync('courierId', data.courier.courierId);
@@ -187,123 +173,6 @@ export default function CourierLoginScreen({ navigation }) {
             </Text>
           ) : null}
 
-          {/* Email */}
-          <Text
-            style={[
-              styles.label,
-              { marginTop: 14 },
-            ]}
-          >
-            Email{' '}
-            <Text style={{ color: C.accent }}>
-              *
-            </Text>
-          </Text>
-
-          <View
-            style={[
-              styles.inputWrap,
-              errors.email && styles.inputError,
-            ]}
-          >
-            <Ionicons
-              name="mail-outline"
-              size={18}
-              color={C.muted}
-              style={styles.inputIcon}
-            />
-
-            <TextInput
-              style={styles.input}
-              placeholder="courier@fash.com"
-              placeholderTextColor={C.muted}
-              value={email}
-              keyboardType="email-address"
-              autoCapitalize="none"
-              onChangeText={(v) => {
-                setEmail(v);
-
-                setErrors((p) => ({
-                  ...p,
-                  email: null,
-                }));
-              }}
-            />
-          </View>
-
-          {errors.email ? (
-            <Text style={styles.fieldError}>
-              {errors.email}
-            </Text>
-          ) : null}
-
-          {/* Password */}
-          <Text
-            style={[
-              styles.label,
-              { marginTop: 14 },
-            ]}
-          >
-            Password{' '}
-            <Text style={{ color: C.accent }}>
-              *
-            </Text>
-          </Text>
-
-          <View
-            style={[
-              styles.inputWrap,
-              errors.password &&
-                styles.inputError,
-            ]}
-          >
-            <Ionicons
-              name="lock-closed-outline"
-              size={18}
-              color={C.muted}
-              style={styles.inputIcon}
-            />
-
-            <TextInput
-              style={[
-                styles.input,
-                { flex: 1 },
-              ]}
-              placeholder="Enter your password"
-              placeholderTextColor={C.muted}
-              value={password}
-              secureTextEntry={!showPw}
-              onChangeText={(v) => {
-                setPassword(v);
-
-                setErrors((p) => ({
-                  ...p,
-                  password: null,
-                }));
-              }}
-            />
-
-            <TouchableOpacity
-              onPress={() => setShowPw(!showPw)}
-              style={{ padding: 4 }}
-            >
-              <Ionicons
-                name={
-                  showPw
-                    ? 'eye-outline'
-                    : 'eye-off-outline'
-                }
-                size={18}
-                color={C.muted}
-              />
-            </TouchableOpacity>
-          </View>
-
-          {errors.password ? (
-            <Text style={styles.fieldError}>
-              {errors.password}
-            </Text>
-          ) : null}
 
           {/* Global Error */}
           {error ? (

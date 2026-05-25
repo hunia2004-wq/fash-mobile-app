@@ -9,7 +9,6 @@ import { GalioProvider } from 'galio-framework';
 import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
 import Constants from 'expo-constants';
-import { ClerkProvider, ClerkLoaded } from '@clerk/expo';
 
 
 import { CartProvider } from './context/CartContext';
@@ -267,9 +266,6 @@ export default function App() {
   return (
     <GalioProvider>
       <PaperProvider>
-        <ClerkProvider publishableKey={process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY}
-          tokenCache={tokenCache}>
-          <ClerkLoaded>
             <AuthContext.Provider value={authContext}>
               <CartProvider>
                 <NavigationContainer ref={navigationRef}>
@@ -349,8 +345,6 @@ export default function App() {
                 </NavigationContainer>
               </CartProvider>
             </AuthContext.Provider>
-          </ClerkLoaded>
-        </ClerkProvider>
       </PaperProvider>
     </GalioProvider>
   );

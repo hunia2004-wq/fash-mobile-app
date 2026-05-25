@@ -4,7 +4,6 @@ import { FontAwesome } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
 import { signup, loginWithSocialToken } from '../services/authService';
 import { useContext } from 'react';
-import { useOAuth } from '@clerk/expo';
 import { AuthContext } from '../context/AuthContext';
 
 
@@ -19,8 +18,6 @@ export default function SignupScreen({ navigation }) {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const { logIn } = useContext(AuthContext);
-  const { startOAuthFlow: googleSignIn } = useOAuth({ strategy: 'oauth_google' });
-  const { startOAuthFlow: appleSignIn } = useOAuth({ strategy: 'oauth_apple' });
 
   const handleSignUp = async () => {
     setError("");

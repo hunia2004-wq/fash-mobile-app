@@ -9,7 +9,6 @@
     "web": "expo start --web"
   },
   "dependencies": {
-    "@clerk/expo": "^3.2.16",
     "@expo/metro-runtime": "~55.0.11",
     "@expo/vector-icons": "^15.0.2",
     "@react-native-async-storage/async-storage": "2.2.0",
@@ -19,13 +18,12 @@
     "@reactvision/react-viro": "^2.55.0",
     "dotenv": "^17.4.2",
     "expo": "~55.0.19",
-    "expo-apple-authentication": "~55.0.13",
     "expo-camera": "~55.0.18",
     "expo-constants": "~55.0.16",
-    "expo-crypto": "~55.0.15",
     "expo-device": "~55.0.17",
     "expo-font": "~55.0.6",
     "expo-image-picker": "~55.0.20",
+    "expo-linking": "~55.0.15",
     "expo-location": "~55.1.9",
     "expo-media-library": "~55.0.17",
     "expo-notifications": "~55.0.23",
