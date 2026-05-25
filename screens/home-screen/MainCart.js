@@ -102,7 +102,7 @@ export default function MainCart({ navigation }) {
 
                   {/* Brand + size line — use rentalSize for rentals */}
                   <Text style={styles.itemBrand}>
-                    {item.brand || 'No brand'} · {item.rentalSize || item.size || 'N/A'}
+                    {item.brand || 'No brand'} · {item.condition || item.size || 'N/A'}
                   </Text>
 
                   {/* Rental badge with period */}
