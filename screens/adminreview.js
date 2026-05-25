@@ -5,6 +5,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../context/AuthContext';
 import { useFocusEffect } from '@react-navigation/native';
 import * as Notifications from 'expo-notifications';
+import { getAdminSubmissions, acceptCourierSubmission, rejectCourierSubmission } from '../services/authService';
+
 
 const C = {
   bg: '#F5F5F5', white: '#FFFFFF', accent: '#C17C74',
@@ -16,28 +18,6 @@ const C = {
   shadow: { shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.06, shadowRadius: 8, elevation: 3 },
 };
 
-const BASE_URL = 'https://fash-backend-cp3n.vercel.app/api/v1';
-
-// ── API ──────────────────────────────────────────────────────────────
-async function fetchSubmissions(token) {
-  const res = await fetch(`${BASE_URL}/courier/submissions`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(data?.message || `Error ${res.status}`);
-  return data.data ?? data ?? [];
-}
-
-async function reviewSubmission(token, id, status, reason = '') {
-  const res = await fetch(`${BASE_URL}/courier/submissions/${id}/review`, {
-    method: 'POST',
-    headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ status, reason }),
-  });
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(data?.message || `Error ${res.status}`);
-  return data;
-}
 
 // ── Helpers ──────────────────────────────────────────────────────────
 function timeAgo(dateStr) {
@@ -56,27 +36,31 @@ const MOCK_SUBMISSIONS = [
   {
     _id: 'sub_001', orderId: 'ORD-789456', itemId: 'ITEM-123ABC',
     sellerId: 'USER-456XYZ', courierName: 'Ahmed Mostafa',
-    courierNotes: 'Item looks clean, tags intact.',
-    photo: null, status: 'pending', createdAt: new Date(Date.now() - 1200000).toISOString(),
+    notes: 'Item looks clean, tags intact.',
+    photoUrl: null,
+    reviewStatus: 'pending_review',
+    submittedAt: new Date(Date.now() - 1200000).toISOString(),
   },
   {
     _id: 'sub_002', orderId: 'ORD-654321', itemId: 'ITEM-789DEF',
     sellerId: 'USER-111AAA', courierName: 'Sara Hassan',
-    courierNotes: 'Small scratch on the bag buckle.',
-    photo: null, status: 'pending', createdAt: new Date(Date.now() - 3600000).toISOString(),
+    notes: 'Small scratch on the bag buckle.',
+    photoUrl: null, reviewStatus: 'pending_review',
+    submittedAt: new Date(Date.now() - 3600000).toISOString(),
   },
   {
     _id: 'sub_003', orderId: 'ORD-111222', itemId: 'ITEM-AAABBB',
     sellerId: 'USER-222BBB', courierName: 'Karim Adel',
-    courierNotes: '', photo: null, status: 'accepted', createdAt: new Date(Date.now() - 86400000).toISOString(),
+    notes: '', photoUrl: null, reviewStatus: 'approved',
+    submittedAt: new Date(Date.now() - 86400000).toISOString(),
   },
 ];
 
 // ── Sub-components ────────────────────────────────────────────────────
 function StatusBadge({ status }) {
   const cfg = {
-    pending: { bg: C.warningLight, color: C.warning, label: 'Pending Review' },
-    accepted: { bg: C.successLight, color: C.success, label: 'Accepted' },
+    pending_review: { bg: C.warningLight, color: C.warning, label: 'Pending Review' },
+    approved: { bg: C.successLight, color: C.success, label: 'Accepted' },
     rejected: { bg: C.dangerLight, color: C.danger, label: 'Rejected' },
   }[status] ?? { bg: C.warningLight, color: C.warning, label: status };
   return (
@@ -163,9 +147,9 @@ export default function AdminReviewScreen({ navigation }) {
       const token = await getToken();
       let data;
       try {
-        data = await fetchSubmissions(token);
+        const result = await getAdminSubmissions(token);
+        data = result.submissions ?? [];
       } catch {
-        // Backend not ready — use mock data
         data = MOCK_SUBMISSIONS;
       }
       setSubmissions(Array.isArray(data) ? data : []);
@@ -176,7 +160,6 @@ export default function AdminReviewScreen({ navigation }) {
       setRefreshing(false);
     }
   }
-
   useFocusEffect(useCallback(() => { load(); }, []));
 
   useEffect(() => {
@@ -195,15 +178,15 @@ export default function AdminReviewScreen({ navigation }) {
             try {
               const token = await getToken();
               try {
-                await reviewSubmission(token, item._id, 'accepted');
+                await acceptCourierSubmission(token, item._id);
               } catch { /* backend not ready — simulate */ }
-
-              // Update local state
+  
+              // ✅ Correct field name
               setSubmissions(prev => prev.map(s =>
-                s._id === item._id ? { ...s, status: 'accepted' } : s
+                s._id === item._id ? { ...s, reviewStatus: 'approved' } : s
               ));
-
-              // Schedule local notification simulating backend push
+  
+              // ✅ Keep the notification
               await Notifications.scheduleNotificationAsync({
                 content: {
                   title: '✅ Item Accepted — Continue Order',
@@ -211,8 +194,8 @@ export default function AdminReviewScreen({ navigation }) {
                   data: { screen: 'Orders', orderId: item.orderId },
                 },
                 trigger: { seconds: 2 },
-              }).catch(() => { });
-
+              }).catch(() => {});
+  
             } catch (e) {
               Alert.alert('Error', e.message);
             } finally {
@@ -224,20 +207,22 @@ export default function AdminReviewScreen({ navigation }) {
     );
   }
 
+
   async function handleReject(item, reason) {
     setActionLoading(item._id);
     try {
       const token = await getToken();
       try {
-        await reviewSubmission(token, item._id, 'rejected', reason);
+        await rejectCourierSubmission(token, item._id, reason);
       } catch { /* backend not ready — simulate */ }
-
+  
+      // ✅ Correct field name
       setSubmissions(prev => prev.map(s =>
-        s._id === item._id ? { ...s, status: 'rejected', rejectionReason: reason } : s
+        s._id === item._id ? { ...s, reviewStatus: 'rejected', reviewNotes: reason } : s
       ));
       setRejectModal(null);
-
-      // Notify courier
+  
+      // ✅ Keep the notification
       await Notifications.scheduleNotificationAsync({
         content: {
           title: '❌ Item Rejected',
@@ -245,8 +230,8 @@ export default function AdminReviewScreen({ navigation }) {
           data: { screen: 'Orders', orderId: item.orderId },
         },
         trigger: { seconds: 2 },
-      }).catch(() => { });
-
+      }).catch(() => {});
+  
     } catch (e) {
       Alert.alert('Error', e.message);
     } finally {
@@ -255,10 +240,13 @@ export default function AdminReviewScreen({ navigation }) {
   }
 
   const filtered = submissions.filter(s =>
-    filter === 'all' ? true : s.status === filter
+    filter === 'all' ? true :
+      filter === 'pending' ? s.reviewStatus === 'pending_review' :
+        filter === 'accepted' ? s.reviewStatus === 'approved' :
+          filter === 'rejected' ? s.reviewStatus === 'rejected' : true
   );
 
-  const pendingCount = submissions.filter(s => s.status === 'pending').length;
+  const pendingCount = submissions.filter(s => s.reviewStatus === 'pending_review').length;
 
   function renderItem({ item }) {
     const isActioning = actionLoading === item._id;
@@ -268,9 +256,9 @@ export default function AdminReviewScreen({ navigation }) {
         <View style={styles.cardHeader}>
           <View style={{ flex: 1 }}>
             <Text style={styles.orderId}>Order #{item.orderId}</Text>
-            <Text style={styles.timeAgo}>{timeAgo(item.createdAt)}</Text>
+            <Text style={styles.timeAgo}>{timeAgo(item.submittedAt)}</Text>
           </View>
-          <StatusBadge status={item.status} />
+          <StatusBadge status={item.reviewStatus} />
         </View>
 
         {/* Details */}
@@ -289,28 +277,28 @@ export default function AdminReviewScreen({ navigation }) {
         </View>
 
         {/* Notes */}
-        {item.courierNotes ? (
+        {item.notes ? (
           <View style={styles.notesBox}>
             <Ionicons name="document-text-outline" size={14} color={C.muted} />
-            <Text style={styles.notesText}>{item.courierNotes}</Text>
+            <Text style={styles.notesText}>{item.notes}</Text>
           </View>
         ) : null}
 
         {/* Rejection reason */}
-        {item.status === 'rejected' && item.rejectionReason ? (
+        {item.reviewStatus === 'rejected' && item.reviewNotes ? (
           <View style={styles.rejectionBox}>
             <Ionicons name="close-circle-outline" size={14} color={C.danger} />
-            <Text style={styles.rejectionText}>Reason: {item.rejectionReason}</Text>
+            <Text style={styles.rejectionText}>Reason: {item.reviewNotes}</Text>
           </View>
         ) : null}
 
         {/* Photo */}
-        {item.photo ? (
+        {item.photoUrl ? (
           <TouchableOpacity
             style={styles.photoThumb}
-            onPress={() => setPhotoModal(item.photo)}
+            onPress={() => setPhotoModal(item.photoUrl)}
           >
-            <Image source={{ uri: item.photo }} style={styles.photoThumbImg} resizeMode="cover" />
+            <Image source={{ uri: item.photoUrl }} style={styles.photoThumbImg} resizeMode="cover" />
             <View style={styles.photoThumbOverlay}>
               <Ionicons name="expand-outline" size={18} color={C.white} />
               <Text style={styles.photoThumbText}>View photo</Text>
@@ -324,7 +312,7 @@ export default function AdminReviewScreen({ navigation }) {
         )}
 
         {/* Action buttons — only for pending */}
-        {item.status === 'pending' && (
+        {item.reviewStatus === 'pendin_review' && (
           <View style={styles.actionRow}>
             <TouchableOpacity
               style={[styles.rejectBtn, isActioning && { opacity: 0.5 }]}

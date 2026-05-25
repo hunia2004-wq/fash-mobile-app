@@ -1,9 +1,8 @@
 import React, { useState, useContext } from 'react';
 import {View, Text, ScrollView, StyleSheet, TouchableOpacity, TextInput, Image, Alert, ActivityIndicator, KeyboardAvoidingView, Platform, StatusBar,} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { AuthContext } from '../context/AuthContext';
-import { login } from '../services/authService';
 import * as SecureStore from 'expo-secure-store';
+import { courierLogin } from '../services/authService';
 
 const C = {
   bg: '#F5F5F5',
@@ -18,7 +17,6 @@ const C = {
 };
 
 export default function CourierLoginScreen({ navigation }) {
-  const { logIn } = useContext(AuthContext);
 
   const [courierId, setCourierId] = useState('');
   const [email, setEmail] = useState('');
@@ -63,27 +61,14 @@ export default function CourierLoginScreen({ navigation }) {
     setLoading(true);
   
     try {
-      const data = await login({
-        email: email.trim(),
-        password,
-      });
+      const data = await courierLogin({ courierId, email, password });
   
-      const role = data.user?.role ?? data.role;
-  
-      // Role check — must be courier or admin
-      if (role !== 'courier' && role !== 'admin') {
-        setError('This account does not have courier access.');
-        setLoading(false);
-        return;
-      }
-  
-      // ✅ Store courier token SEPARATELY — never call logIn()
-      // Calling logIn() would set userToken and flip navigator to Home
       await SecureStore.setItemAsync('courierToken', data.access_token);
-      await SecureStore.setItemAsync('courierId', courierId.trim());
-      await SecureStore.setItemAsync('courierRole', role);
+      await SecureStore.setItemAsync('courierId', data.courier.courierId);
+      await SecureStore.setItemAsync('courierName', data.courier.name);
+      await SecureStore.setItemAsync('courierRole', 'courier');
   
-      navigation.replace('CourierStatusScreen');
+      navigation.replace('CourierPickupScreen');
   
     } catch (err) {
       setError(err.message || 'Login failed. Please check your credentials.');

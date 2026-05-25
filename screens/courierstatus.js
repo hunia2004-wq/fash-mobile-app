@@ -4,6 +4,8 @@ import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import * as SecureStore from 'expo-secure-store';
+import { getCourierSubmissions } from '../services/authService';
+
 
 
 const C = {
@@ -15,18 +17,17 @@ const C = {
   warning: '#FF9500', warningLight: '#FFF3E0',
 };
 
-const BASE_URL = 'https://fash-backend-cp3n.vercel.app/api/v1';
 
 const STATUS = {
-  pending: { label: 'Pending Review', bg: C.warningLight, color: C.warning, icon: 'time-outline' },
-  accepted: { label: 'Accepted ✓', bg: C.successLight, color: C.success, icon: 'checkmark-circle-outline' },
+  pending_review: { label: 'Pending Review', bg: C.warningLight, color: C.warning, icon: 'time-outline' },
+  approved: { label: 'Accepted ✓', bg: C.successLight, color: C.success, icon: 'checkmark-circle-outline' },
   rejected: { label: 'Rejected ✗', bg: C.dangerLight, color: C.danger, icon: 'close-circle-outline' },
 };
 
 const MOCK_JOBS = [
-  { _id: 'j1', orderId: 'ORD-789456', itemId: 'ITEM-123ABC', status: 'accepted', createdAt: new Date(Date.now() - 7200000).toISOString(), rejectionReason: null },
-  { _id: 'j2', orderId: 'ORD-654321', itemId: 'ITEM-789DEF', status: 'pending', createdAt: new Date(Date.now() - 3600000).toISOString(), rejectionReason: null },
-  { _id: 'j3', orderId: 'ORD-111000', itemId: 'ITEM-CCCDDD', status: 'rejected', createdAt: new Date(Date.now() - 86400000).toISOString(), rejectionReason: 'Item condition mismatch' },
+  { _id: 'j1', orderId: 'ORD-789456', itemId: 'ITEM-123ABC', reviewStatus: 'approved', submittedAt: new Date(Date.now() - 7200000).toISOString(), reviewNotes: null },
+  { _id: 'j2', orderId: 'ORD-654321', itemId: 'ITEM-789DEF', reviewStatus: 'pending_review', submittedAt: new Date(Date.now() - 3600000).toISOString(), reviewNotes: null },
+  { _id: 'j3', orderId: 'ORD-111000', itemId: 'ITEM-CCCDDD', reviewStatus: 'rejected', submittedAt: new Date(Date.now() - 86400000).toISOString(), reviewNotes: 'Item condition mismatch' },
 ];
 
 function timeAgo(dateStr) {
@@ -61,18 +62,13 @@ export default function CourierStatusScreen({ navigation }) {
     try {
       const id = await SecureStore.getItemAsync('courierId').catch(() => '');
       setCourierId(id || '');
-
-      // ✅ Use courierToken, not getToken()
+  
       const token = await SecureStore.getItemAsync('courierToken');
-
-      const res = await fetch(`${BASE_URL}/courier/jobs`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const json = await res.json().catch(() => ({}));
-      const data = json.data ?? json ?? [];
-      if (!res.ok) throw new Error();
-
-      setJobs(Array.isArray(data) ? data : []);
+  
+      // ✅ Only the service call — remove the raw fetch
+      const json = await getCourierSubmissions(token);
+      setJobs(Array.isArray(json.submissions) ? json.submissions : []);
+  
     } catch {
       setJobs(MOCK_JOBS);
     } finally {
@@ -91,23 +87,29 @@ export default function CourierStatusScreen({ navigation }) {
 
   useFocusEffect(useCallback(() => { load(); }, []));
 
-  const filtered = jobs.filter(j => filter === 'all' || j.status === filter);
+  const filtered = jobs.filter(j =>
+    filter === 'all' ? true :
+      filter === 'pending' ? j.reviewStatus === 'pending_review' :
+        filter === 'accepted' ? j.reviewStatus === 'approved' :
+          filter === 'rejected' ? j.reviewStatus === 'rejected' : true
+  );
+
   const counts = {
     all: jobs.length,
-    pending: jobs.filter(j => j.status === 'pending').length,
-    accepted: jobs.filter(j => j.status === 'accepted').length,
-    rejected: jobs.filter(j => j.status === 'rejected').length,
+    pending: jobs.filter(j => j.reviewStatus === 'pending_review').length,
+    accepted: jobs.filter(j => j.reviewStatus === 'approved').length,
+    rejected: jobs.filter(j => j.reviewStatus === 'rejected').length,
   };
 
   function renderItem({ item }) {
-    const cfg = STATUS[item.status] ?? STATUS.pending;
+    const cfg = STATUS[item.reviewStatus] ?? STATUS.pending;
     return (
       <View style={styles.card}>
         {/* Status strip */}
         <View style={[styles.cardStrip, { backgroundColor: cfg.bg }]}>
           <Ionicons name={cfg.icon} size={15} color={cfg.color} />
           <Text style={[styles.cardStripText, { color: cfg.color }]}>{cfg.label}</Text>
-          <Text style={styles.cardStripTime}>{timeAgo(item.createdAt)}</Text>
+          <Text style={styles.cardStripTime}>{timeAgo(item.submittedAt)}</Text>
         </View>
 
         {/* Details */}
@@ -123,31 +125,31 @@ export default function CourierStatusScreen({ navigation }) {
           </View>
 
           {/* Rejection reason */}
-          {item.status === 'rejected' && item.rejectionReason && (
+          {item.reviewStatus === 'rejected' && item.reviewNotes && (
             <>
               <View style={styles.cardDivider} />
               <View style={styles.rejectionRow}>
                 <Ionicons name="alert-circle-outline" size={14} color={C.danger} />
-                <Text style={styles.rejectionText}>{item.rejectionReason}</Text>
+                <Text style={styles.rejectionText}>{item.reviewNotes}</Text>
               </View>
             </>
           )}
         </View>
 
         {/* Action row */}
-        {item.status === 'accepted' && (
+        {item.reviewStatus === 'accepted' && (
           <TouchableOpacity style={styles.continueBtn}>
             <Ionicons name="arrow-forward-circle-outline" size={16} color={C.white} />
             <Text style={styles.continueBtnText}>Continue Order Process</Text>
           </TouchableOpacity>
         )}
-        {item.status === 'rejected' && (
+        {item.reviewStatus === 'rejected' && (
           <TouchableOpacity style={styles.informBtn}>
             <Ionicons name="call-outline" size={16} color={C.danger} />
             <Text style={styles.informBtnText}>Inform the Seller</Text>
           </TouchableOpacity>
         )}
-        {item.status === 'pending' && (
+        {item.reviewStatus === 'pending_review' && (
           <View style={styles.pendingBanner}>
             <ActivityIndicator size="small" color={C.warning} />
             <Text style={styles.pendingBannerText}>Waiting for admin review...</Text>

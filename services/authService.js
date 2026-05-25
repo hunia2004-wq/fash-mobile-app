@@ -829,3 +829,85 @@ export async function respondToOffer(token, listingId, offerId, status) {
     body: JSON.stringify({ status }),
   });
 }
+
+// COURIER AUTH
+export async function courierLogin({ courierId, email, password }) {
+  const response = await fetch(`${BASE_URL}/courier/auth/login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      courierId: courierId.trim().toUpperCase(),
+      email: email.trim(),
+      password,
+    }),
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.message || 'Login failed');
+  return data; // { access_token, courier: { id, courierId, name, email } }
+}
+
+// CORUIER PICKUP
+export async function submitCourierPickup(token, { orderId, itemId, sellerId, courierName, notes, photoUri }) {
+  const formData = new FormData();
+  formData.append('orderId', orderId);
+  formData.append('itemId', itemId);
+  formData.append('sellerId', sellerId);
+  formData.append('courierName', courierName);
+  formData.append('notes', notes || '');
+
+  if (photoUri) {
+    const filename = photoUri.split('/').pop();
+    const ext = filename.split('.').pop();
+    formData.append('photo', { uri: photoUri, name: filename, type: `image/${ext}` });
+  }
+
+  const response = await fetch(`${BASE_URL}/courier/pickup/submit`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${token}` },
+    body: formData,
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.message || 'Submission failed');
+  return data;
+}
+
+export async function getCourierSubmissions(token) {
+  const response = await fetch(`${BASE_URL}/courier/pickup/my-submissions`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.message || 'Failed to fetch submissions');
+  return data; // { success, courier, stats, submissions }
+}
+
+// ADMIN COURIER REVIEW
+export async function getAdminSubmissions(token) {
+  const response = await fetch(`${BASE_URL}/admin/courier-pickups`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.message || 'Failed to fetch submissions');
+  return data; // { pendingCount, submissions }
+}
+
+export async function acceptCourierSubmission(token, id, reviewNotes = '') {
+  const response = await fetch(`${BASE_URL}/admin/courier-pickups/${id}/accept`, {
+    method: 'PATCH',
+    headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ reviewNotes }),
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.message || 'Failed to accept submission');
+  return data;
+}
+
+export async function rejectCourierSubmission(token, id, reviewNotes) {
+  const response = await fetch(`${BASE_URL}/admin/courier-pickups/${id}/reject`, {
+    method: 'PATCH',
+    headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ reviewNotes }),
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.message || 'Failed to reject submission');
+  return data;
+}

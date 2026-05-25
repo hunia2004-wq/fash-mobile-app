@@ -4,7 +4,8 @@ import { Ionicons, Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
 import * as SecureStore from 'expo-secure-store';
-import { useAuth } from '../context/AuthContext';
+import { submitCourierPickup } from '../services/authService';
+
 
 // ── Theme ─────────────────────────────────────────
 const C = {
@@ -21,48 +22,9 @@ const C = {
 };
 
 // ── API ───────────────────────────────────────────
-const BASE_URL = 'https://fash-backend-cp3n.vercel.app/api/v1';
-
-async function submitCourierPickup(token, payload) {
-  const formData = new FormData();
-
-  formData.append('orderId', payload.orderId);
-  formData.append('itemId', payload.itemId);
-  formData.append('sellerId', payload.sellerId);
-  formData.append('courierName', payload.courierName);
-  formData.append('courierNotes', payload.courierNotes);
-
-  if (payload.photoUri) {
-    const filename = payload.photoUri.split('/').pop();
-    const ext = filename.split('.').pop();
-
-    formData.append('photo', {
-      uri: payload.photoUri,
-      name: filename,
-      type: `image/${ext}`,
-    });
-  }
-
-  const response = await fetch(`${BASE_URL}/courier/pickup`, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-    body: formData,
-  });
-
-  const data = await response.json();
-
-  if (!response.ok) {
-    throw new Error(data.message || 'Submission failed');
-  }
-
-  return data;
-}
 
 // ── Main Screen ──────────────────────────────────
 export default function CourierPickupScreen({ navigation }) {
-  const { getToken } = useAuth();
 
   const [loading, setLoading] = useState(false);
 
@@ -149,7 +111,6 @@ export default function CourierPickupScreen({ navigation }) {
     setLoading(true);
   
     try {
-      // ✅ Use courierToken, not getToken()
       const token = await SecureStore.getItemAsync('courierToken');
   
       await submitCourierPickup(token, {
@@ -157,13 +118,13 @@ export default function CourierPickupScreen({ navigation }) {
         itemId: itemId.trim(),
         sellerId: sellerId.trim(),
         courierName: courierName.trim(),
-        courierNotes: courierNotes.trim(),
+        notes: courierNotes.trim(),
         photoUri: photo?.uri,
       });
   
       navigation.navigate('CourierStatusScreen', {
         orderId: orderId.trim(),
-        status: 'pending',
+        status: 'pending_review',
       });
   
     } catch (err) {
