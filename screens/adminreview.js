@@ -7,7 +7,6 @@ import { useFocusEffect } from '@react-navigation/native';
 import * as Notifications from 'expo-notifications';
 import { getAdminSubmissions, acceptCourierSubmission, rejectCourierSubmission } from '../services/authService';
 
-
 const C = {
   bg: '#F5F5F5', white: '#FFFFFF', accent: '#C17C74',
   accentLight: '#F6E9E6', text: '#1C1C1E', muted: '#8E8E93',
@@ -18,8 +17,9 @@ const C = {
   shadow: { shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.06, shadowRadius: 8, elevation: 3 },
 };
 
+// ✅ Helper — backend returns 'id' not '_id'
+const getId = (item) => item?._id || item?.id;
 
-// ── Helpers ──────────────────────────────────────────────────────────
 function timeAgo(dateStr) {
   if (!dateStr) return '—';
   const diff = Date.now() - new Date(dateStr).getTime();
@@ -31,14 +31,12 @@ function timeAgo(dateStr) {
   return new Date(dateStr).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
 }
 
-// ── Mock data for when backend endpoint doesn't exist yet ─────────────
 const MOCK_SUBMISSIONS = [
   {
     _id: 'sub_001', orderId: 'ORD-789456', itemId: 'ITEM-123ABC',
     sellerId: 'USER-456XYZ', courierName: 'Ahmed Mostafa',
     notes: 'Item looks clean, tags intact.',
-    photoUrl: null,
-    reviewStatus: 'pending_review',
+    photoUrl: null, reviewStatus: 'pending_review',
     submittedAt: new Date(Date.now() - 1200000).toISOString(),
   },
   {
@@ -56,7 +54,6 @@ const MOCK_SUBMISSIONS = [
   },
 ];
 
-// ── Sub-components ────────────────────────────────────────────────────
 function StatusBadge({ status }) {
   const cfg = {
     pending_review: { bg: C.warningLight, color: C.warning, label: 'Pending Review' },
@@ -85,8 +82,6 @@ function RejectModal({ visible, onClose, onConfirm, loading }) {
           <View style={styles.modalHandle} />
           <Text style={styles.modalTitle}>Reject Submission</Text>
           <Text style={styles.modalSub}>Select or type a rejection reason. This will be sent to the seller.</Text>
-
-          {/* Quick reasons */}
           <View style={styles.quickReasons}>
             {QUICK.map(q => (
               <TouchableOpacity
@@ -98,7 +93,6 @@ function RejectModal({ visible, onClose, onConfirm, loading }) {
               </TouchableOpacity>
             ))}
           </View>
-
           <TextInput
             style={styles.reasonInput}
             placeholder="Or type a custom reason..."
@@ -108,7 +102,6 @@ function RejectModal({ visible, onClose, onConfirm, loading }) {
             multiline
             numberOfLines={3}
           />
-
           <View style={styles.modalBtns}>
             <TouchableOpacity style={styles.modalCancelBtn} onPress={onClose}>
               <Text style={styles.modalCancelText}>Cancel</Text>
@@ -130,7 +123,6 @@ function RejectModal({ visible, onClose, onConfirm, loading }) {
   );
 }
 
-// ── Main Screen ───────────────────────────────────────────────────────
 export default function AdminReviewScreen({ navigation }) {
   const { getToken } = useAuth();
   const [submissions, setSubmissions] = useState([]);
@@ -145,24 +137,22 @@ export default function AdminReviewScreen({ navigation }) {
     if (!silent) setLoading(true);
     try {
       const token = await getToken();
-      console.log('Admin token:', token); // ← add this
       let data;
       try {
         const result = await getAdminSubmissions(token);
-        console.log('Admin result:', JSON.stringify(result)); // ← add this
         data = result.submissions ?? [];
-      } catch (e) {
-        console.log('Admin fetch error:', e.message); // ← add this
+      } catch {
         data = MOCK_SUBMISSIONS;
       }
       setSubmissions(Array.isArray(data) ? data : []);
-    } catch (e) {
+    } catch {
       setSubmissions(MOCK_SUBMISSIONS);
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
   }
+
   useFocusEffect(useCallback(() => { load(); }, []));
 
   useEffect(() => {
@@ -177,19 +167,18 @@ export default function AdminReviewScreen({ navigation }) {
         { text: 'Cancel', style: 'cancel' },
         {
           text: 'Accept', onPress: async () => {
-            setActionLoading(item._id);
+            const id = getId(item);
+            setActionLoading(id);
             try {
               const token = await getToken();
               try {
-                await acceptCourierSubmission(token, item._id);
-              } catch { /* backend not ready — simulate */ }
-  
-              // ✅ Correct field name
+                await acceptCourierSubmission(token, id);
+              } catch { /* simulate */ }
+
               setSubmissions(prev => prev.map(s =>
-                s._id === item._id ? { ...s, reviewStatus: 'approved' } : s
+                getId(s) === id ? { ...s, reviewStatus: 'approved' } : s
               ));
-  
-              // ✅ Keep the notification
+
               await Notifications.scheduleNotificationAsync({
                 content: {
                   title: '✅ Item Accepted — Continue Order',
@@ -198,7 +187,7 @@ export default function AdminReviewScreen({ navigation }) {
                 },
                 trigger: { seconds: 2 },
               }).catch(() => {});
-  
+
             } catch (e) {
               Alert.alert('Error', e.message);
             } finally {
@@ -210,22 +199,20 @@ export default function AdminReviewScreen({ navigation }) {
     );
   }
 
-
   async function handleReject(item, reason) {
-    setActionLoading(item._id);
+    const id = getId(item);
+    setActionLoading(id);
     try {
       const token = await getToken();
       try {
-        await rejectCourierSubmission(token, item._id, reason);
-      } catch { /* backend not ready — simulate */ }
-  
-      // ✅ Correct field name
+        await rejectCourierSubmission(token, id, reason);
+      } catch { /* simulate */ }
+
       setSubmissions(prev => prev.map(s =>
-        s._id === item._id ? { ...s, reviewStatus: 'rejected', reviewNotes: reason } : s
+        getId(s) === id ? { ...s, reviewStatus: 'rejected', reviewNotes: reason } : s
       ));
       setRejectModal(null);
-  
-      // ✅ Keep the notification
+
       await Notifications.scheduleNotificationAsync({
         content: {
           title: '❌ Item Rejected',
@@ -234,7 +221,7 @@ export default function AdminReviewScreen({ navigation }) {
         },
         trigger: { seconds: 2 },
       }).catch(() => {});
-  
+
     } catch (e) {
       Alert.alert('Error', e.message);
     } finally {
@@ -252,10 +239,11 @@ export default function AdminReviewScreen({ navigation }) {
   const pendingCount = submissions.filter(s => s.reviewStatus === 'pending_review').length;
 
   function renderItem({ item }) {
-    const isActioning = actionLoading === item._id;
+    const id = getId(item);
+    const isActioning = actionLoading === id;
+
     return (
       <View style={[styles.card, C.shadow]}>
-        {/* Header */}
         <View style={styles.cardHeader}>
           <View style={{ flex: 1 }}>
             <Text style={styles.orderId}>Order #{item.orderId}</Text>
@@ -264,11 +252,10 @@ export default function AdminReviewScreen({ navigation }) {
           <StatusBadge status={item.reviewStatus} />
         </View>
 
-        {/* Details */}
         <View style={styles.detailGrid}>
           {[
             { icon: 'pricetag-outline', label: 'Item ID', value: item.itemId },
-            { icon: 'person-outline', label: 'Seller ID', value: item.sellerId },
+            { icon: 'person-outline', label: 'Seller', value: item.sellerName || item.sellerId || '—' },
             { icon: 'car-outline', label: 'Courier', value: item.courierName },
           ].map(row => (
             <View key={row.label} style={styles.detailRow}>
@@ -279,7 +266,6 @@ export default function AdminReviewScreen({ navigation }) {
           ))}
         </View>
 
-        {/* Notes */}
         {item.notes ? (
           <View style={styles.notesBox}>
             <Ionicons name="document-text-outline" size={14} color={C.muted} />
@@ -287,7 +273,6 @@ export default function AdminReviewScreen({ navigation }) {
           </View>
         ) : null}
 
-        {/* Rejection reason */}
         {item.reviewStatus === 'rejected' && item.reviewNotes ? (
           <View style={styles.rejectionBox}>
             <Ionicons name="close-circle-outline" size={14} color={C.danger} />
@@ -295,12 +280,8 @@ export default function AdminReviewScreen({ navigation }) {
           </View>
         ) : null}
 
-        {/* Photo */}
         {item.photoUrl ? (
-          <TouchableOpacity
-            style={styles.photoThumb}
-            onPress={() => setPhotoModal(item.photoUrl)}
-          >
+          <TouchableOpacity style={styles.photoThumb} onPress={() => setPhotoModal(item.photoUrl)}>
             <Image source={{ uri: item.photoUrl }} style={styles.photoThumbImg} resizeMode="cover" />
             <View style={styles.photoThumbOverlay}>
               <Ionicons name="expand-outline" size={18} color={C.white} />
@@ -314,7 +295,6 @@ export default function AdminReviewScreen({ navigation }) {
           </View>
         )}
 
-        {/* Action buttons — only for pending */}
         {item.reviewStatus === 'pending_review' && (
           <View style={styles.actionRow}>
             <TouchableOpacity
@@ -350,32 +330,24 @@ export default function AdminReviewScreen({ navigation }) {
     <SafeAreaView style={styles.safe}>
       <StatusBar barStyle="dark-content" backgroundColor={C.bg} />
 
-      {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
           <Ionicons name="chevron-back" size={22} color={C.text} />
         </TouchableOpacity>
-
         <View style={{ flex: 1 }}>
           <Text style={styles.headerTitle}>Admin Review</Text>
           <Text style={styles.headerSub}>Courier pickup submissions</Text>
         </View>
-
         {pendingCount > 0 && (
           <View style={styles.pendingBadge}>
             <Text style={styles.pendingBadgeText}>{pendingCount} pending</Text>
           </View>
         )}
-
-        {/* Logout */}
-        <TouchableOpacity
-          style={{ marginLeft: 8 }}
-          onPress={() => navigation.goBack()}
-        >
+        <TouchableOpacity style={{ marginLeft: 8 }} onPress={() => navigation.goBack()}>
           <Ionicons name="log-out-outline" size={22} color={C.danger} />
         </TouchableOpacity>
       </View>
-      {/* Filter tabs */}
+
       <View style={styles.filterRow}>
         {['pending', 'accepted', 'rejected', 'all'].map(f => (
           <TouchableOpacity
@@ -390,7 +362,6 @@ export default function AdminReviewScreen({ navigation }) {
         ))}
       </View>
 
-      {/* List */}
       {loading ? (
         <View style={styles.centered}>
           <ActivityIndicator color={C.accent} size="large" />
@@ -405,7 +376,7 @@ export default function AdminReviewScreen({ navigation }) {
         <FlatList
           data={filtered}
           renderItem={renderItem}
-          keyExtractor={i => i._id}
+          keyExtractor={i => getId(i)}
           contentContainerStyle={{ padding: 16, paddingBottom: 40 }}
           showsVerticalScrollIndicator={false}
           refreshControl={
@@ -418,15 +389,13 @@ export default function AdminReviewScreen({ navigation }) {
         />
       )}
 
-      {/* Reject Modal */}
       <RejectModal
         visible={!!rejectModal}
         onClose={() => setRejectModal(null)}
         onConfirm={reason => handleReject(rejectModal, reason)}
-        loading={actionLoading === rejectModal?._id}
+        loading={actionLoading === getId(rejectModal)}
       />
 
-      {/* Photo fullscreen modal */}
       <Modal visible={!!photoModal} transparent animationType="fade" onRequestClose={() => setPhotoModal(null)}>
         <TouchableOpacity style={styles.photoModalBg} activeOpacity={1} onPress={() => setPhotoModal(null)}>
           <Image source={{ uri: photoModal }} style={styles.photoModalImg} resizeMode="contain" />
@@ -485,9 +454,7 @@ const styles = StyleSheet.create({
     backgroundColor: C.dangerLight, borderRadius: 8, padding: 8, marginBottom: 10,
   },
   rejectionText: { flex: 1, fontSize: 12, color: C.danger, lineHeight: 18 },
-  photoThumb: {
-    height: 140, borderRadius: 12, overflow: 'hidden', marginBottom: 12, position: 'relative',
-  },
+  photoThumb: { height: 140, borderRadius: 12, overflow: 'hidden', marginBottom: 12, position: 'relative' },
   photoThumbImg: { width: '100%', height: '100%', position: 'absolute' },
   photoThumbOverlay: {
     position: 'absolute', bottom: 0, left: 0, right: 0,
@@ -511,7 +478,6 @@ const styles = StyleSheet.create({
     gap: 6, backgroundColor: C.success, borderRadius: 12, paddingVertical: 12,
   },
   acceptBtnText: { color: C.white, fontWeight: '600', fontSize: 14 },
-  // Modal
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
   modalCard: {
     backgroundColor: C.white, borderTopLeftRadius: 24, borderTopRightRadius: 24,
@@ -544,7 +510,6 @@ const styles = StyleSheet.create({
     backgroundColor: C.danger, alignItems: 'center',
   },
   modalRejectText: { fontWeight: '700', color: C.white, fontSize: 14 },
-  // Photo fullscreen
   photoModalBg: { flex: 1, backgroundColor: 'rgba(0,0,0,0.9)', justifyContent: 'center', alignItems: 'center' },
   photoModalImg: { width: '92%', height: '70%' },
   photoCloseBtn: {
