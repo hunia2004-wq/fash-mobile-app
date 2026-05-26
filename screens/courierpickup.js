@@ -112,6 +112,7 @@ export default function CourierPickupScreen({ navigation }) {
   
     try {
       const token = await SecureStore.getItemAsync('courierToken');
+      console.log('courierToken:', token);
   
       await submitCourierPickup(token, {
         orderId: orderId.trim(),

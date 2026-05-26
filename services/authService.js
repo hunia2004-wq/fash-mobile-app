@@ -831,19 +831,17 @@ export async function respondToOffer(token, listingId, offerId, status) {
 }
 
 // COURIER AUTH
-export async function courierLogin({ courierId, email, password }) {
+export async function courierLogin({ courierId }) {
   const response = await fetch(`${BASE_URL}/courier/auth/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       courierId: courierId.trim().toUpperCase(),
-      email: email.trim(),
-      password,
     }),
   });
   const data = await response.json();
   if (!response.ok) throw new Error(data.message || 'Login failed');
-  return data; // { access_token, courier: { id, courierId, name, email } }
+  return data; // { access_token, courier: { id, courierId, name, phone } }
 }
 
 // CORUIER PICKUP
@@ -867,6 +865,8 @@ export async function submitCourierPickup(token, { orderId, itemId, sellerId, co
     body: formData,
   });
   const data = await response.json();
+  console.log('Status:', response.status);
+  console.log('Response:', JSON.stringify(data));
   if (!response.ok) throw new Error(data.message || 'Submission failed');
   return data;
 }
@@ -886,8 +886,10 @@ export async function getAdminSubmissions(token) {
     headers: { Authorization: `Bearer ${token}` },
   });
   const data = await response.json();
+  console.log('Admin status:', response.status); 
+  console.log('Admin response:', JSON.stringify(data)); 
   if (!response.ok) throw new Error(data.message || 'Failed to fetch submissions');
-  return data; // { pendingCount, submissions }
+  return data;
 }
 
 export async function acceptCourierSubmission(token, id, reviewNotes = '') {

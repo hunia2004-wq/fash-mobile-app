@@ -145,11 +145,14 @@ export default function AdminReviewScreen({ navigation }) {
     if (!silent) setLoading(true);
     try {
       const token = await getToken();
+      console.log('Admin token:', token); // ← add this
       let data;
       try {
         const result = await getAdminSubmissions(token);
+        console.log('Admin result:', JSON.stringify(result)); // ← add this
         data = result.submissions ?? [];
-      } catch {
+      } catch (e) {
+        console.log('Admin fetch error:', e.message); // ← add this
         data = MOCK_SUBMISSIONS;
       }
       setSubmissions(Array.isArray(data) ? data : []);
@@ -312,7 +315,7 @@ export default function AdminReviewScreen({ navigation }) {
         )}
 
         {/* Action buttons — only for pending */}
-        {item.reviewStatus === 'pendin_review' && (
+        {item.reviewStatus === 'pending_review' && (
           <View style={styles.actionRow}>
             <TouchableOpacity
               style={[styles.rejectBtn, isActioning && { opacity: 0.5 }]}

@@ -57,25 +57,43 @@ export default function CourierStatusScreen({ navigation }) {
   const [filter, setFilter] = useState('all');
   const [courierId, setCourierId] = useState('');
 
-  async function load(silent = false) {
-    if (!silent) setLoading(true);
-    try {
-      const id = await SecureStore.getItemAsync('courierId').catch(() => '');
-      setCourierId(id || '');
-  
-      const token = await SecureStore.getItemAsync('courierToken');
-  
-      // ✅ Only the service call — remove the raw fetch
-      const json = await getCourierSubmissions(token);
-      setJobs(Array.isArray(json.submissions) ? json.submissions : []);
-  
-    } catch {
-      setJobs(MOCK_JOBS);
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
+  const loadRef = React.useRef();
+
+async function load(silent = false) {
+  if (!silent) setLoading(true);
+  try {
+    const id = await SecureStore.getItemAsync('courierId').catch(() => '');
+    setCourierId(id || '');
+
+    const token = await SecureStore.getItemAsync('courierToken');
+    const json = await getCourierSubmissions(token);
+    setJobs(Array.isArray(json.submissions) ? json.submissions : []);
+
+  } catch {
+    setJobs(MOCK_JOBS);
+  } finally {
+    setLoading(false);
+    setRefreshing(false);
   }
+}
+
+// Keep ref updated so interval always calls latest version
+loadRef.current = load;
+
+useFocusEffect(useCallback(() => {
+  load();
+
+  // ✅ Poll every 15 seconds while screen is focused
+  const interval = setInterval(() => {
+    loadRef.current(true);
+  }, 15000);
+
+  // ✅ Cleanup when screen loses focus
+  return () => clearInterval(interval);
+
+}, []));
+
+
 
   // Add logout function:
   async function handleLogout() {
@@ -102,7 +120,8 @@ export default function CourierStatusScreen({ navigation }) {
   };
 
   function renderItem({ item }) {
-    const cfg = STATUS[item.reviewStatus] ?? STATUS.pending;
+    const cfg = STATUS[item.reviewStatus] ?? STATUS.pending_review;
+
     return (
       <View style={styles.card}>
         {/* Status strip */}
@@ -114,48 +133,53 @@ export default function CourierStatusScreen({ navigation }) {
 
         {/* Details */}
         <View style={styles.cardBody}>
-          <View style={styles.cardRow}>
+          <View key="order" style={styles.cardRow}>
             <Text style={styles.cardRowLabel}>Order</Text>
             <Text style={styles.cardRowValue}>#{item.orderId}</Text>
           </View>
           <View style={styles.cardDivider} />
-          <View style={styles.cardRow}>
+          <View key="itemId" style={styles.cardRow}>
             <Text style={styles.cardRowLabel}>Item ID</Text>
             <Text style={styles.cardRowValue}>{item.itemId}</Text>
           </View>
 
-          {/* Rejection reason */}
-          {item.reviewStatus === 'rejected' && item.reviewNotes && (
-            <>
-              <View style={styles.cardDivider} />
-              <View style={styles.rejectionRow}>
-                <Ionicons name="alert-circle-outline" size={14} color={C.danger} />
-                <Text style={styles.rejectionText}>{item.reviewNotes}</Text>
-              </View>
-            </>
-          )}
-        </View>
-
-        {/* Action row */}
-        {item.reviewStatus === 'accepted' && (
-          <TouchableOpacity style={styles.continueBtn}>
-            <Ionicons name="arrow-forward-circle-outline" size={16} color={C.white} />
-            <Text style={styles.continueBtnText}>Continue Order Process</Text>
-          </TouchableOpacity>
-        )}
-        {item.reviewStatus === 'rejected' && (
-          <TouchableOpacity style={styles.informBtn}>
-            <Ionicons name="call-outline" size={16} color={C.danger} />
-            <Text style={styles.informBtnText}>Inform the Seller</Text>
-          </TouchableOpacity>
-        )}
-        {item.reviewStatus === 'pending_review' && (
-          <View style={styles.pendingBanner}>
-            <ActivityIndicator size="small" color={C.warning} />
-            <Text style={styles.pendingBannerText}>Waiting for admin review...</Text>
-          </View>
+        {/* Rejection reason */}
+        {item.reviewStatus === 'rejected' && item.reviewNotes && (
+          <>
+            <View style={styles.cardDivider} />
+            <View style={styles.rejectionRow}>
+              <Ionicons name="alert-circle-outline" size={14} color={C.danger} />
+              <Text style={styles.rejectionText}>{item.reviewNotes}</Text>
+            </View>
+          </>
         )}
       </View>
+
+        {/* Action row */ }
+    {
+      item.reviewStatus === 'accepted' && (
+        <TouchableOpacity style={styles.continueBtn}>
+          <Ionicons name="arrow-forward-circle-outline" size={16} color={C.white} />
+          <Text style={styles.continueBtnText}>Continue Order Process</Text>
+        </TouchableOpacity>
+      )
+    }
+    {
+      item.reviewStatus === 'rejected' && (
+        <TouchableOpacity style={styles.informBtn}>
+          <Text style={styles.informBtnText}>Inform the Seller</Text>
+        </TouchableOpacity>
+      )
+    }
+    {
+      item.reviewStatus === 'pending_review' && (
+        <View style={styles.pendingBanner}>
+          <ActivityIndicator size="small" color={C.warning} />
+          <Text style={styles.pendingBannerText}>Waiting for admin review...</Text>
+        </View>
+      )
+    }
+      </View >
     );
   }
 
@@ -231,7 +255,7 @@ export default function CourierStatusScreen({ navigation }) {
         <FlatList
           data={filtered}
           renderItem={renderItem}
-          keyExtractor={i => i._id}
+          keyExtractor={i => i._id || i.id}
           contentContainerStyle={{ padding: 16, paddingBottom: 40 }}
           showsVerticalScrollIndicator={false}
           refreshControl={

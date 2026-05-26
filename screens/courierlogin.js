@@ -54,7 +54,7 @@ export default function CourierLoginScreen({ navigation }) {
       await SecureStore.setItemAsync('courierName', data.courier.name);
       await SecureStore.setItemAsync('courierRole', 'courier');
   
-      navigation.replace('CourierPickupScreen');
+      navigation.replace('CourierStatusScreen');
   
     } catch (err) {
       setError(err.message || 'Login failed. Please check your credentials.');
