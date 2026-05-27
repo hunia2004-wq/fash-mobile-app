@@ -190,6 +190,12 @@ export default function PaymentScreen({ navigation, route }) {
                 {paymentMethod === 'card' ? 'Card (Paymob)' : 'Cash on Delivery'}
               </Text>
             </View>
+
+            <View style={styles.successRow}>
+              <Text style={styles.successLabel}>Delivery</Text>
+              <Text style={styles.successValue}>3–5 business days</Text>
+            </View>
+
             <View style={styles.successRow}>
               <Text style={styles.successLabel}>Items</Text>
               <Text style={styles.successValue}>

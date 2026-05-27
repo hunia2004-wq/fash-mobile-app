@@ -150,6 +150,9 @@ export default function MainCart({ navigation }) {
                 <Text style={styles.summaryLabel}>Delivery fee</Text>
                 <Text style={styles.summaryValue}>EGP {deliveryFee.toFixed(2)}</Text>
               </View>
+
+              <Text style={styles.deliveryEta}>🚚 Estimated delivery: 3–5 business days</Text>
+
               <View style={styles.summaryDivider} />
               <View style={styles.summaryRow}>
                 <Text style={styles.summaryTotal}>Total</Text>
@@ -226,4 +229,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 7, paddingVertical: 2, marginTop: 4,
   },
   offerAcceptedText: { fontSize: 10, fontWeight: '700', color: '#065F46' },
+  deliveryEta: {
+    fontSize: 11, color: COLORS.muted,
+    marginTop: -4, marginBottom: 4,
+  },
 });

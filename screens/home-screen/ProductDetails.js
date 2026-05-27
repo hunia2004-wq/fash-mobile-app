@@ -506,6 +506,11 @@ export default function ProductDetailScreen({ navigation, route }) {
           <Text style={styles.safetyText}>Never share personal financial info.</Text>
         </View>
 
+        <View style={styles.deliveryNote}>
+          <Ionicons name="time-outline" size={15} color={COLORS.accent} />
+          <Text style={styles.deliveryNoteText}>Delivery in 3–5 business days</Text>
+        </View>
+
         <View style={{ height: 100 }} />
       </ScrollView>
 
@@ -662,4 +667,9 @@ const styles = StyleSheet.create({
   retryBtnText: { color: COLORS.accent, fontWeight: '700', fontSize: 14 },
   closeOfferBtn: { backgroundColor: COLORS.accent, borderRadius: 14, paddingVertical: 14, paddingHorizontal: 40, marginTop: 4 },
   closeOfferBtnText: { color: COLORS.white, fontWeight: '700', fontSize: 15 },
+  deliveryNote: {
+    flexDirection: 'row', alignItems: 'center', gap: 8,
+    marginHorizontal: 20, marginTop: 10,
+  },
+  deliveryNoteText: { fontSize: 13, color: COLORS.muted },
 });
