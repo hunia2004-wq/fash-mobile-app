@@ -70,7 +70,7 @@ const BuyingOrderCard = ({ order, onPress }) => (
   <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.75}>
     <View style={styles.cardTop}>
       <View>
-        <Text style={styles.orderId}>Order #{order._id?.toString().slice(-6).toUpperCase() ?? '000000'}</Text>
+        <Text style={styles.orderId}>Order #{order.shortId ?? order._id?.toString().slice(-6).toUpperCase() ?? '000000'}</Text>
         <Text style={styles.orderDate}>{formatDate(order.placedAt ?? order.createdAt)}</Text>
       </View>
       <StatusBadge status={order.status} />
@@ -100,7 +100,7 @@ const SellingOrderCard = ({ order, onNavigateToPickup }) => {
     <View style={styles.card}>
       <View style={styles.cardTop}>
         <View>
-          <Text style={styles.orderId}>Sale #{order._id?.toString().slice(-6).toUpperCase() ?? '000000'}</Text>
+          <Text style={styles.orderId}>Sale #{order.shortId ?? order._id?.toString().slice(-6).toUpperCase() ?? '000000'}</Text>
           <Text style={styles.orderDate}>{formatDate(order.placedAt ?? order.createdAt)}</Text>
         </View>
         <StatusBadge status={order.status} />

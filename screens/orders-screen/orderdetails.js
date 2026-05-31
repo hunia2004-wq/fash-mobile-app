@@ -214,7 +214,7 @@ export default function OrderDetailScreen({ navigation, route }) {
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         <View style={styles.orderMeta}>
-          <Text style={styles.orderMetaId}>Order #{currentOrder._id?.toString().slice(-6).toUpperCase() ?? '000000'}</Text>
+          <Text style={styles.orderMetaId}>Order #{currentOrder.shortId ?? currentOrder._id?.toString().slice(-6).toUpperCase() ?? '000000'}</Text>
           <Text style={styles.orderMetaDate}>{formatDate(currentOrder.placedAt ?? currentOrder.createdAt)}</Text>
         </View>
 
