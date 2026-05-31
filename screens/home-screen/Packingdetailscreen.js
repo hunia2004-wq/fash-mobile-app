@@ -16,7 +16,6 @@ const CATEGORY_EMOJIS = {
 
 export default function OutfitDetailScreen({ navigation, route }) {
   const { outfit, collection } = route.params;
-  const [saved, setSaved] = useState(false);
 
   // items come fully populated from the backend — no static lookup needed
   const items = outfit.items ?? [];
@@ -47,13 +46,7 @@ export default function OutfitDetailScreen({ navigation, route }) {
           <Ionicons name="arrow-back" size={20} color={COLORS.text} />
         </TouchableOpacity>
         <Text style={styles.navTitle}>{outfit.name}</Text>
-        <TouchableOpacity style={styles.navBtn} onPress={() => setSaved((v) => !v)} activeOpacity={0.8}>
-          <Ionicons
-            name={saved ? 'heart' : 'heart-outline'}
-            size={20}
-            color={saved ? '#E05C5C' : COLORS.text}
-          />
-        </TouchableOpacity>
+  
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>

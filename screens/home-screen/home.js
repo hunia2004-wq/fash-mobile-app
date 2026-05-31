@@ -27,7 +27,7 @@ function HomeContent() {
   ];
 
   const sustainabilityItems = [
-    { id: '1', image: require('../../source/assets/images/packing.png'), screen: 'PackingBuilderscreen' },
+    { id: '1', image: require('../../source/assets/images/packing.png'), screen: 'PackingPicker' },
     { id: '2', image: require('../../source/assets/images/donations.png'), screen: 'DonationScreen' },
   ];
 
@@ -156,38 +156,32 @@ function HomeContent() {
         <Text style={styles.biddingSubtitle}>{t('live_bidding_sub')}</Text>
 
         <View style={styles.auctionRow}>
-          {liveAuctions.length === 0 ? (
-            <Text style={{ color: '#888', fontSize: fp(13), paddingVertical: hp(10) }}>
-              No live auctions right now
-            </Text>
-          ) : (
-            liveAuctions.map(auction => {
-              const diff = new Date(auction.endTime) - new Date();
-              const h = Math.floor(diff / 3600000);
-              const m = Math.floor((diff % 3600000) / 60000);
-              const timeLabel = h > 0 ? `${h}h ${m}m left` : `${m}m left`;
-              return (
-                <TouchableOpacity
-                  key={auction._id}
-                  style={styles.auctionCard}
-                  onPress={() => navigation.navigate('AuctionRoomScreen', { auctionId: auction._id })}
-                  activeOpacity={0.88}
-                >
-                  {auction.images?.[0] ? (
-                    <Image source={{ uri: auction.images[0] }} style={styles.auctionImage} resizeMode="cover" />
-                  ) : (
-                    <View style={[styles.auctionImage, { backgroundColor: '#f0f0f0', alignItems: 'center', justifyContent: 'center' }]}>
-                      <Ionicons name="shirt-outline" size={wp(32)} color="#C17C74" />
-                    </View>
-                  )}
-                  <Text style={styles.itemName} numberOfLines={1}>{auction.title}</Text>
-                  <Text style={styles.bidPrice}>EGP {auction.currentBid}</Text>
-                  <Text style={styles.bidTime}>{timeLabel}</Text>
-                </TouchableOpacity>
-              );
-            })
-          )}
-        </View>
+  {liveAuctions.map(auction => {
+    const diff = new Date(auction.endTime) - new Date();
+    const h = Math.floor(diff / 3600000);
+    const m = Math.floor((diff % 3600000) / 60000);
+    const timeLabel = h > 0 ? `${h}h ${m}m left` : `${m}m left`;
+    return (
+      <TouchableOpacity
+        key={auction._id}
+        style={styles.auctionCard}
+        onPress={() => navigation.navigate('AuctionRoomScreen', { auctionId: auction._id })}
+        activeOpacity={0.88}
+      >
+        {auction.images?.[0] ? (
+          <Image source={{ uri: auction.images[0] }} style={styles.auctionImage} resizeMode="cover" />
+        ) : (
+          <View style={[styles.auctionImage, { backgroundColor: '#f0f0f0', alignItems: 'center', justifyContent: 'center' }]}>
+            <Ionicons name="shirt-outline" size={wp(32)} color="#C17C74" />
+          </View>
+        )}
+        <Text style={styles.itemName} numberOfLines={1}>{auction.title}</Text>
+        <Text style={styles.bidPrice}>EGP {auction.currentBid}</Text>
+        <Text style={styles.bidTime}>{timeLabel}</Text>
+      </TouchableOpacity>
+    );
+  })}
+</View>
 
         <TouchableOpacity style={styles.bidButton} onPress={() => navigation.navigate("AuctionListScreen")}>
           <Text style={styles.bidButtonText}>{t('join_auction')}</Text>
@@ -278,19 +272,62 @@ const styles = StyleSheet.create({
 
   tabBar: { height: hp(70), paddingBottom: hp(10), paddingTop: hp(10), backgroundColor: 'white', borderTopWidth: 0, elevation: 10, shadowColor: '#000', shadowOffset: { width: 0, height: -2 }, shadowOpacity: 0.08, shadowRadius: 8 },
 
-  biddingSection: { backgroundColor: "#F6E9E6", padding: wp(18), borderRadius: wp(16), marginVertical: hp(20), marginTop: hp(50), marginHorizontal: wp(20) },
+  biddingSection: { 
+    backgroundColor: "#F6E9E6", 
+    padding: wp(18), 
+    marginVertical: hp(20),
+    marginTop: hp(50),
+  },
   biddingHeader: { flexDirection: "row", alignItems: "center", marginBottom: hp(5) },
   liveDot: { width: wp(8), height: wp(8), borderRadius: wp(4), backgroundColor: "red", marginRight: wp(6) },
   biddingTitle: { fontSize: fp(18), fontWeight: "bold" },
   biddingSubtitle: { color: "#666", marginBottom: hp(15), fontSize: fp(13) },
 
-  auctionRow: { flexDirection: "row", justifyContent: "space-between" },
-  auctionCard: { width: boxSize, borderRadius: wp(12), backgroundColor: "#F5F5F5", overflow: "hidden", marginBottom: hp(20) },
-  auctionImage: { width: "100%", height: boxSize * 0.65, borderTopLeftRadius: wp(12), borderTopRightRadius: wp(12) },
-  itemName: { fontWeight: "600", marginTop: hp(6), textAlign: "center", fontSize: fp(13) },
-  bidPrice: { fontWeight: "bold", color: "#C17C74", textAlign: "center", fontSize: fp(13) },
-  bidTime: { fontSize: fp(12), color: "#888", marginBottom: hp(20), textAlign: "center" },
+  auctionRow: { 
+    flexDirection: "row",
+    gap: wp(10),
+    marginTop: hp(12),
+  },
+  auctionCard: { 
+    flex: 1,
+    borderRadius: wp(14), 
+    backgroundColor: "white", 
+    overflow: "hidden",
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 6,
+    elevation: 3,
+  },
+  auctionImage: { 
+    width: "100%", 
+    height: hp(130),
+  },
+  itemName: { 
+    fontWeight: "600", 
+    marginTop: hp(6),
+    marginBottom: hp(2),
+    textAlign: "center", 
+    fontSize: fp(12),
+    paddingHorizontal: wp(6),
+  },
+  bidPrice: { 
+    fontWeight: "700", 
+    color: "#C17C74", 
+    textAlign: "center", 
+    fontSize: fp(13),
+  },
+  bidTime: { 
+    fontSize: fp(11), 
+    color: "#888", 
+    marginBottom: hp(10), 
+    marginTop: hp(2),
+    textAlign: "center",
+  },
 
-  bidButton: { borderRadius: wp(10), overflow: 'hidden' },
+  bidButton: { borderRadius: wp(10), overflow: 'hidden',
+    marginTop: hp(20),
+
+  },
   bidButtonText: { textAlign: "center", padding: hp(15), borderRadius: wp(10), alignItems: "center", backgroundColor: "white", borderWidth: 1.5, borderColor: "#C17C74", fontSize: fp(14) },
 });

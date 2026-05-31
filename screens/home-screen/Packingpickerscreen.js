@@ -122,7 +122,11 @@ export default function OutfitPickerScreen({ navigation }) {
       <StatusBar barStyle="dark-content" backgroundColor={COLORS.bg} />
 
       <View style={styles.logoHeader}>
+        <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()} activeOpacity={0.8}>
+          <Ionicons name="arrow-back" size={20} color="#333" />
+        </TouchableOpacity>
         <Image source={require('../../source/assets/images/Blacklogo.png')} style={styles.logo} resizeMode="contain" />
+        <View style={{ width: 40 }} />
       </View>
 
       <View style={styles.header}>
@@ -201,7 +205,19 @@ export default function OutfitPickerScreen({ navigation }) {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: COLORS.bg },
-  logoHeader: { paddingBottom: 10, alignItems: 'center', backgroundColor: COLORS.bg },
+  logoHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingBottom: 10,
+    backgroundColor: COLORS.bg,
+  },
+  backBtn: {
+    width: 40, height: 40, borderRadius: 12,
+    backgroundColor: COLORS.card,
+    alignItems: 'center', justifyContent: 'center',
+  },
   logo: { width: 120, height: 50 },
 
   header: {
