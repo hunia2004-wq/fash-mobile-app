@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useContext, useState, useEffect, useRef } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
   StatusBar, ActivityIndicator, Alert, Image,
@@ -115,76 +115,6 @@ const ReviewCard = ({ item }) => {
   );
 };
 
-// ── Message modal ──────────────────────────────────────────────────
-const MessageModal = ({ visible, onClose, sellerName, onSend }) => {
-  const [message, setMessage] = useState('');
-  const handleSend = () => {
-    if (!message.trim()) return;
-    onSend(message.trim());
-    setMessage('');
-  };
-  return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
-      <KeyboardAvoidingView style={styles.modalOverlay} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-        <View style={styles.modalSheet}>
-          <View style={styles.modalHandle} />
-          <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>Message {sellerName}</Text>
-            <TouchableOpacity onPress={onClose} style={styles.modalCloseBtn}>
-              <Ionicons name="close" size={20} color={COLORS.dark} />
-            </TouchableOpacity>
-          </View>
-          <Text style={styles.modalSub}>Send a message about an item or ask a question</Text>
-
-          {/* Quick templates */}
-          <Text style={styles.modalLabel}>Quick Messages</Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, paddingBottom: 12 }}>
-            {[
-              'Is this item still available?',
-              'Can you do a lower price?',
-              'What are the measurements?',
-              'Do you ship internationally?',
-            ].map(t => (
-              <TouchableOpacity
-                key={t}
-                style={styles.templateChip}
-                onPress={() => setMessage(t)}
-                activeOpacity={0.8}
-              >
-                <Text style={styles.templateChipText}>{t}</Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-
-          <Text style={[styles.modalLabel, { marginTop: 4 }]}>Your Message</Text>
-          <TextInput
-            style={styles.commentInput}
-            placeholder={`Write to ${sellerName}...`}
-            placeholderTextColor={COLORS.muted}
-            value={message}
-            onChangeText={setMessage}
-            multiline
-            numberOfLines={4}
-            maxLength={500}
-            textAlignVertical="top"
-          />
-          <Text style={styles.charCount}>{message.length}/500</Text>
-
-          <TouchableOpacity
-            style={[styles.submitReviewBtn, !message.trim() && { opacity: 0.5 }]}
-            onPress={handleSend}
-            disabled={!message.trim()}
-            activeOpacity={0.85}
-          >
-            <Ionicons name="send-outline" size={16} color={COLORS.white} style={{ marginRight: 8 }} />
-            <Text style={styles.submitReviewBtnText}>Send Message</Text>
-          </TouchableOpacity>
-        </View>
-      </KeyboardAvoidingView>
-    </Modal>
-  );
-};
-
 export default function SellerProfileScreen({ navigation, route }) {
   const { sellerId } = route.params ?? {};
   const { getToken } = useAuth();
@@ -197,10 +127,7 @@ export default function SellerProfileScreen({ navigation, route }) {
   const [error, setError] = useState(null);
   const [showAllReviews, setShowAllReviews] = useState(false);
 
-  // Modals
   const [reviewModal, setReviewModal] = useState(false);
-
-  // Review form
   const [reviewRating, setReviewRating] = useState(0);
   const [reviewComment, setReviewComment] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -216,12 +143,6 @@ export default function SellerProfileScreen({ navigation, route }) {
         getSellerProfile(token, sellerId),
         getSellerReviews(token, sellerId),
       ]);
-
-      // ── Debug: remove after confirming shape ──────────────────
-      console.log('SELLER PROFILE RAW:', JSON.stringify(profileData, null, 2));
-      // ─────────────────────────────────────────────────────────
-
-      // Handle both { seller: { user: {...}, ... } } and flat { user: {...}, ... }
       const s = profileData.seller ?? profileData;
       setSeller(s);
       if (!isFollowingRef.current) {
@@ -229,7 +150,6 @@ export default function SellerProfileScreen({ navigation, route }) {
       }
       setReviews(reviewsData.data?.reviews ?? reviewsData.reviews ?? reviewsData ?? []);
     } catch (err) {
-      console.error('fetchData error:', err);
       setError(err.message);
     } finally {
       setLoading(false);
@@ -238,37 +158,25 @@ export default function SellerProfileScreen({ navigation, route }) {
 
   useEffect(() => { fetchData(); }, [sellerId]);
 
-  // ── Follow / Unfollow ──────────────────────────────────────────
   const handleToggleFollow = async () => {
     if (followLoading) return;
     const prevFollowed = followed;
     const prevCount = seller?.followersCount ?? 0;
     isFollowingRef.current = true;
     setFollowLoading(true);
-
-    // Optimistic update
     setFollowed(!prevFollowed);
     setSeller(prev => ({
       ...prev,
       followersCount: !prevFollowed ? prevCount + 1 : Math.max(0, prevCount - 1),
     }));
-
     try {
       const token = await getToken();
       const data = await toggleFollowSeller(token, sellerId);
-
-      // ── Debug ──
-      console.log('FOLLOW TOGGLE RESPONSE:', JSON.stringify(data, null, 2));
-      // ──────────
-
-      // Handle both flat and nested responses
       const newIsFollowing = data.isFollowing ?? data.data?.isFollowing ?? !prevFollowed;
       const newCount = data.followersCount ?? data.data?.followersCount ?? prevCount;
-
       setFollowed(newIsFollowing);
       setSeller(prev => ({ ...prev, followersCount: newCount }));
     } catch (err) {
-      // Rollback on error
       setFollowed(prevFollowed);
       setSeller(prev => ({ ...prev, followersCount: prevCount }));
       Alert.alert('Error', err.message);
@@ -278,7 +186,6 @@ export default function SellerProfileScreen({ navigation, route }) {
     }
   };
 
-  // ── Share ──────────────────────────────────────────────────────
   const handleShare = async () => {
     const user = seller?.user ?? seller ?? {};
     const name = `${user.firstName ?? ''} ${user.lastName ?? ''}`.trim() || 'this seller';
@@ -287,15 +194,9 @@ export default function SellerProfileScreen({ navigation, route }) {
         message: `Check out ${name}'s fashion store on FASH! They have ${seller?.totalListings ?? 0} listings available.`,
         title: `${name} on FASH`,
       });
-    } catch (err) {
-      // User dismissed — no error needed
-    }
+    } catch (err) {}
   };
 
-  // ── Message ────────────────────────────────────────────────────
-  
-
-  // ── Call seller phone (if available) ──────────────────────────
   const handleCall = () => {
     const userObj = seller?.user ?? seller ?? {};
     const phone = userObj.phone;
@@ -306,7 +207,6 @@ export default function SellerProfileScreen({ navigation, route }) {
     Linking.openURL(`tel:${phone}`);
   };
 
-  // ── Submit Review ──────────────────────────────────────────────
   const handleSubmitReview = async () => {
     if (reviewRating === 0) {
       Alert.alert('Rating required', 'Please select a star rating.');
@@ -319,6 +219,7 @@ export default function SellerProfileScreen({ navigation, route }) {
         rating: reviewRating,
         comment: reviewComment.trim() || undefined,
       });
+      // Prepend new review immediately — also saved to backend so persists on re-entry
       setReviews(prev => [newReview.review ?? newReview, ...prev]);
       setReviewModal(false);
       setReviewRating(0);
@@ -331,7 +232,6 @@ export default function SellerProfileScreen({ navigation, route }) {
     }
   };
 
-  // ── Loading / Error guards ─────────────────────────────────────
   if (loading) {
     return (
       <SafeAreaView style={styles.safeArea}>
@@ -360,13 +260,10 @@ export default function SellerProfileScreen({ navigation, route }) {
     );
   }
 
-  // ── KEY FIX: fall back to seller itself if user is not nested ──
   const user = seller.user ?? seller;
   const sellerName =
     `${user.firstName ?? ''} ${user.lastName ?? ''}`.trim() ||
-    user.username ||
-    user.name ||
-    'Seller';
+    user.username || user.name || 'Seller';
   const initials =
     `${user.firstName?.[0] ?? ''}${user.lastName?.[0] ?? ''}`.toUpperCase() ||
     sellerName.slice(0, 2).toUpperCase();
@@ -382,8 +279,6 @@ export default function SellerProfileScreen({ navigation, route }) {
   ].filter(c => c.score > 0);
 
   const displayedReviews = showAllReviews ? reviews : reviews.slice(0, 3);
-
-  // ── Derive avatar URI from either nesting shape ────────────────
   const avatarUri = user.avatar ?? null;
 
   return (
@@ -402,7 +297,6 @@ export default function SellerProfileScreen({ navigation, route }) {
 
       <ScrollView style={styles.scroll} showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
 
-        {/* Profile card */}
         <View style={styles.card}>
           <View style={styles.profileRow}>
             <View style={styles.avatarWrap}>
@@ -442,7 +336,6 @@ export default function SellerProfileScreen({ navigation, route }) {
           </View>
         </View>
 
-        {/* Action buttons */}
         <View style={styles.actionRow}>
           <TouchableOpacity
             style={[styles.btnPrimary, followed && styles.btnPrimaryFollowed]}
@@ -465,13 +358,11 @@ export default function SellerProfileScreen({ navigation, route }) {
               </>
             }
           </TouchableOpacity>
-
           <TouchableOpacity style={styles.btnIcon} onPress={handleShare} activeOpacity={0.85}>
             <Ionicons name="share-outline" size={19} color={COLORS.primary} />
           </TouchableOpacity>
         </View>
 
-        {/* Quick contact strip */}
         {(user.phone || user.email) && (
           <View style={styles.contactStrip}>
             {user.phone && (
@@ -493,7 +384,6 @@ export default function SellerProfileScreen({ navigation, route }) {
           </View>
         )}
 
-        {/* Ratings */}
         {totalReviews > 0 && (
           <View style={styles.card}>
             <Text style={styles.sectionTitle}>Ratings & Reviews</Text>
@@ -525,7 +415,6 @@ export default function SellerProfileScreen({ navigation, route }) {
           </View>
         )}
 
-        {/* Badges */}
         {seller.badges?.length > 0 && (
           <View style={styles.card}>
             <Text style={styles.sectionTitle}>Badges</Text>
@@ -535,7 +424,6 @@ export default function SellerProfileScreen({ navigation, route }) {
           </View>
         )}
 
-        {/* Reviews */}
         <View style={styles.reviewsHeader}>
           <Text style={styles.sectionTitle}>
             {reviews.length > 0 ? `Reviews (${totalReviews})` : 'Reviews'}
@@ -572,9 +460,23 @@ export default function SellerProfileScreen({ navigation, route }) {
         <View style={{ height: 32 }} />
       </ScrollView>
 
-      {/* ── Review Modal ───────────────────────────────────────── */}
-      <Modal visible={reviewModal} transparent animationType="slide" onRequestClose={() => setReviewModal(false)}>
-        <KeyboardAvoidingView style={styles.modalOverlay} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+      {/* ── Review Modal ── */}
+      <Modal
+        visible={reviewModal}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setReviewModal(false)}
+      >
+        <KeyboardAvoidingView
+          style={styles.modalOverlay}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        >
+          {/* Tap outside to close */}
+          <TouchableOpacity
+            style={StyleSheet.absoluteFill}
+            activeOpacity={1}
+            onPress={() => setReviewModal(false)}
+          />
           <View style={styles.modalSheet}>
             <View style={styles.modalHandle} />
             <View style={styles.modalHeader}>
@@ -700,9 +602,44 @@ const styles = StyleSheet.create({
   noReviews: { alignItems: 'center', paddingVertical: 30, gap: 8 },
   noReviewsText: { fontSize: 15, fontWeight: '600', color: COLORS.dark },
   noReviewsSub: { fontSize: 13, color: COLORS.muted },
+
+  // ── Modal — FIXED ──────────────────────────────────────────────
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',   // dim background
+    justifyContent: 'flex-end',            // sheet slides from bottom
+  },
+  modalSheet: {
+    backgroundColor: COLORS.white,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    padding: 24,
+    paddingBottom: 40,
+    maxHeight: '90%',
+  },
+  modalHandle: {
+    width: 40, height: 4, borderRadius: 2,
+    backgroundColor: COLORS.card,
+    alignSelf: 'center', marginBottom: 16,
+  },
+  modalHeader: {
+    flexDirection: 'row', alignItems: 'center',
+    justifyContent: 'space-between', marginBottom: 4,
+  },
+  modalTitle: { fontSize: 17, fontWeight: '700', color: COLORS.dark },
+  modalCloseBtn: { padding: 4 },
+  modalSub: { fontSize: 13, color: COLORS.muted, marginBottom: 16 },
+  modalLabel: { fontSize: 13, fontWeight: '600', color: COLORS.dark, marginBottom: 8 },
   ratingHint: { fontSize: 13, color: COLORS.primary, fontWeight: '600', marginTop: 6 },
-  commentInput: { backgroundColor: COLORS.bg, borderRadius: 14, padding: 14, fontSize: 14, color: COLORS.dark, minHeight: 100, borderWidth: 1, borderColor: COLORS.border },
+  commentInput: {
+    backgroundColor: COLORS.bg, borderRadius: 14, padding: 14,
+    fontSize: 14, color: COLORS.dark, minHeight: 100,
+    borderWidth: 1, borderColor: COLORS.border,
+  },
   charCount: { fontSize: 11, color: COLORS.muted, textAlign: 'right', marginTop: 4, marginBottom: 4 },
-  submitReviewBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: COLORS.primary, borderRadius: 16, paddingVertical: 16, marginTop: 12 },
+  submitReviewBtn: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+    backgroundColor: COLORS.primary, borderRadius: 16, paddingVertical: 16, marginTop: 12,
+  },
   submitReviewBtnText: { fontSize: 15, fontWeight: '700', color: COLORS.white },
 });

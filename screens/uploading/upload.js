@@ -160,7 +160,7 @@ export default function UploadScreen({ navigation }) {
         if (size) formData.append('size', size); if (brand) formData.append('brand', brand);
         if (price) formData.append('price', price); if (seasons.length) formData.append('season', seasons[0]);
         if (occasions.length) formData.append('occasion', occasions[0]);
-        if (imageUri) formData.append('images', { uri: imageUri, type: 'image/jpeg', name: 'photo_0.jpg' });
+        if (imageUri) formData.append('image', { uri: imageUri, type: 'image/jpeg', name: 'photo_0.jpg' });
         await createWardrobeItem(token, formData);
         Alert.alert('Saved! 🎉', 'Item added to your wardrobe.', [{ text: 'Add Another', onPress: resetForm }, { text: 'Go to Wardrobe', onPress: () => navigation.navigate('WardrobeTab') }]);
       }

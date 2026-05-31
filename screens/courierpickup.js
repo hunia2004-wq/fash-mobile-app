@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import {View, Text, ScrollView, StyleSheet, TouchableOpacity, TextInput, Image, Alert, ActivityIndicator, KeyboardAvoidingView, Platform, StatusBar,} from 'react-native';
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity, TextInput, Image, Alert, ActivityIndicator, KeyboardAvoidingView, Platform, StatusBar, } from 'react-native';
 import { Ionicons, Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
@@ -84,16 +84,16 @@ export default function CourierPickupScreen({ navigation }) {
     const result =
       source === 'camera'
         ? await ImagePicker.launchCameraAsync({
-            quality: 0.8,
-            allowsEditing: true,
-            aspect: [4, 3],
-          })
+          quality: 0.8,
+          allowsEditing: true,
+          aspect: [4, 3],
+        })
         : await ImagePicker.launchImageLibraryAsync({
-            quality: 0.8,
-            allowsEditing: true,
-            aspect: [4, 3],
-            mediaTypes: ImagePicker.MediaTypeOptions.Images,
-          });
+          quality: 0.8,
+          allowsEditing: true,
+          aspect: [4, 3],
+          mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        });
 
     if (!result.canceled && result.assets?.[0]) {
       setPhoto(result.assets[0]);
@@ -112,15 +112,26 @@ export default function CourierPickupScreen({ navigation }) {
   
     try {
       const token = await SecureStore.getItemAsync('courierToken');
-      console.log('courierToken:', token);
+  
+      // Resolve shortId → real MongoDB _id
+      const res = await fetch(
+        `${BASE_URL}/courier/pickup/order/${orderId.trim().toUpperCase()}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.message || 'Order not found');
+  
+      const realOrderId  = json.data.item._orderId;
+      const realItemId   = json.data.item._itemId;
+      const realSellerId = json.data.item._sellerId;
   
       await submitCourierPickup(token, {
-        orderId: orderId.trim(),
-        itemId: itemId.trim(),
-        sellerId: sellerId.trim(),
+        orderId:     realOrderId,
+        itemId:      realItemId,
+        sellerId:    realSellerId,
         courierName: courierName.trim(),
-        notes: courierNotes.trim(),
-        photoUri: photo?.uri,
+        notes:       courierNotes.trim(),
+        photoUri:    photo?.uri,
       });
   
       navigation.navigate('CourierStatusScreen', {
@@ -175,9 +186,10 @@ export default function CourierPickupScreen({ navigation }) {
 
           <TextInput
             style={styles.input}
-            placeholder="ORD-123"
+            placeholder="e.g. FASH-0042"
             value={orderId}
             onChangeText={setOrderId}
+            autoCapitalize="characters"
           />
 
           {errors.orderId && (
@@ -189,9 +201,10 @@ export default function CourierPickupScreen({ navigation }) {
 
           <TextInput
             style={styles.input}
-            placeholder="ITEM-123"
+            placeholder="e.g. ITEM-0001"
             value={itemId}
             onChangeText={setItemId}
+            autoCapitalize="characters"
           />
 
           {errors.itemId && (
@@ -203,9 +216,10 @@ export default function CourierPickupScreen({ navigation }) {
 
           <TextInput
             style={styles.input}
-            placeholder="SELLER-123"
+            placeholder="e.g. SELR-0001"
             value={sellerId}
             onChangeText={setSellerId}
+            autoCapitalize="characters"
           />
 
           {errors.sellerId && (
