@@ -4,7 +4,8 @@ import { Ionicons, Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
 import * as SecureStore from 'expo-secure-store';
-import { submitCourierPickup } from '../services/authService';
+import { submitCourierPickup, getCourierOrderByShortId } from '../services/authService';
+
 
 
 // ── Theme ─────────────────────────────────────────
@@ -113,13 +114,8 @@ export default function CourierPickupScreen({ navigation }) {
     try {
       const token = await SecureStore.getItemAsync('courierToken');
   
-      // Resolve shortId → real MongoDB _id
-      const res = await fetch(
-        `${BASE_URL}/courier/pickup/order/${orderId.trim().toUpperCase()}`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      const json = await res.json();
-      if (!res.ok) throw new Error(json.message || 'Order not found');
+      // Resolve shortIds → real MongoDB _ids
+      const json = await getCourierOrderByShortId(token, orderId.trim());
   
       const realOrderId  = json.data.item._orderId;
       const realItemId   = json.data.item._itemId;

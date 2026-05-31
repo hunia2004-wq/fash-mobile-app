@@ -15,18 +15,18 @@ const COLORS = {
 };
 
 const STATUS_CONFIG = {
-  pending:            { label: 'Pending',            bg: '#FEF3C7', text: '#92400E' },
-  confirmed:          { label: 'Confirmed',          bg: '#DBEAFE', text: '#1E40AF' },
-  preparing:          { label: 'Preparing',          bg: '#FFEDD5', text: '#9A3412' },
-  shipped:            { label: 'Shipped',            bg: '#EDE9FE', text: '#5B21B6' },
-  on_the_way:         { label: 'On the Way',         bg: '#EDE9FE', text: '#5B21B6' },
-  delivered:          { label: 'Delivered',          bg: '#D1FAE5', text: '#065F46' },
-  cancelled:          { label: 'Cancelled',          bg: '#FEE2E2', text: '#991B1B' },
-  cash_on_delivery:   { label: 'Cash on Delivery',   bg: '#FEF3C7', text: '#92400E' },
-  awaiting_pickup:    { label: 'Awaiting Pickup',    bg: '#FEF3C7', text: '#92400E' },
+  pending: { label: 'Pending', bg: '#FEF3C7', text: '#92400E' },
+  confirmed: { label: 'Confirmed', bg: '#DBEAFE', text: '#1E40AF' },
+  preparing: { label: 'Preparing', bg: '#FFEDD5', text: '#9A3412' },
+  shipped: { label: 'Shipped', bg: '#EDE9FE', text: '#5B21B6' },
+  on_the_way: { label: 'On the Way', bg: '#EDE9FE', text: '#5B21B6' },
+  delivered: { label: 'Delivered', bg: '#D1FAE5', text: '#065F46' },
+  cancelled: { label: 'Cancelled', bg: '#FEE2E2', text: '#991B1B' },
+  cash_on_delivery: { label: 'Cash on Delivery', bg: '#FEF3C7', text: '#92400E' },
+  awaiting_pickup: { label: 'Awaiting Pickup', bg: '#FEF3C7', text: '#92400E' },
   courier_dispatched: { label: 'Courier Dispatched', bg: '#EDE9FE', text: '#5B21B6' },
-  item_verified:      { label: 'Item Verified',      bg: '#D1FAE5', text: '#065F46' },
-  item_rejected:      { label: 'Item Rejected',      bg: '#FEE2E2', text: '#991B1B' },
+  item_verified: { label: 'Item Verified', bg: '#D1FAE5', text: '#065F46' },
+  item_rejected: { label: 'Item Rejected', bg: '#FEE2E2', text: '#991B1B' },
 };
 
 const formatDate = (dateStr) => {
@@ -95,7 +95,7 @@ const BuyingOrderCard = ({ order, onPress }) => (
 
 const SellingOrderCard = ({ order, onNavigateToPickup }) => {
   const needsPickup = order.status === 'awaiting_pickup';
-  const hasPickup = ['scheduled','collected','completed'].includes(order.pickup?.status);
+  const hasPickup = ['scheduled', 'collected', 'completed'].includes(order.pickup?.status);
   return (
     <View style={styles.card}>
       <View style={styles.cardTop}>
@@ -182,17 +182,20 @@ export default function OrdersScreen({ navigation }) {
   }, []));
 
   useEffect(() => {
-    if (activeTab !== 'selling') return;
     const interval = setInterval(async () => {
       try {
         const token = await getToken();
         if (!token) return;
-        const salesData = await getSales(token).catch(() => []);
+        const [ordersData, salesData] = await Promise.all([
+          getOrders(token),
+          getSales(token).catch(() => []),
+        ]);
+        setOrders(Array.isArray(ordersData) ? ordersData : ordersData.orders ?? []);
         setSales(Array.isArray(salesData) ? salesData : salesData.orders ?? []);
-      } catch {}
+      } catch { }
     }, 10000);
     return () => clearInterval(interval);
-  }, [activeTab, getToken]);
+  }, [getToken]);
 
   const handleNavigateToPickup = useCallback((params) => { navigation.navigate('SellerPickupScreen', params); }, [navigation]);
   const listData = activeTab === 'buying' ? orders : sales;

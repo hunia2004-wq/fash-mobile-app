@@ -1,10 +1,10 @@
-import React, { useContext } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Alert, StatusBar } from 'react-native';
+import React, { useContext, useState, useCallback } from 'react';
+import { useFocusEffect } from '@react-navigation/native'; import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Alert, StatusBar } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AuthContext } from '../../context/AuthContext';
 import { useCart } from '../../context/CartContext';
-import { cancelOrder } from '../../services/authService';
+import { cancelOrder, getOrders } from '../../services/authService';
 import { wp, hp, fp } from '../../utils/responsive';
 
 const COLORS = {
@@ -15,30 +15,31 @@ const COLORS = {
 };
 
 const STEPS = [
-  { key: 'pending',            label: 'Order Placed',       icon: '📋' },
+  { key: 'pending', label: 'Order Placed', icon: '📋' },
+  { key: 'awaiting_pickup', label: 'Awaiting Pickup', icon: '📍' },
   { key: 'courier_dispatched', label: 'Courier Dispatched', icon: '🔍' },
-  { key: 'confirmed',          label: 'Order Confirmed',    icon: '✅' },
-  { key: 'sanitizing',         label: 'Sanitization',       icon: '🧴' },
-  { key: 'ready',              label: 'Ready for Delivery', icon: '📦' },
-  { key: 'shipped',            label: 'Out for Delivery',   icon: '🚚' },
-  { key: 'delivered',          label: 'Delivered',          icon: '🎉' },
+  { key: 'confirmed', label: 'Order Confirmed', icon: '✅' },
+  { key: 'sanitizing', label: 'Sanitization', icon: '🧴' },
+  { key: 'ready', label: 'Ready for Delivery', icon: '📦' },
+  { key: 'shipped', label: 'Out for Delivery', icon: '🚚' },
+  { key: 'delivered', label: 'Delivered', icon: '🎉' },
 ];
 
-const STATUS_ORDER = ['pending','courier_dispatched','confirmed','sanitizing','ready','shipped','delivered'];
+const STATUS_ORDER = ['pending', 'awaiting_pickup', 'courier_dispatched', 'confirmed', 'sanitizing', 'ready', 'shipped', 'delivered'];
 
 const STATUS_CONFIG = {
-  pending:            { label: 'Pending',            bg: '#FEF3C7', text: '#92400E' },
+  pending: { label: 'Pending', bg: '#FEF3C7', text: '#92400E' },
   courier_dispatched: { label: 'Courier Dispatched', bg: '#FEF9C3', text: '#713F12' },
-  confirmed:          { label: 'Confirmed',          bg: '#DBEAFE', text: '#1E40AF' },
-  sanitizing:         { label: 'Sanitizing',         bg: '#FFEDD5', text: '#9A3412' },
-  ready:              { label: 'Ready for Delivery', bg: '#E0F2FE', text: '#075985' },
-  shipped:            { label: 'Out for Delivery',   bg: '#EDE9FE', text: '#5B21B6' },
-  on_the_way:         { label: 'On the Way',         bg: '#EDE9FE', text: '#5B21B6' },
-  delivered:          { label: 'Delivered',          bg: '#D1FAE5', text: '#065F46' },
-  cancelled:          { label: 'Cancelled',          bg: '#FEE2E2', text: '#991B1B' },
-  rejected:           { label: 'Item Rejected',      bg: '#FEE2E2', text: '#991B1B' },
-  rejection_pending:  { label: 'Return in Progress', bg: '#FFEDD5', text: '#9A3412' },
-  refunded:           { label: 'Refunded',           bg: '#D1FAE5', text: '#065F46' },
+  confirmed: { label: 'Confirmed', bg: '#DBEAFE', text: '#1E40AF' },
+  sanitizing: { label: 'Sanitizing', bg: '#FFEDD5', text: '#9A3412' },
+  ready: { label: 'Ready for Delivery', bg: '#E0F2FE', text: '#075985' },
+  shipped: { label: 'Out for Delivery', bg: '#EDE9FE', text: '#5B21B6' },
+  on_the_way: { label: 'On the Way', bg: '#EDE9FE', text: '#5B21B6' },
+  delivered: { label: 'Delivered', bg: '#D1FAE5', text: '#065F46' },
+  cancelled: { label: 'Cancelled', bg: '#FEE2E2', text: '#991B1B' },
+  rejected: { label: 'Item Rejected', bg: '#FEE2E2', text: '#991B1B' },
+  rejection_pending: { label: 'Return in Progress', bg: '#FFEDD5', text: '#9A3412' },
+  refunded: { label: 'Refunded', bg: '#D1FAE5', text: '#065F46' },
 };
 
 const formatDate = (dateStr) => {
@@ -141,36 +142,57 @@ const ProductRow = ({ item }) => (
 
 export default function OrderDetailScreen({ navigation, route }) {
   const { getToken } = useContext(AuthContext);
-  const { order } = route.params;
   const { addToCart } = useCart();
 
-  const status = order.status ?? 'pending';
+  const [currentOrder, setCurrentOrder] = useState(route.params.order);
+
+  const status = currentOrder.status ?? 'pending';
   const statusConfig = STATUS_CONFIG[status] ?? STATUS_CONFIG.pending;
-  const items = order.items ?? [];
-  const canCancel = ['pending', 'courier_dispatched'].includes(status);
+  const items = currentOrder.items ?? [];
+  const canCancel = ['pending', 'awaiting_pickup', 'courier_dispatched'].includes(status);
 
   const handleReorder = () => {
     Alert.alert('Reorder', 'Add all items from this order to your cart?', [
       { text: 'Cancel', style: 'cancel' },
-      { text: 'Reorder', onPress: async () => {
-        for (const item of items) {
-          await addToCart({ _id: item.itemId, title: item.name, price: item.price, image: item.image }, 'marketplace');
+      {
+        text: 'Reorder', onPress: async () => {
+          for (const item of items) {
+            await addToCart({ _id: item.itemId, title: item.name, price: item.price, image: item.image }, 'marketplace');
+          }
+          Alert.alert('Added to cart!', 'All items have been added to your cart.');
         }
-        Alert.alert('Added to cart!', 'All items have been added to your cart.');
-      }},
+      },
     ]);
   };
+
+
+  useFocusEffect(useCallback(() => {
+    const poll = async () => {
+      try {
+        const token = await getToken();
+        const orders = await getOrders(token);
+        const fresh = orders.find(o => o._id.toString() === currentOrder._id.toString());
+        if (fresh) setCurrentOrder(fresh);
+      } catch { }
+    };
+    poll();
+    const interval = setInterval(poll, 10000);
+    return () => clearInterval(interval);
+  }, []));
+
 
   const handleCancel = () => {
     Alert.alert('Cancel Order', 'Are you sure you want to cancel this order?', [
       { text: 'No', style: 'cancel' },
-      { text: 'Yes, Cancel', style: 'destructive', onPress: async () => {
-        try {
-          const token = await getToken();
-          await cancelOrder(token, order._id);
-          Alert.alert('Order Cancelled', 'Your order has been cancelled successfully.', [{ text: 'OK', onPress: () => navigation.goBack() }]);
-        } catch (err) { Alert.alert('Error', err.message); }
-      }},
+      {
+        text: 'Yes, Cancel', style: 'destructive', onPress: async () => {
+          try {
+            const token = await getToken();
+            await cancelOrder(token, currentOrder._id);
+            Alert.alert('Order Cancelled', 'Your order has been cancelled successfully.', [{ text: 'OK', onPress: () => navigation.goBack() }]);
+          } catch (err) { Alert.alert('Error', err.message); }
+        }
+      },
     ]);
   };
 
@@ -192,13 +214,13 @@ export default function OrderDetailScreen({ navigation, route }) {
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         <View style={styles.orderMeta}>
-          <Text style={styles.orderMetaId}>Order #{order._id?.toString().slice(-6).toUpperCase() ?? '000000'}</Text>
-          <Text style={styles.orderMetaDate}>{formatDate(order.placedAt ?? order.createdAt)}</Text>
+          <Text style={styles.orderMetaId}>Order #{currentOrder._id?.toString().slice(-6).toUpperCase() ?? '000000'}</Text>
+          <Text style={styles.orderMetaDate}>{formatDate(currentOrder.placedAt ?? currentOrder.createdAt)}</Text>
         </View>
 
         <View style={styles.card}>
           <SectionTitle title="Order Tracking" />
-          <TrackingTimeline status={status} rejectionReason={order.rejectionReason} />
+          <TrackingTimeline status={status} rejectionReason={currentOrder.rejectionReason} />
         </View>
 
         <View style={styles.card}>
@@ -210,11 +232,11 @@ export default function OrderDetailScreen({ navigation, route }) {
             </View>
           )) : <Text style={styles.emptyText}>No items found</Text>}
           <View style={styles.totalDivider} />
-          <View style={styles.totalRow}><Text style={styles.totalLabel}>Subtotal</Text><Text style={styles.totalValue}>EGP {(order.total - 25).toFixed(2)}</Text></View>
+          <View style={styles.totalRow}><Text style={styles.totalLabel}>Subtotal</Text><Text style={styles.totalValue}>EGP {(currentOrder.total - 25).toFixed(2)}</Text></View>
           <View style={styles.totalRow}><Text style={styles.totalLabel}>Delivery Fee</Text><Text style={styles.totalValue}>EGP 25.00</Text></View>
           <View style={[styles.totalRow, styles.grandTotalRow]}>
             <Text style={styles.grandTotalLabel}>Total</Text>
-            <Text style={styles.grandTotalValue}>EGP {order.total ?? 0}</Text>
+            <Text style={styles.grandTotalValue}>EGP {currentOrder.total ?? 0}</Text>
           </View>
         </View>
 
@@ -222,10 +244,13 @@ export default function OrderDetailScreen({ navigation, route }) {
           <SectionTitle title="Delivery Information" />
           <View style={styles.infoRow}>
             <Text style={styles.infoLabel}>Address</Text>
-            <Text style={styles.infoValue} numberOfLines={2}>{order.address?.street ? `${order.address.street}, ${order.address.city}` : '—'}</Text>
+            <Text style={styles.infoValue} numberOfLines={2}>{currentOrder.address?.street ? `${currentOrder.address.street}, ${currentOrder.address.city}` : '—'}</Text>
           </View>
-          {order.address?.phone && (
-            <View style={styles.infoRow}><Text style={styles.infoLabel}>Contact</Text><Text style={styles.infoValue}>{order.address.phone}</Text></View>
+          {currentOrder.address?.phone && (
+            <View style={styles.infoRow}>
+              <Text style={styles.infoLabel}>Contact</Text>
+              <Text style={styles.infoValue}>{currentOrder.address.phone}</Text>
+            </View>
           )}
         </View>
 
@@ -233,7 +258,7 @@ export default function OrderDetailScreen({ navigation, route }) {
           <SectionTitle title="Payment" />
           <View style={styles.infoRow}>
             <Text style={styles.infoLabel}>Method</Text>
-            <Text style={styles.infoValue}>{order.paymentMethod === 'cash_on_delivery' ? 'Cash on Delivery' : order.paymentMethod === 'card' ? 'Card (Paymob)' : order.paymentMethod ?? '—'}</Text>
+            <Text style={styles.infoValue}>{currentOrder.paymentMethod === 'cash_on_delivery' ? 'Cash on Delivery' : currentOrder.paymentMethod === 'card' ? 'Card (Paymob)' : currentOrder.paymentMethod ?? '—'}</Text>
           </View>
         </View>
 

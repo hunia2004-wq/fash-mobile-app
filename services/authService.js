@@ -880,6 +880,15 @@ export async function getCourierSubmissions(token) {
   return data; // { success, courier, stats, submissions }
 }
 
+export async function getCourierOrderByShortId(token, shortId) {
+  const response = await fetch(`${BASE_URL}/courier/pickup/order/${shortId.trim().toUpperCase()}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.message || 'Order not found');
+  return data; // { success, data: { id, orderStatus, item: { id, name, price, image, sellerId, _itemId, _sellerId, _orderId } } }
+}
+
 // ADMIN COURIER REVIEW
 export async function getAdminSubmissions(token) {
   const response = await fetch(`${BASE_URL}/admin/courier-pickups`, {
