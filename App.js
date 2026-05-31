@@ -68,7 +68,6 @@ import CreateAuction from './screens/home-screen/CreateAuction';
 import MainCart from './screens/home-screen/MainCart';
 import ARscreen from './screens/ARscreen';
 import Fashproductsdetails from './screens/home-screen/fashproductsdetails';
-import SellerPickupScreen from './screens/orders-screen/sellerpickup';
 import Premium from './screens/premium';
 import Offer from './screens/home-screen/offer';
 
@@ -334,7 +333,6 @@ export default function App() {
                         <Stack.Screen name="SellerProfileScreen" component={SellerProfileScreen} />
                         <Stack.Screen name="ARscreen" component={ARscreen} options={{ headerShown: false }} />
                         <Stack.Screen name="Fashproductsdetails" component={Fashproductsdetails} />
-                        <Stack.Screen name="SellerPickupScreen" component={SellerPickupScreen} />
                         <Stack.Screen name="Premium" component={Premium} />
                         <Stack.Screen name="Offer" component={Offer} />
 

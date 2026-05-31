@@ -1,21 +1,20 @@
 import { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, StyleSheet, TextInput, Image, Dimensions, } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, StyleSheet, TextInput, Image } from 'react-native';
 import { FontAwesome, Ionicons, Feather } from '@expo/vector-icons';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import ProfileScreen from '../profile';
 import { useNavigation } from "@react-navigation/native";
-
 import WardrobeScreen from '../digital-wardrobe/wardrobe';
 import UploadScreen from '../uploading/upload';
 import SavedScreen from '../favorites/wishlist';
-
 import { useTranslation } from 'react-i18next';
-
 import { getAllAuctions } from '../../services/authService';
+import { wp, hp, fp, SCREEN } from '../../utils/responsive';
 
-
-const { width } = Dimensions.get('window');
 const Tab = createBottomTabNavigator();
+
+// Auction card size — accounts for biddingSection horizontal margins + internal padding
+const boxSize = (SCREEN.width - wp(40) - wp(36)) / 2;
 
 function HomeContent() {
   const navigation = useNavigation();
@@ -28,27 +27,17 @@ function HomeContent() {
   ];
 
   const sustainabilityItems = [
-    {
-      id: '1',
-      image: require('../../source/assets/images/packing.png'),
-      screen: 'PackingBuilderscreen'
-    },
-    {
-      id: '2',
-      image: require('../../source/assets/images/donations.png'),
-      screen: 'DonationScreen'
-    },
+    { id: '1', image: require('../../source/assets/images/packing.png'), screen: 'PackingBuilderscreen' },
+    { id: '2', image: require('../../source/assets/images/donations.png'), screen: 'DonationScreen' },
   ];
 
   const [searchQuery, setSearchQuery] = useState('');
-
   const [liveAuctions, setLiveAuctions] = useState([]);
 
   useEffect(() => {
     getAllAuctions()
       .then(data => {
         const all = (data.auctions ?? data ?? []);
-        // show only auctions ending within 1 hour
         const live = all.filter(a =>
           a.title === 'YSL Tribute Heels' || a.title === 'miu min brown bag'
         );
@@ -57,21 +46,22 @@ function HomeContent() {
       .catch(err => console.warn('Auction fetch failed:', err.message));
   }, []);
 
-
   return (
     <ScrollView style={styles.screen} showsVerticalScrollIndicator={false}>
 
       {/* Header */}
       <View style={styles.header}>
-        <Image source={require('../../source/assets/images/Blacklogo.png')}
+        <Image
+          source={require('../../source/assets/images/Blacklogo.png')}
           style={styles.logo}
-          resizeMode="contain" />
+          resizeMode="contain"
+        />
       </View>
 
       {/* Search */}
       <View style={styles.searchRow}>
         <View style={styles.searchBar}>
-          <FontAwesome name="search" size={16} color="#C17C74" style={{ marginRight: 8 }} />
+          <FontAwesome name="search" size={wp(16)} color="#C17C74" style={{ marginRight: wp(8) }} />
           <TextInput
             placeholder={t('search_placeholder')}
             style={styles.searchInput}
@@ -86,40 +76,26 @@ function HomeContent() {
               }
             }}
           />
-          <FontAwesome name="microphone" size={16} color="#C17C74" />
+          <FontAwesome name="microphone" size={wp(16)} color="#C17C74" />
         </View>
-
-        <TouchableOpacity
-          style={styles.filterBtn}
-          onPress={() => navigation.navigate('MainCart')}
-        >
-          <Ionicons name="cart-outline" size={20} color="#C17C74" />
+        <TouchableOpacity style={styles.filterBtn} onPress={() => navigation.navigate('MainCart')}>
+          <Ionicons name="cart-outline" size={wp(20)} color="#C17C74" />
         </TouchableOpacity>
       </View>
 
       {/* Banner */}
-      <TouchableOpacity
-        style={styles.banner}
-        onPress={() => navigation.navigate('ARscreen')}
-        activeOpacity={0.92}
-      >
-        <Image
-          source={require('../../source/assets/images/headercropped.png')}
-          style={styles.bannerImage}
-          resizeMode="cover"
-        />
+      <TouchableOpacity style={styles.banner} onPress={() => navigation.navigate('ARscreen')} activeOpacity={0.92}>
+        <Image source={require('../../source/assets/images/headercropped.png')} style={styles.bannerImage} resizeMode="cover" />
         <View style={styles.bannerOverlay} />
-
         <View style={styles.arLiveBadge}>
           <View style={styles.arLiveDot} />
           <Text style={styles.arLiveText}>AR</Text>
         </View>
-
         <View style={styles.bannerContent}>
           <Text style={styles.bannerTitle}>{t('ar_title')}</Text>
           <Text style={styles.bannerSub}>{t('ar_sub')}</Text>
           <View style={styles.bannerBtn}>
-            <Ionicons name="cube-outline" size={14} color="white" />
+            <Ionicons name="cube-outline" size={wp(14)} color="white" />
             <Text style={styles.bannerBtnText}>{t('ar_btn')}</Text>
           </View>
         </View>
@@ -133,46 +109,39 @@ function HomeContent() {
           onPress={() => navigation.navigate('FashCollectionScreen')}
           activeOpacity={0.85}
         >
-          <View>
+          <View style={{ flex: 1 }}>
             <Text style={styles.closetCardTitle}>{t('fash_collection')}</Text>
             <Text style={styles.closetCardSub}>{t('fash_collection_sub')}</Text>
           </View>
           <View style={styles.collectionIconBox}>
-            <Ionicons name="bag-handle-outline" size={28} color="black" />
+            <Ionicons name="bag-handle-outline" size={wp(28)} color="black" />
           </View>
         </TouchableOpacity>
 
-        <TouchableOpacity
-          style={styles.closetCard}
-          onPress={() => navigation.navigate("AIStylingScreen")}
-        >
-          <View>
+        <TouchableOpacity style={styles.closetCard} onPress={() => navigation.navigate("AIStylingScreen")}>
+          <View style={{ flex: 1 }}>
             <Text style={styles.closetCardTitle}>{t('ai_styling')}</Text>
             <Text style={styles.closetCardSub}>{t('ai_styling_sub')}</Text>
           </View>
           <View style={styles.aiImageWrapper}>
-            <Image
-              source={require('../../source/assets/images/aistyling.png')}
-              style={styles.aiStylingImage}
-              resizeMode="contain"
-            />
+            <Image source={require('../../source/assets/images/aistyling.png')} style={styles.aiStylingImage} resizeMode="contain" />
           </View>
         </TouchableOpacity>
       </View>
 
       {/* Marketplace */}
       <Text style={styles.sectionTitle}>{t('marketplace')}</Text>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ paddingLeft: 20 }}>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={{ paddingLeft: wp(20), paddingRight: wp(20) }}
+      >
         {boutiqueItems.map((item) => (
-          <TouchableOpacity
-            key={item.id}
-            style={styles.boutiqueCard}
-            onPress={() => navigation.navigate("MarketplaceHome")}
-          >
+          <TouchableOpacity key={item.id} style={styles.boutiqueCard} onPress={() => navigation.navigate("MarketplaceHome")}>
             <Image source={item.image} style={styles.boutiqueImage} resizeMode="cover" />
             <View style={styles.boutiqueLabelBtn}>
               <Text style={styles.boutiqueLabel}>{item.label}</Text>
-              <Ionicons name="arrow-forward" size={12} color="#9B5E58" style={{ marginLeft: 4 }} />
+              <Ionicons name="arrow-forward" size={wp(12)} color="#9B5E58" style={{ marginLeft: wp(4) }} />
             </View>
           </TouchableOpacity>
         ))}
@@ -181,14 +150,14 @@ function HomeContent() {
       {/* Live Bidding */}
       <View style={styles.biddingSection}>
         <View style={styles.biddingHeader}>
-          <Text style={styles.liveDot}></Text>
+          <View style={styles.liveDot} />
           <Text style={styles.biddingTitle}>{t('live_bidding')}</Text>
         </View>
         <Text style={styles.biddingSubtitle}>{t('live_bidding_sub')}</Text>
 
         <View style={styles.auctionRow}>
           {liveAuctions.length === 0 ? (
-            <Text style={{ color: '#888', fontSize: 13, paddingVertical: 10 }}>
+            <Text style={{ color: '#888', fontSize: fp(13), paddingVertical: hp(10) }}>
               No live auctions right now
             </Text>
           ) : (
@@ -197,7 +166,6 @@ function HomeContent() {
               const h = Math.floor(diff / 3600000);
               const m = Math.floor((diff % 3600000) / 60000);
               const timeLabel = h > 0 ? `${h}h ${m}m left` : `${m}m left`;
-
               return (
                 <TouchableOpacity
                   key={auction._id}
@@ -206,14 +174,10 @@ function HomeContent() {
                   activeOpacity={0.88}
                 >
                   {auction.images?.[0] ? (
-                    <Image
-                      source={{ uri: auction.images[0] }}
-                      style={styles.auctionImage}
-                      resizeMode="cover"
-                    />
+                    <Image source={{ uri: auction.images[0] }} style={styles.auctionImage} resizeMode="cover" />
                   ) : (
                     <View style={[styles.auctionImage, { backgroundColor: '#f0f0f0', alignItems: 'center', justifyContent: 'center' }]}>
-                      <Ionicons name="shirt-outline" size={32} color="#C17C74" />
+                      <Ionicons name="shirt-outline" size={wp(32)} color="#C17C74" />
                     </View>
                   )}
                   <Text style={styles.itemName} numberOfLines={1}>{auction.title}</Text>
@@ -225,30 +189,27 @@ function HomeContent() {
           )}
         </View>
 
-        <TouchableOpacity
-          style={styles.bidButton}
-          onPress={() => navigation.navigate("AuctionListScreen")}
-        >
+        <TouchableOpacity style={styles.bidButton} onPress={() => navigation.navigate("AuctionListScreen")}>
           <Text style={styles.bidButtonText}>{t('join_auction')}</Text>
         </TouchableOpacity>
       </View>
 
       {/* FASH Share */}
-      <Text style={[styles.sectionTitle, { marginTop: 24 }]}>{t('fash_share')}</Text>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ paddingLeft: 20 }}>
+      <Text style={[styles.sectionTitle, { marginTop: hp(24) }]}>{t('fash_share')}</Text>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={{ paddingLeft: wp(20), paddingRight: wp(20) }}
+      >
         {sustainabilityItems.map((item) => (
-          <TouchableOpacity
-            key={item.id}
-            style={styles.sustainCard}
-            onPress={() => navigation.navigate(item.screen)}
-          >
+          <TouchableOpacity key={item.id} style={styles.sustainCard} onPress={() => navigation.navigate(item.screen)}>
             <Image source={item.image} style={styles.sustainImage} resizeMode="cover" />
             <Text style={styles.sustainLabel}>{item.label}</Text>
           </TouchableOpacity>
         ))}
       </ScrollView>
 
-      <View style={{ height: 30 }} />
+      <View style={{ height: hp(30) }} />
     </ScrollView>
   );
 }
@@ -264,415 +225,72 @@ export default function HomeScreen() {
         tabBarInactiveTintColor: '#999',
       }}
     >
-      {/* Tab 1 — Home */}
-      <Tab.Screen
-        name="HomeTab"
-        component={HomeContent}
-        options={{
-          tabBarIcon: ({ color }) => (
-            <Ionicons name="home-outline" size={24} color={color} />
-          ),
-        }}
-      />
-
-      {/* Tab 2 — Wardrobe */}
-      <Tab.Screen
-        name="WardrobeTab"
-        component={WardrobeScreen}
-        options={{
-          tabBarIcon: ({ color }) => (
-            <Ionicons name="shirt-outline" size={24} color={color} />
-          ),
-        }}
-      />
-
-      {/* Tab 3 — Upload */}
-      <Tab.Screen
-        name="UploadTab"
-        component={UploadScreen}
-        options={{
-          tabBarIcon: ({ color }) => (
-            <Feather name="upload" size={24} color={color} />
-          ),
-        }}
-      />
-
-      {/* Tab 4 — Saved / Wishlist */}
-      <Tab.Screen
-        name="SavedTab"
-        component={SavedScreen}
-        options={{
-          tabBarIcon: ({ color }) => (
-            <Ionicons name="heart-outline" size={24} color={color} />
-          ),
-        }}
-      />
-
-      {/* Tab 5 — Profile */}
-      <Tab.Screen
-        name="Profile"
-        component={ProfileScreen}
-        options={{
-          tabBarIcon: ({ color }) => (
-            <Ionicons name="person-outline" size={24} color={color} />
-          ),
-        }}
-      />
+      <Tab.Screen name="HomeTab" component={HomeContent} options={{ tabBarIcon: ({ color }) => <Ionicons name="home-outline" size={wp(24)} color={color} /> }} />
+      <Tab.Screen name="WardrobeTab" component={WardrobeScreen} options={{ tabBarIcon: ({ color }) => <Ionicons name="shirt-outline" size={wp(24)} color={color} /> }} />
+      <Tab.Screen name="UploadTab" component={UploadScreen} options={{ tabBarIcon: ({ color }) => <Feather name="upload" size={wp(24)} color={color} /> }} />
+      <Tab.Screen name="SavedTab" component={SavedScreen} options={{ tabBarIcon: ({ color }) => <Ionicons name="heart-outline" size={wp(24)} color={color} /> }} />
+      <Tab.Screen name="Profile" component={ProfileScreen} options={{ tabBarIcon: ({ color }) => <Ionicons name="person-outline" size={wp(24)} color={color} /> }} />
     </Tab.Navigator>
   );
 }
 
-const boxSize = width * 0.45;
-
 const styles = StyleSheet.create({
+  screen: { flex: 1, backgroundColor: '#F5F5F5' },
 
-  screen: {
-    flex: 1,
-    backgroundColor: '#F5F5F5'
-  },
+  header: { paddingTop: hp(60), paddingBottom: hp(10), alignItems: 'center' },
+  logo: { width: wp(120), height: hp(50) },
 
-  placeholder: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center'
-  },
+  searchRow: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: wp(20), marginBottom: hp(16), gap: wp(10) },
+  searchBar: { flex: 1, flexDirection: 'row', alignItems: 'center', backgroundColor: '#f0f0f0', borderRadius: wp(12), paddingHorizontal: wp(14), paddingVertical: hp(10) },
+  searchInput: { flex: 1, fontSize: fp(15), color: '#333' },
+  filterBtn: { backgroundColor: '#f0f0f0', padding: wp(10), borderRadius: wp(12) },
 
-  header: {
-    paddingTop: 60,
-    paddingBottom: 10,
-    alignItems: 'center'
-  },
+  banner: { marginHorizontal: wp(20), marginBottom: hp(24), borderRadius: wp(20), overflow: 'hidden', height: hp(200) },
+  bannerImage: { width: '100%', height: '100%', position: 'absolute' },
+  bannerOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.45)' },
+  arLiveBadge: { position: 'absolute', top: hp(14), right: wp(14), flexDirection: 'row', alignItems: 'center', gap: wp(5), backgroundColor: 'rgba(255,255,255,0.3)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.4)', paddingHorizontal: wp(10), paddingVertical: hp(5), borderRadius: wp(20) },
+  arLiveDot: { width: wp(7), height: wp(7), borderRadius: wp(4), backgroundColor: '#FF4D4D' },
+  arLiveText: { color: 'white', fontWeight: '700', fontSize: fp(12) },
+  bannerContent: { position: 'absolute', bottom: hp(18), left: wp(18) },
+  bannerTitle: { color: 'white', fontSize: fp(22), fontWeight: '700', marginBottom: hp(4) },
+  bannerSub: { color: 'rgba(255,255,255,0.85)', fontSize: fp(12), marginBottom: hp(12) },
+  bannerBtn: { flexDirection: 'row', alignItems: 'center', gap: wp(6), backgroundColor: '#C17C74', paddingHorizontal: wp(16), paddingVertical: hp(8), borderRadius: wp(20), alignSelf: 'flex-start' },
+  bannerBtnText: { color: 'white', fontWeight: '700', fontSize: fp(13) },
 
-  logo: {
-    width: 120,
-    height: 50,
-  },
+  sectionTitle: { fontSize: fp(18), fontWeight: '600', color: '#C17C74', marginBottom: hp(14), paddingHorizontal: wp(20) },
 
-  searchRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    marginBottom: 16,
-    gap: 10
-  },
+  closetRow: { flexDirection: 'row', paddingHorizontal: wp(20), justifyContent: 'space-between', marginBottom: hp(24) },
+  closetCard: { width: (SCREEN.width - wp(20) * 2 - wp(12)) / 2, backgroundColor: 'white', borderRadius: wp(16), padding: wp(16), minHeight: hp(90), flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 6, elevation: 3, borderColor: '#F2E6E3', borderWidth: 4, overflow: 'hidden' },
+  closetCardTitle: { fontSize: fp(15), fontWeight: '600', color: '#111', marginBottom: hp(4) },
+  closetCardSub: { fontSize: fp(12), color: 'gray', lineHeight: hp(18) },
+  aiImageWrapper: { width: wp(50), height: wp(50), flexShrink: 0, overflow: 'hidden' },
+  aiStylingImage: { width: '100%', height: '100%' },
+  collectionIconBox: { flexShrink: 0 },
 
-  searchBar: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#f0f0f0',
-    borderRadius: 12,
-    paddingHorizontal: 14,
-    paddingVertical: 10
-  },
+  boutiqueCard: { width: wp(155), borderRadius: wp(16), overflow: 'hidden', marginRight: wp(12), backgroundColor: 'white' },
+  boutiqueImage: { width: '100%', height: hp(155) },
+  boutiqueLabelBtn: { backgroundColor: '#F6E9E6', paddingVertical: hp(10), paddingHorizontal: wp(12), flexDirection: 'row', alignItems: 'center', justifyContent: 'center', borderTopWidth: 1, borderTopColor: '#E8D0CC' },
+  boutiqueLabel: { color: 'black', fontWeight: '600', fontSize: fp(12), textAlign: 'center' },
 
-  searchInput: {
-    flex: 1,
-    fontSize: 15,
-    color: '#333'
-  },
+  sustainCard: { width: wp(140), height: hp(120), borderRadius: wp(18), marginRight: wp(12), overflow: 'hidden', justifyContent: 'center', alignItems: 'center' },
+  sustainImage: { position: 'absolute', width: '100%', height: '100%' },
+  sustainLabel: { color: 'white', fontWeight: 'bold', fontSize: fp(16), textAlign: 'center' },
 
-  filterBtn: {
-    backgroundColor: '#f0f0f0',
-    padding: 10,
-    borderRadius: 12
-  },
+  tabBar: { height: hp(70), paddingBottom: hp(10), paddingTop: hp(10), backgroundColor: 'white', borderTopWidth: 0, elevation: 10, shadowColor: '#000', shadowOffset: { width: 0, height: -2 }, shadowOpacity: 0.08, shadowRadius: 8 },
 
-  banner: {
-    marginHorizontal: 20,
-    marginBottom: 24,
-    borderRadius: 20,
-    overflow: 'hidden',
-    height: 200,
-  },
+  biddingSection: { backgroundColor: "#F6E9E6", padding: wp(18), borderRadius: wp(16), marginVertical: hp(20), marginTop: hp(50), marginHorizontal: wp(20) },
+  biddingHeader: { flexDirection: "row", alignItems: "center", marginBottom: hp(5) },
+  liveDot: { width: wp(8), height: wp(8), borderRadius: wp(4), backgroundColor: "red", marginRight: wp(6) },
+  biddingTitle: { fontSize: fp(18), fontWeight: "bold" },
+  biddingSubtitle: { color: "#666", marginBottom: hp(15), fontSize: fp(13) },
 
-  bannerImage: {
-    width: '100%',
-    height: '100%',
-    position: 'absolute',
-  },
+  auctionRow: { flexDirection: "row", justifyContent: "space-between" },
+  auctionCard: { width: boxSize, borderRadius: wp(12), backgroundColor: "#F5F5F5", overflow: "hidden", marginBottom: hp(20) },
+  auctionImage: { width: "100%", height: boxSize * 0.65, borderTopLeftRadius: wp(12), borderTopRightRadius: wp(12) },
+  itemName: { fontWeight: "600", marginTop: hp(6), textAlign: "center", fontSize: fp(13) },
+  bidPrice: { fontWeight: "bold", color: "#C17C74", textAlign: "center", fontSize: fp(13) },
+  bidTime: { fontSize: fp(12), color: "#888", marginBottom: hp(20), textAlign: "center" },
 
-  bannerOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.45)',
-  },
-
-  arLiveBadge: {
-    position: 'absolute',
-    top: 14,
-    right: 14,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 5,
-    backgroundColor: 'rgba(255,255,255,0.3)',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.4)',
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 20,
-  },
-
-  arLiveDot: {
-    width: 7,
-    height: 7,
-    borderRadius: 4,
-    backgroundColor: '#FF4D4D',
-  },
-
-  arLiveText: {
-    color: 'white',
-    fontWeight: '700',
-    fontSize: 12,
-  },
-
-  bannerContent: {
-    position: 'absolute',
-    bottom: 18,
-    left: 18,
-  },
-
-  bannerTitle: {
-    color: 'white',
-    fontSize: 22,
-    fontWeight: '700',
-    marginBottom: 4,
-  },
-
-  bannerSub: {
-    color: 'rgba(255,255,255,0.85)',
-    fontSize: 12,
-    marginBottom: 12,
-  },
-
-  bannerBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    backgroundColor: '#C17C74',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    alignSelf: 'flex-start',
-  },
-
-  bannerBtnText: {
-    color: 'white',
-    fontWeight: '700',
-    fontSize: 13,
-  },
-
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#C17C74',
-    marginBottom: 14,
-    paddingHorizontal: 20
-  },
-
-  closetRow: {
-    flexDirection: 'row',
-    paddingHorizontal: 20,
-    justifyContent: 'space-between',
-    marginBottom: 24
-  },
-
-  closetCard: {
-    width: width * 0.43,
-    backgroundColor: 'white',
-    borderRadius: 16,
-    padding: 16,
-    minHeight: 90,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowRadius: 6,
-    elevation: 3,
-    borderColor: '#F2E6E3',
-    borderWidth: 4,
-    overflow: 'hidden',
-  },
-
-  closetCardTitle: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#111',
-    marginBottom: 4
-  },
-
-  closetCardSub: {
-    fontSize: 12,
-    color: 'gray',
-    lineHeight: 18
-  },
-
-  aiImageWrapper: {
-    width: width * 0.13,
-    height: width * 0.13,
-    flexShrink: 0,
-    overflow: 'hidden',
-  },
-
-  aiStylingImage: {
-    width: '100%',
-    height: '100%',
-  },
-
-  collectionIconBox: {
-    flexShrink: 0,
-  },
-
-  boutiqueCard: {
-    width: width * 0.35,
-    borderRadius: 16,
-    overflow: 'hidden',
-    marginRight: 12,
-    backgroundColor: 'white',
-  },
-
-  boutiqueImage: {
-    width: '100%',
-    height: 155.5,
-  },
-
-  boutiqueLabelBtn: {
-    backgroundColor: '#F6E9E6',
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderTopWidth: 1,
-    borderTopColor: '#E8D0CC',
-  },
-
-  boutiqueLabel: {
-    color: 'black',
-    fontWeight: '600',
-    fontSize: 12,
-    textAlign: 'center',
-  },
-
-  sustainCard: {
-    width: 140,
-    height: 120,
-    borderRadius: 18,
-    marginRight: 12,
-    overflow: 'hidden',
-    justifyContent: 'center',
-    alignItems: 'center'
-  },
-
-  sustainImage: {
-    position: 'absolute',
-    width: '100%',
-    height: '100%'
-  },
-
-  sustainLabel: {
-    color: 'white',
-    fontWeight: 'bold',
-    fontSize: 16,
-    textAlign: 'center'
-  },
-
-  tabBar: {
-    height: 70,
-    paddingBottom: 10,
-    paddingTop: 10,
-    backgroundColor: 'white',
-    borderTopWidth: 0,
-    elevation: 10,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: -2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8
-  },
-
-  biddingSection: {
-    backgroundColor: "#F6E9E6",
-    padding: 18,
-    borderRadius: 16,
-    marginVertical: 20,
-    marginTop: 50,
-  },
-
-  biddingHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 5
-  },
-
-  liveDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: "red",
-    marginRight: 6
-  },
-
-  biddingTitle: {
-    fontSize: 18,
-    fontWeight: "bold"
-  },
-
-  biddingSubtitle: {
-    color: "#666",
-    marginBottom: 15
-  },
-
-  auctionRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-  },
-
-  auctionCard: {
-    width: boxSize,
-    borderRadius: 12,
-    backgroundColor: "#F5F5F5",
-    overflow: "hidden",
-    marginBottom: 20,
-  },
-
-  auctionImage: {
-    width: "100%",
-    height: boxSize * 0.65,
-    borderTopLeftRadius: 12,
-    borderTopRightRadius: 12,
-  },
-
-  itemName: {
-    fontWeight: "600",
-    marginTop: 6,
-    textAlign: "center",
-  },
-
-  bidPrice: {
-    fontWeight: "bold",
-    color: "#C17C74",
-    textAlign: "center",
-  },
-
-  bidTime: {
-    fontSize: 12,
-    color: "#888",
-    marginBottom: 20,
-    textAlign: "center",
-  },
-
-  bidButton: {
-    borderRadius: 10,
-    overflow: 'hidden',
-  },
-
-  bidButtonText: {
-    textAlign: "center",
-    padding: 15,
-    borderRadius: 10,
-    alignItems: "center",
-    backgroundColor: "white",
-    borderWidth: 1.5,
-    borderColor: "#C17C74",
-  },
+  bidButton: { borderRadius: wp(10), overflow: 'hidden' },
+  bidButtonText: { textAlign: "center", padding: hp(15), borderRadius: wp(10), alignItems: "center", backgroundColor: "white", borderWidth: 1.5, borderColor: "#C17C74", fontSize: fp(14) },
 });

@@ -1,25 +1,20 @@
-import { View, Text, TouchableOpacity, StyleSheet, Image, StatusBar, } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import { View, Text, TouchableOpacity, StyleSheet, Image, StatusBar } from "react-native";
+import { wp, hp, fp } from '../utils/responsive';
 
 export default function WelcomeScreen({ navigation }) {
   return (
     <View style={styles.container}>
       <StatusBar barStyle="dark-content" />
 
-      {/* logo */}
       <Image
         source={require("../source/assets/images/Blacklogo.png")}
         style={styles.logo}
         resizeMode="contain"
       />
 
-      {/* title */}
       <Text style={styles.title}>Welcome to FASH</Text>
-      <Text style={styles.subtitle}>
-        FASH - Own the Look
-      </Text>
+      <Text style={styles.subtitle}>FASH - Own the Look</Text>
 
-      {/* buttons */}
       <View style={styles.buttonContainer}>
         <TouchableOpacity
           style={styles.loginButton}
@@ -35,7 +30,6 @@ export default function WelcomeScreen({ navigation }) {
           <Text style={styles.signupText}>Sign Up</Text>
         </TouchableOpacity>
 
-        {/* divider */}
         <View style={styles.dividerContainer}>
           <View style={styles.dividerLine} />
           <Text style={styles.dividerText}>or</Text>
@@ -44,10 +38,10 @@ export default function WelcomeScreen({ navigation }) {
 
         <TouchableOpacity
           style={styles.courierLink}
-          onPress={() => navigation.navigate("CourierLoginScreen")}>
+          onPress={() => navigation.navigate("CourierLoginScreen")}
+        >
           <Text style={styles.courierLinkText}>Are you a courier? Log in here</Text>
         </TouchableOpacity>
-
       </View>
     </View>
   );
@@ -59,44 +53,44 @@ const styles = StyleSheet.create({
     backgroundColor: "#F5F5F5",
     alignItems: "center",
     justifyContent: "center",
-    paddingHorizontal: 25,
+    paddingHorizontal: wp(25),
   },
   logo: {
-    width: 180,
-    height: 120,
-    marginBottom: 20,
+    width: wp(180),
+    height: hp(120),
+    marginBottom: hp(20),
   },
   title: {
-    fontSize: 28,
+    fontSize: fp(28),
     fontWeight: "bold",
     color: "#333",
-    marginBottom: 10,
+    marginBottom: hp(10),
   },
   subtitle: {
-    fontSize: 15,
+    fontSize: fp(15),
     color: "gray",
-    marginBottom: 50,
+    marginBottom: hp(50),
     textAlign: "center",
   },
   buttonContainer: {
     width: "100%",
-    gap: 15,
+    gap: hp(15),
   },
   loginButton: {
     backgroundColor: "#C17C74",
-    padding: 15,
-    borderRadius: 10,
+    padding: hp(15),
+    borderRadius: wp(10),
     alignItems: "center",
   },
   loginText: {
     color: "#fff",
     fontWeight: "600",
-    fontSize: 16,
+    fontSize: fp(16),
   },
   signupButton: {
     backgroundColor: "white",
-    padding: 15,
-    borderRadius: 10,
+    padding: hp(15),
+    borderRadius: wp(10),
     alignItems: "center",
     borderWidth: 1.5,
     borderColor: "#C17C74",
@@ -104,12 +98,12 @@ const styles = StyleSheet.create({
   signupText: {
     color: "#C17C74",
     fontWeight: "600",
-    fontSize: 16,
+    fontSize: fp(16),
   },
   dividerContainer: {
     flexDirection: "row",
     alignItems: "center",
-    marginVertical: 4,
+    marginVertical: hp(4),
   },
   dividerLine: {
     flex: 1,
@@ -117,30 +111,19 @@ const styles = StyleSheet.create({
     backgroundColor: "#D0D0D0",
   },
   dividerText: {
-    marginHorizontal: 10,
-    fontSize: 13,
+    marginHorizontal: wp(10),
+    fontSize: fp(13),
     color: "gray",
   },
   courierLink: {
     flexDirection: "row",
-    gap: 5,
+    gap: wp(5),
     justifyContent: "center",
   },
   courierLinkText: {
-    fontSize: 13,
+    fontSize: fp(13),
     color: "#C17C74",
     fontWeight: "600",
     textDecorationLine: "underline",
-  },
-  footer: {
-    position: "absolute",
-    bottom: 40,
-    fontSize: 12,
-    color: "gray",
-    textAlign: "center",
-  },
-  footerLink: {
-    color: "#C17C74",
-    fontWeight: "600",
   },
 });
