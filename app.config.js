@@ -32,8 +32,10 @@ export default {
     },
     plugins: ["expo-secure-store"],
     extra: {
-        anthropicApiKey: process.env.OPENAI_API_KEY,
+      anthropicApiKey: process.env.OPENAI_API_KEY,
+      eas: {
+        projectId: "93f93342-8028-4ff3-b96c-24bcc4e9fc42"
       }
+    }
   }
 };
-
