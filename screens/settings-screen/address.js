@@ -5,20 +5,22 @@ import { AuthContext } from '../../context/AuthContext';
 import { getAddresses, addAddress, updateAddress, setDefaultAddress, deleteAddress } from '../../services/authService';
 import { Ionicons } from '@expo/vector-icons';
 import { wp, hp, fp } from '../../utils/responsive';
+import { useTranslation } from 'react-i18next';
 
 export default function SavedAddresses({ navigation }) {
   const { getToken } = useContext(AuthContext);
-  const [addresses, setAddresses] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [showForm, setShowForm] = useState(false);
-  const [editingId, setEditingId] = useState(null);
-  const [saving, setSaving] = useState(false);
-  const [fullName, setFullName] = useState('');
-  const [phone, setPhone] = useState('');
-  const [label, setLabel] = useState('');
-  const [street, setStreet] = useState('');
-  const [city, setCity] = useState('');
-  const [country, setCountry] = useState('');
+  const { t } = useTranslation();
+  const [addresses,  setAddresses]  = useState([]);
+  const [loading,    setLoading]    = useState(true);
+  const [showForm,   setShowForm]   = useState(false);
+  const [editingId,  setEditingId]  = useState(null);
+  const [saving,     setSaving]     = useState(false);
+  const [fullName,   setFullName]   = useState('');
+  const [phone,      setPhone]      = useState('');
+  const [label,      setLabel]      = useState('');
+  const [street,     setStreet]     = useState('');
+  const [city,       setCity]       = useState('');
+  const [country,    setCountry]    = useState('');
 
   useEffect(() => { fetchAddresses(); }, []);
 
@@ -37,7 +39,10 @@ export default function SavedAddresses({ navigation }) {
   const openEdit = (address) => { setFullName(address.fullName || ''); setPhone(address.phone || ''); setLabel(address.label || ''); setStreet(address.street || address.address || ''); setCity(address.city || ''); setCountry(address.country || ''); setEditingId(address._id); setShowForm(true); };
 
   const handleSave = async () => {
-    if (!fullName.trim() || !phone.trim() || !label.trim() || !street.trim() || !city.trim() || !country.trim()) { Alert.alert('Validation', 'Please fill all required fields.'); return; }
+    if (!fullName.trim() || !phone.trim() || !label.trim() || !street.trim() || !city.trim() || !country.trim()) {
+      Alert.alert(t('validation'), t('fill_all_fields'));
+      return;
+    }
     setSaving(true);
     try {
       const token = await getToken();
@@ -45,24 +50,33 @@ export default function SavedAddresses({ navigation }) {
       if (editingId) { await updateAddress(token, editingId, payload); } else { await addAddress(token, payload); }
       await fetchAddresses();
       resetForm();
-    } catch (e) { Alert.alert('Error', e.message || 'Failed to save address.'); }
+    } catch (e) { Alert.alert(t('error'), e.message || t('address_save_failed')); }
     finally { setSaving(false); }
   };
 
   const handleSetDefault = async (id) => {
     try { const token = await getToken(); await setDefaultAddress(token, id); await fetchAddresses(); }
-    catch (e) { Alert.alert('Error', 'Failed to set default address.'); }
+    catch (e) { Alert.alert(t('error'), t('address_default_failed')); }
   };
 
   const handleDelete = (id) => {
-    Alert.alert('Delete Address', 'Are you sure you want to delete this address?', [
-      { text: 'Cancel', style: 'cancel' },
-      { text: 'Delete', style: 'destructive', onPress: async () => {
+    Alert.alert(t('address_delete_title'), t('address_delete_confirm'), [
+      { text: t('cancel'), style: 'cancel' },
+      { text: t('delete'), style: 'destructive', onPress: async () => {
         try { const token = await getToken(); await deleteAddress(token, id); setAddresses(prev => prev.filter(a => (a._id || a.id) !== id)); }
-        catch (e) { Alert.alert('Error', 'Failed to delete address.'); }
+        catch (e) { Alert.alert(t('error'), t('address_delete_failed')); }
       }},
     ]);
   };
+
+  const fields = [
+    { label: t('addr_full_name'),  value: fullName, onChange: setFullName, placeholder: 'First name, Last name' },
+    { label: t('addr_phone'),      value: phone,    onChange: setPhone,    placeholder: '+20 000 00 00 000' },
+    { label: t('addr_label'),      value: label,    onChange: setLabel,    placeholder: 'Home' },
+    { label: t('addr_street'),     value: street,   onChange: setStreet,   placeholder: '123 Main St' },
+    { label: t('addr_city'),       value: city,     onChange: setCity,     placeholder: 'Cairo' },
+    { label: t('addr_country'),    value: country,  onChange: setCountry,  placeholder: 'Egypt', last: true },
+  ];
 
   if (loading) {
     return (
@@ -71,7 +85,7 @@ export default function SavedAddresses({ navigation }) {
           <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
             <Ionicons name="arrow-back" size={wp(20)} color="#2c2c2c" />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Saved Addresses</Text>
+          <Text style={styles.headerTitle}>{t('settings_address')}</Text>
           <View style={{ width: wp(40) }} />
         </View>
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
@@ -87,24 +101,17 @@ export default function SavedAddresses({ navigation }) {
         <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()} activeOpacity={0.8}>
           <Ionicons name="arrow-back" size={wp(20)} color="#2c2c2c" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Saved Addresses</Text>
+        <Text style={styles.headerTitle}>{t('settings_address')}</Text>
         <TouchableOpacity onPress={() => { resetForm(); setShowForm(true); }}>
-          <Text style={styles.addBtn}>+ Add</Text>
+          <Text style={styles.addBtn}>{t('add')}</Text>
         </TouchableOpacity>
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
         {showForm && (
           <View style={styles.card}>
-            <Text style={styles.cardSectionLabel}>{editingId ? 'Edit Address' : 'New Address'}</Text>
-            {[
-              { label: 'Full Name', value: fullName, onChange: setFullName, placeholder: 'First name, Last name' },
-              { label: 'Phone Number', value: phone, onChange: setPhone, placeholder: '+20 000 00 00 000' },
-              { label: 'Label (e.g. Home, Work)', value: label, onChange: setLabel, placeholder: 'Home' },
-              { label: 'Street', value: street, onChange: setStreet, placeholder: '123 Main St' },
-              { label: 'City', value: city, onChange: setCity, placeholder: 'Cairo' },
-              { label: 'Country', value: country, onChange: setCountry, placeholder: 'Egypt', last: true },
-            ].map((field, i) => (
+            <Text style={styles.cardSectionLabel}>{editingId ? t('edit_address') : t('new_address')}</Text>
+            {fields.map((field, i) => (
               <View key={i} style={[styles.fieldGroup, field.last && styles.lastField]}>
                 <Text style={styles.fieldLabel}>{field.label}</Text>
                 <TextInput style={styles.input} value={field.value} onChangeText={field.onChange} placeholder={field.placeholder} placeholderTextColor="#B09090" />
@@ -112,10 +119,10 @@ export default function SavedAddresses({ navigation }) {
             ))}
             <View style={styles.formActions}>
               <TouchableOpacity style={styles.cancelFormBtn} onPress={resetForm}>
-                <Text style={styles.cancelFormBtnText}>Cancel</Text>
+                <Text style={styles.cancelFormBtnText}>{t('cancel')}</Text>
               </TouchableOpacity>
               <TouchableOpacity style={styles.saveFormBtn} onPress={handleSave} disabled={saving}>
-                {saving ? <ActivityIndicator size="small" color="#fff" /> : <Text style={styles.saveFormBtnText}>Save</Text>}
+                {saving ? <ActivityIndicator size="small" color="#fff" /> : <Text style={styles.saveFormBtnText}>{t('save')}</Text>}
               </TouchableOpacity>
             </View>
           </View>
@@ -124,10 +131,10 @@ export default function SavedAddresses({ navigation }) {
         {addresses.length === 0 && !showForm ? (
           <View style={styles.emptyContainer}>
             <Text style={styles.emptyIcon}>📍</Text>
-            <Text style={styles.emptyTitle}>No addresses yet</Text>
-            <Text style={styles.emptySubtitle}>Add your first delivery address</Text>
+            <Text style={styles.emptyTitle}>{t('no_addresses')}</Text>
+            <Text style={styles.emptySubtitle}>{t('no_addresses_sub')}</Text>
             <TouchableOpacity style={styles.emptyBtn} onPress={() => setShowForm(true)}>
-              <Text style={styles.emptyBtnText}>Add Address</Text>
+              <Text style={styles.emptyBtnText}>{t('add_address')}</Text>
             </TouchableOpacity>
           </View>
         ) : (
@@ -136,16 +143,20 @@ export default function SavedAddresses({ navigation }) {
               <View key={address._id} style={[styles.addressItem, index < addresses.length - 1 && styles.addressBorder]}>
                 <View style={styles.addressLeft}>
                   <View style={styles.addressTopRow}>
-                    <Text style={styles.addressLabel}>{address.label || 'Address'}</Text>
-                    {address.isDefault && <View style={styles.defaultBadge}><Text style={styles.defaultBadgeText}>Default</Text></View>}
+                    <Text style={styles.addressLabel}>{address.label || t('address')}</Text>
+                    {address.isDefault && (
+                      <View style={styles.defaultBadge}>
+                        <Text style={styles.defaultBadgeText}>{t('default')}</Text>
+                      </View>
+                    )}
                   </View>
                   <Text style={styles.addressText}>{address.street || address.address}</Text>
                   <Text style={styles.addressText}>{address.city}{address.country ? `, ${address.country}` : ''}</Text>
                 </View>
                 <View style={styles.addressActions}>
-                  <TouchableOpacity onPress={() => openEdit(address)}><Text style={styles.editBtn}>Edit</Text></TouchableOpacity>
-                  {!address.isDefault && <TouchableOpacity onPress={() => handleSetDefault(address._id)}><Text style={styles.defaultBtn}>Set Default</Text></TouchableOpacity>}
-                  <TouchableOpacity onPress={() => handleDelete(address._id)}><Text style={styles.deleteBtn}>Delete</Text></TouchableOpacity>
+                  <TouchableOpacity onPress={() => openEdit(address)}><Text style={styles.editBtn}>{t('edit')}</Text></TouchableOpacity>
+                  {!address.isDefault && <TouchableOpacity onPress={() => handleSetDefault(address._id)}><Text style={styles.defaultBtn}>{t('set_default')}</Text></TouchableOpacity>}
+                  <TouchableOpacity onPress={() => handleDelete(address._id)}><Text style={styles.deleteBtn}>{t('delete')}</Text></TouchableOpacity>
                 </View>
               </View>
             ))}

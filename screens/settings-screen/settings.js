@@ -4,16 +4,19 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-nati
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { wp, hp, fp } from '../../utils/responsive';
+import { useTranslation } from 'react-i18next';
 
 const SettingsScreen = ({ navigation }) => {
+  const { t } = useTranslation();
+
   const options = [
-    { id: 'email', title: 'Email Address', subtitle: 'Change your email', screen: 'EmailScreen' },
-    { id: 'password', title: 'Change Password', subtitle: 'Change your password', screen: 'ChangePasswordScreen' },
-    { id: 'notifications', title: 'Notifications', subtitle: 'Push and email alerts', screen: 'NotificationsScreen' },
-    { id: 'language', title: 'Language', subtitle: 'English, French', screen: 'LanguagesScreen' },
-    { id: 'privacy', title: 'Privacy Settings', subtitle: 'Control your data', screen: 'PrivacyScreen' },
-    { id: 'cards', title: 'Saved Cards', subtitle: 'Your Saved Cards', screen: 'CardsScreen' },
-    { id: 'address', title: 'Saved Addresses', subtitle: 'Your addresses', screen: 'AddressScreen' },
+    { id: 'email',         title: t('settings_email'),         subtitle: t('settings_email_sub'),         screen: 'EmailScreen' },
+    { id: 'password',      title: t('settings_password'),      subtitle: t('settings_password_sub'),      screen: 'ChangePasswordScreen' },
+    { id: 'notifications', title: t('settings_notifications'), subtitle: t('settings_notifications_sub'), screen: 'NotificationsScreen' },
+    { id: 'language',      title: t('settings_language'),      subtitle: t('settings_language_sub'),      screen: 'LanguagesScreen' },
+    { id: 'privacy',       title: t('settings_privacy'),       subtitle: t('settings_privacy_sub'),       screen: 'PrivacyScreen' },
+    { id: 'cards',         title: t('settings_cards'),         subtitle: t('settings_cards_sub'),         screen: 'CardsScreen' },
+    { id: 'address',       title: t('settings_address'),       subtitle: t('settings_address_sub'),       screen: 'AddressScreen' },
   ];
 
   return (
@@ -22,12 +25,16 @@ const SettingsScreen = ({ navigation }) => {
         <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()} activeOpacity={0.8}>
           <Ionicons name="arrow-back" size={wp(20)} color="#2c2c2c" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Settings</Text>
+        <Text style={styles.headerTitle}>{t('settings_title')}</Text>
       </View>
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.card}>
           {options.map((item, index) => (
-            <TouchableOpacity key={item.id} style={[styles.listItem, index < options.length - 1 && styles.listItemBorder]} onPress={() => navigation.navigate(item.screen)}>
+            <TouchableOpacity
+              key={item.id}
+              style={[styles.listItem, index < options.length - 1 && styles.listItemBorder]}
+              onPress={() => navigation.navigate(item.screen)}
+            >
               <View style={styles.itemLeft}>
                 <Text style={styles.itemTitle}>{item.title}</Text>
                 <Text style={styles.itemSubtitle}>{item.subtitle}</Text>
@@ -37,7 +44,7 @@ const SettingsScreen = ({ navigation }) => {
           ))}
         </View>
         <TouchableOpacity style={styles.dangerBox}>
-          <Text style={styles.dangerText}>Delete Account</Text>
+          <Text style={styles.dangerText}>{t('delete_account')}</Text>
         </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>

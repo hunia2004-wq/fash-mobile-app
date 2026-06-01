@@ -10,9 +10,11 @@ import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
 import Constants from 'expo-constants';
 import { wp, hp, fp } from '../../utils/responsive';
+import { useTranslation } from 'react-i18next';
 
 const NotificationsScreen = ({ navigation }) => {
   const { getToken } = useContext(AuthContext);
+  const { t } = useTranslation();
   const [notifications, setNotifications] = useState({ push: false, email: false, order: false, promotions: false });
 
   useFocusEffect(useCallback(() => { fetchSettings(); }, []));
@@ -22,7 +24,12 @@ const NotificationsScreen = ({ navigation }) => {
       const token = await getToken();
       const data = await getSettings(token);
       const n = data.notifications || {};
-      setNotifications({ push: n.pushNotifications ?? false, email: n.emailNotifications ?? false, order: n.orderUpdates ?? false, promotions: n.promotionsOffers ?? false });
+      setNotifications({
+        push: n.pushNotifications ?? false,
+        email: n.emailNotifications ?? false,
+        order: n.orderUpdates ?? false,
+        promotions: n.promotionsOffers ?? false,
+      });
     } catch (e) { console.log("FETCH ERROR:", e); }
   };
 
@@ -30,9 +37,17 @@ const NotificationsScreen = ({ navigation }) => {
     if (!Device.isDevice) return true;
     const { status: existingStatus } = await Notifications.getPermissionsAsync();
     let finalStatus = existingStatus;
-    if (existingStatus !== 'granted') { const { status } = await Notifications.requestPermissionsAsync(); finalStatus = status; }
-    if (finalStatus !== 'granted') { Alert.alert('Permission Required', 'Please enable notifications in your device settings.'); return false; }
-    const pushTokenData = await Notifications.getExpoPushTokenAsync({ projectId: Constants.expoConfig?.extra?.eas?.projectId ?? Constants.easConfig?.projectId });
+    if (existingStatus !== 'granted') {
+      const { status } = await Notifications.requestPermissionsAsync();
+      finalStatus = status;
+    }
+    if (finalStatus !== 'granted') {
+      Alert.alert(t('permission_required'), t('enable_notifications_msg'));
+      return false;
+    }
+    const pushTokenData = await Notifications.getExpoPushTokenAsync({
+      projectId: Constants.expoConfig?.extra?.eas?.projectId ?? Constants.easConfig?.projectId,
+    });
     await submitPushToken(token, pushTokenData.data);
     return true;
   };
@@ -42,11 +57,21 @@ const NotificationsScreen = ({ navigation }) => {
     const updated = { ...notifications, [key]: value };
     setNotifications(updated);
     if (key === 'push') {
-      if (value) { const success = await registerPushToken(token); if (!success) { setNotifications(prev => ({ ...prev, push: false })); return; } }
-      else { await removePushToken(token).catch(() => {}); }
+      if (value) {
+        const success = await registerPushToken(token);
+        if (!success) { setNotifications(prev => ({ ...prev, push: false })); return; }
+      } else {
+        await removePushToken(token).catch(() => {});
+      }
     }
-    try { await updateNotifications(token, { emailNotifications: updated.email, pushNotifications: updated.push, orderUpdates: updated.order, promotionsOffers: updated.promotions }); }
-    catch (err) { console.log('Update failed:', err.message); }
+    try {
+      await updateNotifications(token, {
+        emailNotifications: updated.email,
+        pushNotifications: updated.push,
+        orderUpdates: updated.order,
+        promotionsOffers: updated.promotions,
+      });
+    } catch (err) { console.log('Update failed:', err.message); }
   };
 
   const ToggleRow = ({ label, subtitle, value, onValueChange, isLast }) => (
@@ -65,18 +90,18 @@ const NotificationsScreen = ({ navigation }) => {
         <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()} activeOpacity={0.8}>
           <Ionicons name="arrow-back" size={wp(20)} color="#2c2c2c" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Notifications</Text>
+        <Text style={styles.headerTitle}>{t('settings_notifications')}</Text>
       </View>
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        <Text style={styles.sectionLabel}>Channels</Text>
+        <Text style={styles.sectionLabel}>{t('notif_channels')}</Text>
         <View style={styles.card}>
-          <ToggleRow label="Push Notifications" value={notifications.push} onValueChange={(v) => handleToggle('push', v)} />
-          <ToggleRow label="Email Notifications" value={notifications.email} onValueChange={(v) => handleToggle('email', v)} isLast />
+          <ToggleRow label={t('notif_push')}  value={notifications.push}       onValueChange={(v) => handleToggle('push', v)} />
+          <ToggleRow label={t('notif_email')} value={notifications.email}      onValueChange={(v) => handleToggle('email', v)} isLast />
         </View>
-        <Text style={styles.sectionLabel}>Preferences</Text>
+        <Text style={styles.sectionLabel}>{t('notif_preferences')}</Text>
         <View style={styles.card}>
-          <ToggleRow label="Order Updates" subtitle="Status changes and delivery" value={notifications.order} onValueChange={(v) => handleToggle('order', v)} />
-          <ToggleRow label="Promotions & Offers" subtitle="Deals, sales, and new arrivals" value={notifications.promotions} onValueChange={(v) => handleToggle('promotions', v)} isLast />
+          <ToggleRow label={t('notif_order')}      subtitle={t('notif_order_sub')}      value={notifications.order}      onValueChange={(v) => handleToggle('order', v)} />
+          <ToggleRow label={t('notif_promotions')} subtitle={t('notif_promotions_sub')} value={notifications.promotions} onValueChange={(v) => handleToggle('promotions', v)} isLast />
         </View>
       </ScrollView>
     </SafeAreaView>

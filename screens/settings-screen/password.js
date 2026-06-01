@@ -5,27 +5,29 @@ import { AuthContext } from '../../context/AuthContext';
 import { changePassword } from '../../services/authService';
 import { Ionicons } from '@expo/vector-icons';
 import { wp, hp, fp } from '../../utils/responsive';
+import { useTranslation } from 'react-i18next';
 
 const ChangePasswordScreen = ({ navigation }) => {
   const { getToken } = useContext(AuthContext);
-  const [oldPassword, setOldPassword] = useState('');
-  const [newPassword, setNewPassword] = useState('');
+  const { t } = useTranslation();
+  const [oldPassword,     setOldPassword]     = useState('');
+  const [newPassword,     setNewPassword]     = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [saving, setSaving] = useState(false);
-  const [showOld, setShowOld] = useState(false);
-  const [showNew, setShowNew] = useState(false);
-  const [showConfirm, setShowConfirm] = useState(false);
+  const [saving,          setSaving]          = useState(false);
+  const [showOld,         setShowOld]         = useState(false);
+  const [showNew,         setShowNew]         = useState(false);
+  const [showConfirm,     setShowConfirm]     = useState(false);
 
   const handleSave = async () => {
-    if (!oldPassword || !newPassword || !confirmPassword) { Alert.alert('Validation', 'Please fill in all fields.'); return; }
-    if (newPassword !== confirmPassword) { Alert.alert('Validation', 'New passwords do not match.'); return; }
-    if (newPassword.length < 6) { Alert.alert('Validation', 'Password must be at least 6 characters.'); return; }
+    if (!oldPassword || !newPassword || !confirmPassword) { Alert.alert(t('validation'), t('fill_all_fields')); return; }
+    if (newPassword !== confirmPassword) { Alert.alert(t('validation'), t('passwords_no_match')); return; }
+    if (newPassword.length < 6) { Alert.alert(t('validation'), t('password_min_length')); return; }
     setSaving(true);
     try {
       const token = await getToken();
       await changePassword(token, { oldPassword, newPassword });
-      Alert.alert('Success', 'Your password has been changed.', [{ text: 'OK', onPress: () => navigation.goBack() }]);
-    } catch (e) { Alert.alert('Error', e.message || 'Failed to change password.'); }
+      Alert.alert(t('success'), t('password_changed'), [{ text: t('ok'), onPress: () => navigation.goBack() }]);
+    } catch (e) { Alert.alert(t('error'), e.message || t('password_change_failed')); }
     finally { setSaving(false); }
   };
 
@@ -34,7 +36,9 @@ const ChangePasswordScreen = ({ navigation }) => {
       <Text style={styles.fieldLabel}>{label}</Text>
       <View style={styles.passwordRow}>
         <TextInput style={styles.passwordInput} value={value} onChangeText={onChange} secureTextEntry={!show} placeholder="••••••••" placeholderTextColor="#B09090" />
-        <TouchableOpacity onPress={onToggle}><Text style={styles.showBtn}>{show ? 'Hide' : 'Show'}</Text></TouchableOpacity>
+        <TouchableOpacity onPress={onToggle}>
+          <Text style={styles.showBtn}>{show ? t('hide') : t('show')}</Text>
+        </TouchableOpacity>
       </View>
     </View>
   );
@@ -45,25 +49,30 @@ const ChangePasswordScreen = ({ navigation }) => {
         <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()} activeOpacity={0.8}>
           <Ionicons name="arrow-back" size={wp(20)} color="#2c2c2c" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Change Password</Text>
+        <Text style={styles.headerTitle}>{t('settings_password')}</Text>
         <TouchableOpacity onPress={handleSave} disabled={saving}>
-          {saving ? <ActivityIndicator size="small" color="#C17C74" /> : <Text style={styles.saveBtn}>Save</Text>}
+          {saving
+            ? <ActivityIndicator size="small" color="#C17C74" />
+            : <Text style={styles.saveBtn}>{t('save')}</Text>
+          }
         </TouchableOpacity>
       </View>
       <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
         <View style={styles.infoBox}>
-          <Text style={styles.infoText}>Your new password must be at least 6 characters long.</Text>
+          <Text style={styles.infoText}>{t('password_info')}</Text>
         </View>
         <View style={styles.card}>
-          <PasswordField label="Current Password" value={oldPassword} onChange={setOldPassword} show={showOld} onToggle={() => setShowOld(!showOld)} />
+          <PasswordField label={t('current_password')} value={oldPassword}     onChange={setOldPassword}     show={showOld}     onToggle={() => setShowOld(!showOld)} />
           <View style={styles.divider} />
-          <PasswordField label="New Password" value={newPassword} onChange={setNewPassword} show={showNew} onToggle={() => setShowNew(!showNew)} />
+          <PasswordField label={t('new_password')}     value={newPassword}     onChange={setNewPassword}     show={showNew}     onToggle={() => setShowNew(!showNew)} />
           <View style={styles.divider} />
           <View style={[styles.fieldGroup, styles.lastField]}>
-            <Text style={styles.fieldLabel}>Confirm New Password</Text>
+            <Text style={styles.fieldLabel}>{t('confirm_new_password')}</Text>
             <View style={styles.passwordRow}>
               <TextInput style={styles.passwordInput} value={confirmPassword} onChangeText={setConfirmPassword} secureTextEntry={!showConfirm} placeholder="••••••••" placeholderTextColor="#B09090" />
-              <TouchableOpacity onPress={() => setShowConfirm(!showConfirm)}><Text style={styles.showBtn}>{showConfirm ? 'Hide' : 'Show'}</Text></TouchableOpacity>
+              <TouchableOpacity onPress={() => setShowConfirm(!showConfirm)}>
+                <Text style={styles.showBtn}>{showConfirm ? t('hide') : t('show')}</Text>
+              </TouchableOpacity>
             </View>
           </View>
         </View>

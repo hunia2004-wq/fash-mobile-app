@@ -5,26 +5,28 @@ import { requestEmailChange } from '../../services/authService';
 import { AuthContext } from '../../context/AuthContext';
 import { Ionicons } from '@expo/vector-icons';
 import { wp, hp, fp } from '../../utils/responsive';
+import { useTranslation } from 'react-i18next';
 
 const EmailScreen = ({ navigation, route }) => {
   const user = route.params?.user || {};
   const [email, setEmail] = useState(user.email || '');
   const [loading, setLoading] = useState(false);
   const { logOut, getToken } = useContext(AuthContext);
+  const { t } = useTranslation();
   const isValidEmail = (email) => /\S+@\S+\.\S+/.test(email);
 
   const handleSave = async () => {
-    if (!email.trim()) { Alert.alert('Validation', 'Email cannot be empty.'); return; }
-    if (!isValidEmail(email)) { Alert.alert('Validation', 'Enter a valid email address.'); return; }
-    if (email === user.email) { Alert.alert('Info', 'This is already your current email.'); return; }
+    if (!email.trim()) { Alert.alert(t('validation'), t('email_empty')); return; }
+    if (!isValidEmail(email)) { Alert.alert(t('validation'), t('email_invalid')); return; }
+    if (email === user.email) { Alert.alert(t('info'), t('email_same')); return; }
     try {
       setLoading(true);
       const token = await getToken();
       if (!token) return;
       const res = await requestEmailChange(token, email);
-      Alert.alert('OTP Sent', res.message || 'Check your email for OTP');
+      Alert.alert(t('otp_sent'), res.message || t('check_email_otp'));
       navigation.navigate('VerifyEmailScreen', { email });
-    } catch (err) { Alert.alert('Error', err.message || 'Something went wrong'); }
+    } catch (err) { Alert.alert(t('error'), err.message || t('something_went_wrong')); }
     finally { setLoading(false); }
   };
 
@@ -34,18 +36,26 @@ const EmailScreen = ({ navigation, route }) => {
         <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()} activeOpacity={0.8}>
           <Ionicons name="arrow-back" size={wp(20)} color="#2c2c2c" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Email Address</Text>
+        <Text style={styles.headerTitle}>{t('settings_email')}</Text>
         <TouchableOpacity onPress={handleSave} disabled={loading || email === user.email}>
-          <Text style={styles.saveBtn}>{loading ? 'Saving...' : 'Save'}</Text>
+          <Text style={styles.saveBtn}>{loading ? t('saving') : t('save')}</Text>
         </TouchableOpacity>
       </View>
       <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
         <View style={styles.infoBox}>
-          <Text style={styles.infoText}>Changing your email will require verification.</Text>
+          <Text style={styles.infoText}>{t('email_change_info')}</Text>
         </View>
         <View style={styles.card}>
-          <Text style={styles.fieldLabel}>Email Address</Text>
-          <TextInput style={styles.input} value={email} onChangeText={setEmail} placeholder="your@email.com" placeholderTextColor="#B09090" keyboardType="email-address" autoCapitalize="none" />
+          <Text style={styles.fieldLabel}>{t('settings_email')}</Text>
+          <TextInput
+            style={styles.input}
+            value={email}
+            onChangeText={setEmail}
+            placeholder="your@email.com"
+            placeholderTextColor="#B09090"
+            keyboardType="email-address"
+            autoCapitalize="none"
+          />
         </View>
       </ScrollView>
     </SafeAreaView>

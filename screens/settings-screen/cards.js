@@ -5,24 +5,26 @@ import { AuthContext } from '../../context/AuthContext';
 import { getCards, addCard, updateCard, setDefaultCard, deleteCard } from '../../services/authService';
 import { Ionicons } from '@expo/vector-icons';
 import { wp, hp, fp } from '../../utils/responsive';
+import { useTranslation } from 'react-i18next';
 
 export default function SavedCards({ navigation }) {
   const { getToken } = useContext(AuthContext);
-  const [cards, setCards] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [showForm, setShowForm] = useState(false);
-  const [editingId, setEditingId] = useState(null);
-  const [saving, setSaving] = useState(false);
+  const { t } = useTranslation();
+  const [cards,      setCards]      = useState([]);
+  const [loading,    setLoading]    = useState(true);
+  const [showForm,   setShowForm]   = useState(false);
+  const [editingId,  setEditingId]  = useState(null);
+  const [saving,     setSaving]     = useState(false);
   const [cardHolder, setCardHolder] = useState('');
   const [cardNumber, setCardNumber] = useState('');
-  const [expiry, setExpiry] = useState('');
+  const [expiry,     setExpiry]     = useState('');
 
   useEffect(() => { fetchCards(); }, []);
 
   const fetchCards = async () => {
     setLoading(true);
     try { const token = await getToken(); const res = await getCards(token); setCards(Array.isArray(res) ? res : []); }
-    catch (e) { Alert.alert('Error', 'Failed to load cards.'); }
+    catch (e) { Alert.alert(t('error'), t('cards_load_failed')); }
     finally { setLoading(false); }
   };
 
@@ -32,9 +34,9 @@ export default function SavedCards({ navigation }) {
   const formatExpiry = (text) => { const cleaned = text.replace(/\D/g, '').slice(0, 4); return cleaned.length >= 2 ? `${cleaned.slice(0, 2)}/${cleaned.slice(2)}` : cleaned; };
 
   const handleSave = async () => {
-    if (!cardHolder || !cardNumber || !expiry) { Alert.alert('Validation', 'Please fill all fields.'); return; }
+    if (!cardHolder || !cardNumber || !expiry) { Alert.alert(t('validation'), t('fill_all_fields')); return; }
     const parts = expiry.split('/');
-    if (parts.length !== 2) { Alert.alert('Error', 'Expiry must be MM/YY'); return; }
+    if (parts.length !== 2) { Alert.alert(t('error'), t('expiry_format')); return; }
     const [month, year] = parts;
     setSaving(true);
     try {
@@ -44,21 +46,21 @@ export default function SavedCards({ navigation }) {
       const payload = { cardholderName: cardHolder.trim(), last4, brand: 'Visa', expiryMonth: month, expiryYear: `20${year}` };
       if (editingId) { await updateCard(token, editingId, payload); } else { await addCard(token, payload); }
       await fetchCards(); resetForm();
-    } catch { Alert.alert('Error', 'Failed to save card.'); }
+    } catch { Alert.alert(t('error'), t('card_save_failed')); }
     finally { setSaving(false); }
   };
 
   const handleSetDefault = async (id) => {
     try { const token = await getToken(); await setDefaultCard(token, id); await fetchCards(); }
-    catch (e) { Alert.alert('Error', e.message || 'Failed to set default card.'); }
+    catch (e) { Alert.alert(t('error'), e.message || t('card_default_failed')); }
   };
 
   const handleDelete = (id) => {
-    Alert.alert('Delete Card', 'Are you sure?', [
-      { text: 'Cancel', style: 'cancel' },
-      { text: 'Delete', style: 'destructive', onPress: async () => {
+    Alert.alert(t('card_delete_title'), t('are_you_sure'), [
+      { text: t('cancel'), style: 'cancel' },
+      { text: t('delete'), style: 'destructive', onPress: async () => {
         try { const token = await getToken(); await deleteCard(token, id); setCards(prev => prev.filter(c => c._id !== id)); }
-        catch { Alert.alert('Error', 'Failed to delete card.'); }
+        catch { Alert.alert(t('error'), t('card_delete_failed')); }
       }},
     ]);
   };
@@ -72,7 +74,7 @@ export default function SavedCards({ navigation }) {
           <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
             <Ionicons name="arrow-back" size={wp(20)} color="#2c2c2c" />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Saved Cards</Text>
+          <Text style={styles.headerTitle}>{t('settings_cards')}</Text>
           <View style={{ width: wp(40) }} />
         </View>
         <View style={styles.loader}><ActivityIndicator size="large" color="#C17C74" /></View>
@@ -86,26 +88,26 @@ export default function SavedCards({ navigation }) {
         <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()} activeOpacity={0.8}>
           <Ionicons name="arrow-back" size={wp(20)} color="#2c2c2c" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Saved Cards</Text>
+        <Text style={styles.headerTitle}>{t('settings_cards')}</Text>
         <TouchableOpacity onPress={() => { resetForm(); setShowForm(true); }}>
-          <Text style={styles.addBtn}>+ Add</Text>
+          <Text style={styles.addBtn}>{t('add')}</Text>
         </TouchableOpacity>
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
         {showForm && (
           <View style={styles.card}>
-            <Text style={styles.cardSectionLabel}>{editingId ? 'Edit Card' : 'New Card'}</Text>
-            <Text style={styles.fieldLabel}>Cardholder Name</Text>
-            <TextInput style={styles.input} value={cardHolder} onChangeText={setCardHolder} placeholder="Name on card" placeholderTextColor="#B09090" />
-            <Text style={styles.fieldLabel}>Card Number</Text>
+            <Text style={styles.cardSectionLabel}>{editingId ? t('edit_card') : t('new_card')}</Text>
+            <Text style={styles.fieldLabel}>{t('cardholder_name')}</Text>
+            <TextInput style={styles.input} value={cardHolder} onChangeText={setCardHolder} placeholder={t('name_on_card')} placeholderTextColor="#B09090" />
+            <Text style={styles.fieldLabel}>{t('card_number')}</Text>
             <TextInput style={styles.input} value={cardNumber} onChangeText={(t) => setCardNumber(formatCardNumber(t))} placeholder="0000 0000 0000 0000" keyboardType="numeric" maxLength={19} placeholderTextColor="#B09090" />
-            <Text style={styles.fieldLabel}>Expiry Date</Text>
+            <Text style={styles.fieldLabel}>{t('expiry_date')}</Text>
             <TextInput style={styles.input} value={expiry} onChangeText={(t) => setExpiry(formatExpiry(t))} placeholder="MM/YY" keyboardType="numeric" maxLength={5} placeholderTextColor="#B09090" />
             <View style={styles.formActions}>
-              <TouchableOpacity onPress={resetForm} style={styles.cancelBtn}><Text style={styles.cancelText}>Cancel</Text></TouchableOpacity>
+              <TouchableOpacity onPress={resetForm} style={styles.cancelBtn}><Text style={styles.cancelText}>{t('cancel')}</Text></TouchableOpacity>
               <TouchableOpacity onPress={handleSave} style={styles.saveBtn} disabled={saving}>
-                {saving ? <ActivityIndicator color="#fff" /> : <Text style={styles.saveText}>Save</Text>}
+                {saving ? <ActivityIndicator color="#fff" /> : <Text style={styles.saveText}>{t('save')}</Text>}
               </TouchableOpacity>
             </View>
           </View>
@@ -114,10 +116,10 @@ export default function SavedCards({ navigation }) {
         {!loading && cards.length === 0 && !showForm ? (
           <View style={styles.empty}>
             <Text style={styles.emptyIcon}>💳</Text>
-            <Text style={styles.emptyTitle}>No cards saved</Text>
-            <Text style={styles.emptySubtitle}>Add a card for faster checkout</Text>
+            <Text style={styles.emptyTitle}>{t('no_cards')}</Text>
+            <Text style={styles.emptySubtitle}>{t('no_cards_sub')}</Text>
             <TouchableOpacity style={styles.emptyBtn} onPress={() => setShowForm(true)}>
-              <Text style={{ color: '#fff', fontWeight: '700', fontSize: fp(14) }}>Add Card</Text>
+              <Text style={{ color: '#fff', fontWeight: '700', fontSize: fp(14) }}>{t('add_card')}</Text>
             </TouchableOpacity>
           </View>
         ) : (
@@ -125,14 +127,14 @@ export default function SavedCards({ navigation }) {
             {cards.map((card) => (
               <View key={card._id} style={styles.cardItem}>
                 <Text style={styles.cardType}>{getCardIcon(card.brand)}</Text>
-                {card.isDefault && <Text style={styles.defaultBadge}>Default</Text>}
+                {card.isDefault && <Text style={styles.defaultBadge}>{t('default')}</Text>}
                 <Text style={styles.cardHolder}>{card.cardholderName}</Text>
                 <Text style={styles.cardNumber}>**** **** **** {card.last4}</Text>
-                <Text style={styles.cardExpiry}>Expires {card.expiryMonth}/{card.expiryYear?.slice(-2)}</Text>
+                <Text style={styles.cardExpiry}>{t('expires')} {card.expiryMonth}/{card.expiryYear?.slice(-2)}</Text>
                 <View style={styles.actions}>
-                  <TouchableOpacity onPress={() => openEdit(card)}><Text style={styles.edit}>Edit</Text></TouchableOpacity>
-                  {!card.isDefault && <TouchableOpacity onPress={() => handleSetDefault(card._id)}><Text style={styles.default}>Set Default</Text></TouchableOpacity>}
-                  <TouchableOpacity onPress={() => handleDelete(card._id)}><Text style={styles.delete}>Delete</Text></TouchableOpacity>
+                  <TouchableOpacity onPress={() => openEdit(card)}><Text style={styles.edit}>{t('edit')}</Text></TouchableOpacity>
+                  {!card.isDefault && <TouchableOpacity onPress={() => handleSetDefault(card._id)}><Text style={styles.default}>{t('set_default')}</Text></TouchableOpacity>}
+                  <TouchableOpacity onPress={() => handleDelete(card._id)}><Text style={styles.delete}>{t('delete')}</Text></TouchableOpacity>
                 </View>
               </View>
             ))}
@@ -140,7 +142,7 @@ export default function SavedCards({ navigation }) {
         )}
 
         <View style={styles.infoBox}>
-          <Text style={styles.infoText}>Your card details are encrypted and stored securely. We never store your full card number.</Text>
+          <Text style={styles.infoText}>{t('card_security_info')}</Text>
         </View>
       </ScrollView>
     </SafeAreaView>

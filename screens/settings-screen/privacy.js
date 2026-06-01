@@ -6,9 +6,11 @@ import { AuthContext } from '../../context/AuthContext';
 import { updatePrivacy, getSettings } from '../../services/authService';
 import { Ionicons } from '@expo/vector-icons';
 import { wp, hp, fp } from '../../utils/responsive';
+import { useTranslation } from 'react-i18next';
 
 const PrivacyScreen = ({ navigation }) => {
   const { getToken } = useContext(AuthContext);
+  const { t } = useTranslation();
   const [privacy, setPrivacy] = useState({ profileVisible: true, showActivity: false, dataCollection: false });
 
   const handleToggle = async (key, value) => {
@@ -17,7 +19,7 @@ const PrivacyScreen = ({ navigation }) => {
     const updated = { ...privacy, [key]: value };
     setPrivacy(updated);
     try { await updatePrivacy(token, updated); }
-    catch (err) { setPrivacy(previous); Alert.alert("Update failed"); }
+    catch (err) { setPrivacy(previous); Alert.alert(t('update_failed')); }
   };
 
   useEffect(() => {
@@ -25,7 +27,11 @@ const PrivacyScreen = ({ navigation }) => {
       try {
         const token = await getToken();
         const data = await getSettings(token);
-        setPrivacy({ profileVisible: data?.privacy?.profileVisible ?? true, showActivity: data?.privacy?.showActivity ?? false, dataCollection: data?.privacy?.dataCollection ?? false });
+        setPrivacy({
+          profileVisible: data?.privacy?.profileVisible ?? true,
+          showActivity: data?.privacy?.showActivity ?? false,
+          dataCollection: data?.privacy?.dataCollection ?? false,
+        });
       } catch (err) { console.log("Failed to load settings", err.message); }
     };
     loadSettings();
@@ -47,16 +53,16 @@ const PrivacyScreen = ({ navigation }) => {
         <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()} activeOpacity={0.8}>
           <Ionicons name="arrow-back" size={wp(20)} color="#2c2c2c" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Privacy Settings</Text>
+        <Text style={styles.headerTitle}>{t('settings_privacy')}</Text>
       </View>
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.card}>
-          <ToggleRow label="Public Profile" value={privacy.profileVisible} onValueChange={(v) => handleToggle('profileVisible', v)} />
-          <ToggleRow label="Show Activity" value={privacy.showActivity} onValueChange={(v) => handleToggle('showActivity', v)} />
-          <ToggleRow label="Data Collection" value={privacy.dataCollection} onValueChange={(v) => handleToggle('dataCollection', v)} isLast />
+          <ToggleRow label={t('privacy_public_profile')} value={privacy.profileVisible} onValueChange={(v) => handleToggle('profileVisible', v)} />
+          <ToggleRow label={t('privacy_show_activity')}  value={privacy.showActivity}   onValueChange={(v) => handleToggle('showActivity', v)} />
+          <ToggleRow label={t('privacy_data_collection')} value={privacy.dataCollection} onValueChange={(v) => handleToggle('dataCollection', v)} isLast />
         </View>
         <View style={styles.infoBox}>
-          <Text style={styles.infoText}>Your privacy matters to us. We never sell your data to third parties.</Text>
+          <Text style={styles.infoText}>{t('privacy_info')}</Text>
         </View>
       </ScrollView>
     </SafeAreaView>

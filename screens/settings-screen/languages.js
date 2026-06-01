@@ -6,6 +6,7 @@ import { AuthContext } from '../../context/AuthContext';
 import { updateLanguage, getSettings } from '../../services/authService';
 import { Ionicons } from '@expo/vector-icons';
 import i18n from '../../source/i18n';
+import { useTranslation } from 'react-i18next';
 import { wp, hp, fp } from '../../utils/responsive';
 
 const LANGUAGES = [
@@ -15,6 +16,7 @@ const LANGUAGES = [
 
 const LanguagesScreen = ({ navigation }) => {
   const { getToken } = useContext(AuthContext);
+  const { t } = useTranslation();
   const [selected, setSelected] = useState('en');
 
   const loadLanguage = async () => {
@@ -39,7 +41,11 @@ const LanguagesScreen = ({ navigation }) => {
     setSelected(language);
     i18n.changeLanguage(language);
     try { await updateLanguage(token, { language }); }
-    catch (e) { Alert.alert("Error", "Failed to update language"); setSelected(previous); i18n.changeLanguage(previous); }
+    catch (e) {
+      Alert.alert(t('error'), t('lang_update_failed'));
+      setSelected(previous);
+      i18n.changeLanguage(previous);
+    }
   };
 
   return (
@@ -48,12 +54,16 @@ const LanguagesScreen = ({ navigation }) => {
         <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()} activeOpacity={0.8}>
           <Ionicons name="arrow-back" size={wp(20)} color="#2c2c2c" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Language</Text>
+        <Text style={styles.headerTitle}>{t('settings_language')}</Text>
       </View>
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.card}>
           {LANGUAGES.map((lang, index) => (
-            <TouchableOpacity key={lang.code} style={[styles.listItem, index < LANGUAGES.length - 1 && styles.listItemBorder]} onPress={() => handleLanguageChange(lang.code)}>
+            <TouchableOpacity
+              key={lang.code}
+              style={[styles.listItem, index < LANGUAGES.length - 1 && styles.listItemBorder]}
+              onPress={() => handleLanguageChange(lang.code)}
+            >
               <View style={styles.itemLeft}>
                 <Text style={styles.itemTitle}>{lang.label}</Text>
                 <Text style={styles.itemSubtitle}>{lang.native}</Text>
