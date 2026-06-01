@@ -40,7 +40,7 @@ const ProductCard = ({ item, saved, onToggleSave, onPress, t, inCart }) => (
       <Text style={styles.wCardBrand}>{item.brand}</Text>
       <Text style={styles.wCardName}>{item.title}</Text>
       <View style={styles.wCardBottom}>
-        <Text style={styles.wCardPrice}>EGP {item.price}</Text>
+        <Text style={styles.wCardPrice}>EGP {item.rentalPrice ?? item.price}</Text>
         <Text style={styles.perDay}>{t('per_day')}</Text>
       </View>
     </View>

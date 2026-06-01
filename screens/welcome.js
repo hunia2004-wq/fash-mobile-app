@@ -13,7 +13,7 @@ export default function WelcomeScreen({ navigation }) {
       />
 
       <Text style={styles.title}>Welcome to FASH</Text>
-      <Text style={styles.subtitle}>FASH - Own the Look</Text>
+      <Text style={styles.subtitle}>Own the Look</Text>
 
       <View style={styles.buttonContainer}>
         <TouchableOpacity
