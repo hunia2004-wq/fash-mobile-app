@@ -1,0 +1,67 @@
+{
+    "courier": {
+        "login": {
+            "title": "مرحباً بعودتك",
+            "subtitle": "سجّل الدخول لبدء جلسة الاستلام",
+            "badge": "بوابة المندوب",
+            "id_label": "رقم المندوب",
+            "id_placeholder": "رقم المندوب الخاص بك",
+            "id_required": "رقم المندوب مطلوب",
+            "login_btn": "تسجيل الدخول",
+            "not_courier": "لست مندوباً؟",
+            "customer_login": "تسجيل دخول العميل",
+            "info": "رقم المندوب يُقدَّم من قِبَل عمليات FASH. تواصل مع مشرفك إن لم يكن لديك رقم."
+        },
+        "status": {
+            "title": "حالة الاستلام",
+            "submit_new": "إرسال طلب جديد",
+            "logout": "تسجيل الخروج",
+            "total": "الكل",
+            "pending": "قيد الانتظار",
+            "accepted": "مقبول",
+            "rejected": "مرفوض",
+            "all": "الكل",
+            "no_pickups": "لا توجد طلبات {{filter}}",
+            "submitted_appear": "الطلبات المُرسَلة ستظهر هنا",
+            "pending_review": "قيد المراجعة",
+            "accepted_label": "مقبول ✓",
+            "rejected_label": "مرفوض ✗",
+            "waiting_review": "في انتظار مراجعة الإدارة...",
+            "continue_process": "متابعة عملية الطلب",
+            "inform_seller": "إبلاغ البائع",
+            "order": "الطلب",
+            "item": "المنتج",
+            "fashion_item": "قطعة أزياء"
+        },
+        "pickup": {
+            "title": "استلام المندوب",
+            "subtitle": "إرسال طلب استلام",
+            "order_id": "رقم الطلب",
+            "order_placeholder": "مثال: FASH-0042",
+            "item_id": "رقم المنتج",
+            "item_placeholder": "مثال: ITEM-0001",
+            "seller_id": "رقم البائع",
+            "seller_placeholder": "مثال: SELR-0001",
+            "courier_name": "اسم المندوب",
+            "name_placeholder": "اسمك",
+            "notes": "ملاحظات",
+            "notes_placeholder": "ملاحظات اختيارية...",
+            "photo": "صورة المنتج",
+            "upload_photo": "رفع صورة المنتج",
+            "camera": "الكاميرا",
+            "submit": "إرسال طلب الاستلام",
+            "order_required": "رقم الطلب مطلوب",
+            "item_required": "رقم المنتج مطلوب",
+            "seller_required": "رقم البائع مطلوب",
+            "name_required": "اسم المندوب مطلوب",
+            "photo_required": "يرجى رفع صورة للمنتج",
+            "failed": "فشل الإرسال",
+            "permission_needed": "إذن مطلوب"
+        },
+        "language": {
+            "choose": "اختر اللغة",
+            "english": "English",
+            "arabic": "العربية"
+        }
+    }
+}

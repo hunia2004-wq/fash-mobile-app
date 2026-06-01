@@ -4,6 +4,8 @@ import { Ionicons } from '@expo/vector-icons';
 import * as SecureStore from 'expo-secure-store';
 import { courierLogin } from '../services/authService';
 import { wp, hp, fp } from '../utils/responsive';
+import { useTranslation } from 'react-i18next';
+import i18n from '../source/i18n';
 
 const C = {
   bg: '#F5F5F5', white: '#FFFFFF', accent: '#C17C74',
@@ -12,6 +14,9 @@ const C = {
 };
 
 export default function CourierLoginScreen({ navigation }) {
+  const { t } = useTranslation();
+  const isRTL = i18n.language === 'ar';
+
   const [courierId, setCourierId] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -19,7 +24,7 @@ export default function CourierLoginScreen({ navigation }) {
 
   function validate() {
     const e = {};
-    if (!courierId.trim()) e.courierId = 'Courier ID is required';
+    if (!courierId.trim()) e.courierId = t('courier.login.id_required');
     setErrors(e);
     return Object.keys(e).length === 0;
   }
@@ -35,54 +40,83 @@ export default function CourierLoginScreen({ navigation }) {
       await SecureStore.setItemAsync('courierName', data.courier.name);
       await SecureStore.setItemAsync('courierRole', 'courier');
       navigation.replace('CourierStatusScreen');
-    } catch (err) { setError(err.message || 'Login failed. Please check your credentials.'); }
-    finally { setLoading(false); }
+    } catch (err) {
+      setError(err.message || t('courier.login.login_failed'));
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
       <StatusBar barStyle="dark-content" backgroundColor={C.bg} />
-      <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+      <ScrollView
+        contentContainerStyle={[styles.scroll, { direction: isRTL ? 'rtl' : 'ltr' }]}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
         <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
-          <Ionicons name="chevron-back" size={wp(20)} color={C.accent} />
-          <Text style={styles.backText}>Back</Text>
+          <Ionicons name={isRTL ? 'chevron-forward' : 'chevron-back'} size={wp(20)} color={C.accent} />
+          <Text style={styles.backText}>{t('courier.login.back')}</Text>
         </TouchableOpacity>
+
         <Image source={require('../source/assets/images/Blacklogo.png')} style={styles.logo} resizeMode="contain" />
+
         <View style={styles.titleWrap}>
           <View style={styles.courierBadge}>
             <Ionicons name="car-outline" size={wp(16)} color={C.accent} />
-            <Text style={styles.courierBadgeText}>Courier Portal</Text>
+            <Text style={styles.courierBadgeText}>{t('courier.login.badge')}</Text>
           </View>
-          <Text style={styles.title}>Welcome back</Text>
-          <Text style={styles.sub}>Log in to start your pickup session</Text>
+          <Text style={styles.title}>{t('courier.login.title')}</Text>
+          <Text style={styles.sub}>{t('courier.login.subtitle')}</Text>
         </View>
+
         <View style={styles.card}>
-          <Text style={styles.label}>Courier ID <Text style={{ color: C.accent }}>*</Text></Text>
+          <Text style={[styles.label, isRTL && styles.rtlText]}>
+            {t('courier.login.id_label')} <Text style={{ color: C.accent }}>*</Text>
+          </Text>
           <View style={[styles.inputWrap, errors.courierId && styles.inputError]}>
             <Ionicons name="id-card-outline" size={wp(18)} color={C.muted} style={styles.inputIcon} />
-            <TextInput style={styles.input} placeholder="Your assigned courier ID" placeholderTextColor={C.muted} value={courierId} autoCapitalize="characters" onChangeText={(v) => { setCourierId(v); setErrors(p => ({ ...p, courierId: null })); }} />
+            <TextInput
+              style={[styles.input, isRTL && styles.rtlText]}
+              placeholder={t('courier.login.id_placeholder')}
+              placeholderTextColor={C.muted}
+              value={courierId}
+              autoCapitalize="characters"
+              textAlign={isRTL ? 'right' : 'left'}
+              onChangeText={(v) => { setCourierId(v); setErrors(p => ({ ...p, courierId: null })); }}
+            />
           </View>
-          {errors.courierId ? <Text style={styles.fieldError}>{errors.courierId}</Text> : null}
+          {errors.courierId ? <Text style={[styles.fieldError, isRTL && styles.rtlText]}>{errors.courierId}</Text> : null}
+
           {error ? (
             <View style={styles.errorBox}>
               <Ionicons name="alert-circle-outline" size={wp(15)} color={C.danger} />
-              <Text style={styles.errorText}>{error}</Text>
+              <Text style={[styles.errorText, isRTL && styles.rtlText]}>{error}</Text>
             </View>
           ) : null}
+
           <TouchableOpacity style={[styles.loginBtn, loading && { opacity: 0.7 }]} onPress={handleLogin} disabled={loading}>
             {loading ? <ActivityIndicator color={C.white} size="small" /> : (
               <>
-                <Text style={styles.loginBtnText}>Log In</Text>
-                <Ionicons name="arrow-forward" size={wp(18)} color={C.white} />
+                <Text style={styles.loginBtnText}>{t('courier.login.login_btn')}</Text>
+                <Ionicons name={isRTL ? 'arrow-back' : 'arrow-forward'} size={wp(18)} color={C.white} />
               </>
             )}
           </TouchableOpacity>
         </View>
+
         <View style={styles.infoBox}>
           <Ionicons name="information-circle-outline" size={wp(16)} color={C.accent} />
-          <Text style={styles.infoText}>Your Courier ID is provided by FASH operations. Contact your supervisor if you don't have one.</Text>
+          <Text style={[styles.infoText, isRTL && styles.rtlText]}>{t('courier.login.info')}</Text>
         </View>
-        <Text style={styles.notCourier}>Not a courier? <Text style={styles.notCourierLink} onPress={() => navigation.navigate('Welcome')}>Customer login</Text></Text>
+
+        <Text style={[styles.notCourier, isRTL && styles.rtlText]}>
+          {t('courier.login.not_courier')}{' '}
+          <Text style={styles.notCourierLink} onPress={() => navigation.navigate('Welcome')}>
+            {t('courier.login.customer_login')}
+          </Text>
+        </Text>
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -113,4 +147,5 @@ const styles = StyleSheet.create({
   infoText: { flex: 1, fontSize: fp(12), color: '#7A5A56', lineHeight: hp(18) },
   notCourier: { textAlign: 'center', fontSize: fp(13), color: C.muted },
   notCourierLink: { color: C.accent, fontWeight: '600' },
+  rtlText: { textAlign: 'right', writingDirection: 'rtl' },
 });

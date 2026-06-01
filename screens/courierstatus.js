@@ -5,6 +5,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import * as SecureStore from 'expo-secure-store';
 import { getCourierSubmissions } from '../services/authService';
+import { useTranslation } from 'react-i18next';
+import i18n from '../source/i18n';
 
 const C = {
   bg: '#F5F5F5', white: '#FFFFFF', accent: '#C17C74',
@@ -15,29 +17,16 @@ const C = {
   warning: '#FF9500', warningLight: '#FFF3E0',
 };
 
-const STATUS = {
-  pending_review: { label: 'Pending Review', bg: C.warningLight, color: C.warning, icon: 'time-outline' },
-  approved: { label: 'Accepted ✓', bg: C.successLight, color: C.success, icon: 'checkmark-circle-outline' },
-  rejected: { label: 'Rejected ✗', bg: C.dangerLight, color: C.danger, icon: 'close-circle-outline' },
-};
-
-const MOCK_JOBS = [
-  { _id: 'j1', orderId: 'ORD-789456', itemId: 'ITEM-123ABC', reviewStatus: 'approved', submittedAt: new Date(Date.now() - 7200000).toISOString(), reviewNotes: null },
-  { _id: 'j2', orderId: 'ORD-654321', itemId: 'ITEM-789DEF', reviewStatus: 'pending_review', submittedAt: new Date(Date.now() - 3600000).toISOString(), reviewNotes: null },
-  { _id: 'j3', orderId: 'ORD-111000', itemId: 'ITEM-CCCDDD', reviewStatus: 'rejected', submittedAt: new Date(Date.now() - 86400000).toISOString(), reviewNotes: 'Item condition mismatch' },
-];
-
-const getId = (item) => item?._id || item?.id;
-
-function timeAgo(dateStr) {
+const getId = (item) => item?._id?.toString() || item?.id?.toString() || null;
+function timeAgo(dateStr, isRTL) {
   if (!dateStr) return '—';
   const diff = Date.now() - new Date(dateStr).getTime();
   const m = Math.floor(diff / 60000);
   const h = Math.floor(diff / 3600000);
-  if (m < 1) return 'Just now';
-  if (m < 60) return `${m}m ago`;
-  if (h < 24) return `${h}h ago`;
-  return new Date(dateStr).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+  if (m < 1) return isRTL ? 'الآن' : 'Just now';
+  if (m < 60) return isRTL ? `منذ ${m} د` : `${m}m ago`;
+  if (h < 24) return isRTL ? `منذ ${h} س` : `${h}h ago`;
+  return new Date(dateStr).toLocaleDateString(isRTL ? 'ar-EG' : 'en-GB', { day: 'numeric', month: 'short' });
 }
 
 function StatCard({ label, count, color }) {
@@ -49,7 +38,27 @@ function StatCard({ label, count, color }) {
   );
 }
 
+const LanguageToggle = () => {
+  const { t } = useTranslation();
+  const currentLang = i18n.language;
+  const switchTo = currentLang === 'ar' ? 'en' : 'ar';
+  const label = currentLang === 'ar' ? 'English' : 'العربية';
+
+  return (
+    <TouchableOpacity
+      onPress={() => i18n.changeLanguage(switchTo)}
+      style={styles.langBtn}
+    >
+      <Ionicons name="language-outline" size={16} color={C.accent} />
+      <Text style={styles.langBtnText}>{label}</Text>
+    </TouchableOpacity>
+  );
+};
+
 export default function CourierStatusScreen({ navigation }) {
+  const { t } = useTranslation();
+  const isRTL = i18n.language === 'ar';
+
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -57,6 +66,19 @@ export default function CourierStatusScreen({ navigation }) {
   const [courierId, setCourierId] = useState('');
 
   const loadRef = React.useRef(null);
+
+  const STATUS = {
+    pending_review: { label: t('courier.status.pending_review'), bg: C.warningLight, color: C.warning, icon: 'time-outline' },
+    approved:       { label: t('courier.status.accepted_label'), bg: C.successLight, color: C.success, icon: 'checkmark-circle-outline' },
+    rejected:       { label: t('courier.status.rejected_label'), bg: C.dangerLight,  color: C.danger,  icon: 'close-circle-outline' },
+  };
+
+  const FILTER_LABELS = {
+    all:      t('courier.status.all'),
+    pending:  t('courier.status.pending'),
+    accepted: t('courier.status.accepted'),
+    rejected: t('courier.status.rejected'),
+  };
 
   const load = useCallback(async (silent = false) => {
     if (!silent) setLoading(true);
@@ -67,16 +89,14 @@ export default function CourierStatusScreen({ navigation }) {
       const json = await getCourierSubmissions(token);
       setJobs(Array.isArray(json.submissions) ? json.submissions : []);
     } catch {
-      setJobs(MOCK_JOBS);
+      setJobs([]);
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
   }, []);
 
-  useEffect(() => {
-    loadRef.current = load;
-  }, [load]);
+  useEffect(() => { loadRef.current = load; }, [load]);
 
   useFocusEffect(useCallback(() => {
     load();
@@ -94,15 +114,15 @@ export default function CourierStatusScreen({ navigation }) {
   }
 
   const filtered = jobs.filter(j =>
-    filter === 'all' ? true :
-      filter === 'pending' ? j.reviewStatus === 'pending_review' :
-        filter === 'accepted' ? j.reviewStatus === 'approved' :
-          filter === 'rejected' ? j.reviewStatus === 'rejected' : true
+    filter === 'all'      ? true :
+    filter === 'pending'  ? j.reviewStatus === 'pending_review' :
+    filter === 'accepted' ? j.reviewStatus === 'approved' :
+    filter === 'rejected' ? j.reviewStatus === 'rejected' : true
   );
 
   const counts = {
-    all: jobs.length,
-    pending: jobs.filter(j => j.reviewStatus === 'pending_review').length,
+    all:      jobs.length,
+    pending:  jobs.filter(j => j.reviewStatus === 'pending_review').length,
     accepted: jobs.filter(j => j.reviewStatus === 'approved').length,
     rejected: jobs.filter(j => j.reviewStatus === 'rejected').length,
   };
@@ -110,78 +130,67 @@ export default function CourierStatusScreen({ navigation }) {
   function renderItem({ item }) {
     const cfg = STATUS[item.reviewStatus] ?? STATUS.pending_review;
 
-    // Truncate long MongoDB IDs for display
-
     return (
       <View style={styles.card}>
-
         {/* Status strip */}
         <View style={[styles.cardStrip, { backgroundColor: cfg.bg }]}>
           <Ionicons name={cfg.icon} size={15} color={cfg.color} />
           <Text style={[styles.cardStripText, { color: cfg.color }]}>{cfg.label}</Text>
-          <Text style={styles.cardStripTime}>{timeAgo(item.submittedAt)}</Text>
+          <Text style={styles.cardStripTime}>{timeAgo(item.submittedAt, isRTL)}</Text>
         </View>
 
-        {/* Item row — image + name + IDs */}
-        <View style={styles.itemRow}>
+        {/* Item row */}
+        <View style={[styles.itemRow, isRTL && styles.rowReverse]}>
           {item.itemImage ? (
-            <Image
-              source={{ uri: item.itemImage }}
-              style={styles.itemImage}
-              resizeMode="cover"
-            />
+            <Image source={{ uri: item.itemImage }} style={styles.itemImage} resizeMode="cover" />
           ) : (
             <View style={styles.itemImagePlaceholder}>
               <Ionicons name="bag-outline" size={22} color={C.accent} />
             </View>
           )}
           <View style={{ flex: 1, gap: 4 }}>
-            <Text style={styles.itemName} numberOfLines={1}>
-              {item.itemName || 'Fashion Item'}
+            <Text style={[styles.itemName, isRTL && styles.rtlText]} numberOfLines={1}>
+              {item.itemName || t('courier.status.fashion_item')}
             </Text>
-            <View style={styles.idBadge}>
-              <Text style={styles.idBadgeLabel}>Order</Text>
-              <Text style={styles.idBadgeValue} numberOfLines={1}>#{item.orderId}</Text>
-            </View>
-            <View style={styles.idBadge}>
-              <Text style={styles.idBadgeLabel}>Item</Text>
-              <Text style={styles.idBadgeValue} numberOfLines={1}>#{item.itemId}</Text>
+            <View style={[styles.idBadge, isRTL && styles.rowReverse]}>
+              <Text style={styles.idBadgeLabel}>{t('courier.status.order')}</Text>
+              <Text style={styles.idBadgeValue} numberOfLines={1}>#{item.id}</Text>
             </View>
           </View>
         </View>
 
         {/* Notes */}
         {item.notes ? (
-          <View style={styles.notesRow}>
+          <View style={[styles.notesRow, isRTL && styles.rowReverse]}>
             <Ionicons name="chatbubble-outline" size={13} color={C.muted} />
-            <Text style={styles.notesText} numberOfLines={2}>{item.notes}</Text>
+            <Text style={[styles.notesText, isRTL && styles.rtlText]} numberOfLines={2}>{item.notes}</Text>
           </View>
         ) : null}
 
         {/* Rejection reason */}
         {item.reviewStatus === 'rejected' && item.reviewNotes && (
-          <View style={styles.rejectionRow}>
+          <View style={[styles.rejectionRow, isRTL && styles.rowReverse]}>
             <Ionicons name="alert-circle-outline" size={14} color={C.danger} />
-            <Text style={styles.rejectionText}>{item.reviewNotes}</Text>
+            <Text style={[styles.rejectionText, isRTL && styles.rtlText]}>{item.reviewNotes}</Text>
           </View>
         )}
 
-        {/* Action row */}
+        {/* Action buttons */}
         {item.reviewStatus === 'approved' && (
           <TouchableOpacity style={styles.continueBtn}>
-            <Text style={styles.continueBtnText}>Continue Order Process</Text>
+            <Text style={styles.continueBtnText}>{t('courier.status.continue_process')}</Text>
           </TouchableOpacity>
         )}
         {item.reviewStatus === 'rejected' && (
           <TouchableOpacity style={styles.informBtn}>
             <Ionicons name="call-outline" size={16} color={C.danger} />
-            <Text style={styles.informBtnText}>Inform the Seller</Text>
+            <Text style={styles.informBtnText}>{t('courier.status.inform_seller')}</Text>
           </TouchableOpacity>
         )}
         {item.reviewStatus === 'pending_review' && (
           <View style={styles.pendingBanner}>
             <ActivityIndicator size="small" color={C.warning} />
-            <Text style={styles.pendingBannerText}>Waiting for admin review...</Text>
+            <Text style={styles.pendingBannerText}>{t('courier.status.waiting_review')}</Text>
           </View>
         )}
       </View>
@@ -192,33 +201,36 @@ export default function CourierStatusScreen({ navigation }) {
     <SafeAreaView style={styles.safe}>
       <StatusBar barStyle="dark-content" backgroundColor={C.bg} />
 
-      {/* ✅ No back button, renamed Pickup Status */}
-      <View style={styles.header}>
+      {/* Header */}
+      <View style={[styles.header, isRTL && styles.rowReverse]}>
         <View style={{ flex: 1 }}>
-          <Text style={styles.headerTitle}>Pickup Status</Text>
-          {courierId ? <Text style={styles.headerSub}>Courier ID: {courierId}</Text> : null}
+          <Text style={[styles.headerTitle, isRTL && styles.rtlText]}>{t('courier.status.title')}</Text>
+          {courierId ? <Text style={[styles.headerSub, isRTL && styles.rtlText]}>ID: {courierId}</Text> : null}
         </View>
+        <LanguageToggle />
         <TouchableOpacity onPress={handleLogout} style={styles.logoutBtn}>
           <Ionicons name="log-out-outline" size={20} color={C.danger} />
         </TouchableOpacity>
       </View>
 
-      {/* ✅ Submit New Request — full width */}
+      {/* Submit New Request */}
       <TouchableOpacity
         style={styles.submitNewBtn}
         onPress={() => navigation.navigate('CourierPickupScreen')}
       >
         <Ionicons name="add-circle-outline" size={20} color={C.white} />
-        <Text style={styles.submitNewBtnText}>Submit New Request</Text>
+        <Text style={styles.submitNewBtnText}>{t('courier.status.submit_new')}</Text>
       </TouchableOpacity>
 
+      {/* Stats */}
       <View style={styles.statsRow}>
-        <StatCard label="Total" count={counts.all} color={C.accent} />
-        <StatCard label="Pending" count={counts.pending} color={C.warning} />
-        <StatCard label="Accepted" count={counts.accepted} color={C.success} />
-        <StatCard label="Rejected" count={counts.rejected} color={C.danger} />
+        <StatCard label={t('courier.status.total')}    count={counts.all}      color={C.accent} />
+        <StatCard label={t('courier.status.pending')}  count={counts.pending}  color={C.warning} />
+        <StatCard label={t('courier.status.accepted')} count={counts.accepted} color={C.success} />
+        <StatCard label={t('courier.status.rejected')} count={counts.rejected} color={C.danger} />
       </View>
 
+      {/* Filter tabs */}
       <View style={styles.filterRow}>
         {['all', 'pending', 'accepted', 'rejected'].map(f => (
           <TouchableOpacity
@@ -227,8 +239,7 @@ export default function CourierStatusScreen({ navigation }) {
             onPress={() => setFilter(f)}
           >
             <Text style={[styles.filterTabText, filter === f && styles.filterTabTextActive]}>
-              {f.charAt(0).toUpperCase() + f.slice(1)}
-              {counts[f] > 0 ? ` (${counts[f]})` : ''}
+              {FILTER_LABELS[f]}{counts[f] > 0 ? ` (${counts[f]})` : ''}
             </Text>
           </TouchableOpacity>
         ))}
@@ -241,14 +252,18 @@ export default function CourierStatusScreen({ navigation }) {
       ) : filtered.length === 0 ? (
         <View style={styles.centered}>
           <MaterialCommunityIcons name="package-variant" size={52} color={C.muted} />
-          <Text style={styles.emptyTitle}>No {filter} pickups</Text>
-          <Text style={styles.emptyText}>Submitted pickups will appear here</Text>
+          <Text style={[styles.emptyTitle, isRTL && styles.rtlText]}>
+            {t('courier.status.no_pickups', { filter: FILTER_LABELS[filter] })}
+          </Text>
+          <Text style={[styles.emptyText, isRTL && styles.rtlText]}>
+            {t('courier.status.submitted_appear')}
+          </Text>
         </View>
       ) : (
         <FlatList
           data={filtered}
           renderItem={renderItem}
-          keyExtractor={i => getId(i)}
+          keyExtractor={i => getId(i)?.toString() ?? Math.random().toString()}
           contentContainerStyle={{ padding: 16, paddingBottom: 40 }}
           showsVerticalScrollIndicator={false}
           refreshControl={
@@ -274,6 +289,12 @@ const styles = StyleSheet.create({
   headerTitle: { fontSize: 17, fontWeight: '700', color: C.text },
   headerSub: { fontSize: 12, color: C.muted, marginTop: 1 },
   logoutBtn: { padding: 8 },
+  langBtn: {
+    flexDirection: 'row', alignItems: 'center', gap: 4,
+    backgroundColor: C.accentLight, borderRadius: 10,
+    paddingHorizontal: 10, paddingVertical: 6, marginRight: 8,
+  },
+  langBtnText: { fontSize: 12, fontWeight: '600', color: C.accent },
   submitNewBtn: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
     gap: 8, backgroundColor: C.accent, marginHorizontal: 16,
@@ -283,7 +304,7 @@ const styles = StyleSheet.create({
   statsRow: { flexDirection: 'row', gap: 8, padding: 12, backgroundColor: C.white },
   statCard: { flex: 1, backgroundColor: C.bg, borderRadius: 10, padding: 10, alignItems: 'center' },
   statCount: { fontSize: 20, fontWeight: '700' },
-  statLabel: { fontSize: 10, color: C.muted, marginTop: 2 },
+  statLabel: { fontSize: 10, color: C.muted, marginTop: 2, textAlign: 'center' },
   filterRow: {
     flexDirection: 'row', paddingHorizontal: 12, paddingVertical: 10, gap: 6,
     borderBottomWidth: 0.5, borderBottomColor: C.border, backgroundColor: C.white,
@@ -307,73 +328,50 @@ const styles = StyleSheet.create({
   },
   cardStripText: { fontWeight: '600', fontSize: 13, flex: 1 },
   cardStripTime: { fontSize: 11, color: C.muted },
-
-  // ✅ Enhanced item row
   itemRow: {
     flexDirection: 'row', alignItems: 'center', gap: 12,
     paddingHorizontal: 14, paddingVertical: 12,
     borderBottomWidth: 0.5, borderBottomColor: C.border,
   },
-  itemImage: {
-    width: 58, height: 58, borderRadius: 10,
-    backgroundColor: C.bg,
-  },
+  itemImage: { width: 58, height: 58, borderRadius: 10, backgroundColor: C.bg },
   itemImagePlaceholder: {
     width: 58, height: 58, borderRadius: 10,
-    backgroundColor: C.accentLight,
-    alignItems: 'center', justifyContent: 'center',
+    backgroundColor: C.accentLight, alignItems: 'center', justifyContent: 'center',
   },
-  itemName: {
-    fontSize: 14, fontWeight: '700', color: C.text, marginBottom: 2,
-  },
-
-  // ✅ Short ID badges
-  idRow: { flexDirection: 'row', gap: 8, marginTop: 2 },
+  itemName: { fontSize: 14, fontWeight: '700', color: C.text, marginBottom: 2 },
   idBadge: {
     flexDirection: 'row', alignItems: 'center', gap: 4,
-    backgroundColor: C.bg, borderRadius: 8,
-    paddingHorizontal: 8, paddingVertical: 4,
+    backgroundColor: C.bg, borderRadius: 8, paddingHorizontal: 8, paddingVertical: 4,
   },
   idBadgeLabel: { fontSize: 10, color: C.muted, fontWeight: '500' },
-  idBadgeValue: { 
-    fontSize: 11, color: C.text, fontWeight: '700', 
-    flexShrink: 1 },
-
-  cardBody: { paddingHorizontal: 14, paddingVertical: 10 },
-  cardRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 5 },
-  cardRowLabel: { fontSize: 13, color: C.muted },
-  cardRowValue: { fontSize: 13, fontWeight: '600', color: C.text },
-  cardDivider: { height: 0.5, backgroundColor: C.border },
+  idBadgeValue: { fontSize: 11, color: C.text, fontWeight: '700', flexShrink: 1 },
   notesRow: {
     flexDirection: 'row', alignItems: 'flex-start', gap: 6,
     paddingHorizontal: 14, paddingVertical: 10,
     borderBottomWidth: 0.5, borderBottomColor: C.border,
   },
   notesText: { flex: 1, fontSize: 12, color: C.muted, lineHeight: 18 },
-
   rejectionRow: {
     flexDirection: 'row', alignItems: 'flex-start', gap: 6,
     backgroundColor: C.dangerLight, paddingHorizontal: 14, paddingVertical: 10,
   },
   rejectionText: { flex: 1, fontSize: 12, color: C.danger, lineHeight: 18 },
-
   continueBtn: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-    gap: 6, backgroundColor: C.success, margin: 12,
-    borderRadius: 12, paddingVertical: 12,
+    gap: 6, backgroundColor: C.success, margin: 12, borderRadius: 12, paddingVertical: 12,
   },
   continueBtnText: { color: C.white, fontWeight: '700', fontSize: 13 },
   informBtn: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-    gap: 6, backgroundColor: C.dangerLight, margin: 12,
-    borderRadius: 12, paddingVertical: 12,
+    gap: 6, backgroundColor: C.dangerLight, margin: 12, borderRadius: 12, paddingVertical: 12,
     borderWidth: 1, borderColor: C.danger,
   },
   informBtnText: { color: C.danger, fontWeight: '700', fontSize: 13 },
   pendingBanner: {
     flexDirection: 'row', alignItems: 'center', gap: 8, justifyContent: 'center',
-    backgroundColor: C.warningLight, paddingVertical: 10,
-    margin: 12, borderRadius: 12,
+    backgroundColor: C.warningLight, paddingVertical: 10, margin: 12, borderRadius: 12,
   },
   pendingBannerText: { fontSize: 13, color: C.warning, fontWeight: '500' },
+  rowReverse: { flexDirection: 'row-reverse' },
+  rtlText: { textAlign: 'right', writingDirection: 'rtl' },
 });

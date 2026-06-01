@@ -1,8 +1,8 @@
 {
-    "welcome": "Welcome",
-    "wardrobe": "My Wardrobe",
-    "tryOn": "Try On",
-    "search_placeholder": "Search marketplace...",
+  "welcome": "Welcome",
+  "wardrobe": "My Wardrobe",
+  "tryOn": "Try On",
+  "search_placeholder": "Search marketplace...",
   "digital_closet": "Your Digital Closet",
   "marketplace": "FASH Marketplace",
   "fash_share": "FASH Share",
@@ -59,6 +59,72 @@
   "suggestion_2": "Suggest a casual outfit",
   "suggestion_3": "What goes with my jeans?",
   "suggestion_4": "Help me dress for a dinner",
-  "suggestion_5": "What to wear for work?"
-    
+  "suggestion_5": "What to wear for work?",
+  
+  "courier": {
+    "login": {
+      "title": "Welcome back",
+      "subtitle": "Log in to start your pickup session",
+      "badge": "Courier Portal",
+      "id_label": "Courier ID",
+      "id_placeholder": "Your assigned courier ID",
+      "id_required": "Courier ID is required",
+      "login_btn": "Log In",
+      "not_courier": "Not a courier?",
+      "customer_login": "Customer login",
+      "info": "Your Courier ID is provided by FASH operations. Contact your supervisor if you don't have one."
+    },
+    "status": {
+      "title": "Pickup Status",
+      "submit_new": "Submit New Request",
+      "logout": "Logout",
+      "total": "Total",
+      "pending": "Pending",
+      "accepted": "Accepted",
+      "rejected": "Rejected",
+      "all": "All",
+      "no_pickups": "No {{filter}} pickups",
+      "submitted_appear": "Submitted pickups will appear here",
+      "pending_review": "Pending Review",
+      "accepted_label": "Accepted ✓",
+      "rejected_label": "Rejected ✗",
+      "waiting_review": "Waiting for admin review...",
+      "continue_process": "Continue Order Process",
+      "inform_seller": "Inform the Seller",
+      "order": "Order",
+      "item": "Item",
+      "fashion_item": "Fashion Item"
+    },
+    "pickup": {
+      "title": "Courier Pickup",
+      "subtitle": "Submit pickup request",
+      "order_id": "Order ID",
+      "order_placeholder": "e.g. FASH-0042",
+      "item_id": "Item ID",
+      "item_placeholder": "e.g. ITEM-0001",
+      "seller_id": "Seller ID",
+      "seller_placeholder": "e.g. SELR-0001",
+      "courier_name": "Courier Name",
+      "name_placeholder": "Your name",
+      "notes": "Notes",
+      "notes_placeholder": "Optional notes...",
+      "photo": "Item Photo",
+      "upload_photo": "Upload Item Photo",
+      "camera": "Camera",
+      "submit": "Submit Pickup",
+      "order_required": "Order ID is required",
+      "item_required": "Item ID is required",
+      "seller_required": "Seller ID is required",
+      "name_required": "Courier name is required",
+      "photo_required": "Please upload item photo",
+      "failed": "Submission Failed",
+      "permission_needed": "Permission Needed"
+    },
+    "language": {
+      "choose": "Choose Language",
+      "english": "English",
+      "arabic": "العربية",
+      "french": "Français"
+    }
   }
+}
