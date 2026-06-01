@@ -130,7 +130,7 @@ export default function AuctionRoomScreen({ navigation, route }) {
   const countdown = useCountdown(auction?.endsAt ?? new Date().toISOString());
 
   // Derived winner state — uses real server data, not local name matching
-  const isEnded = auction?.status === 'ended' || countdown.ended;
+  const isEnded = auction != null && (auction.status === 'ended' || countdown.ended);
   const iWon = isEnded && auction?.winnerId != null && auction?.winnerId === userId;
   const isLeading = !isEnded && auction?.currentBidderId != null && auction?.currentBidderId === userId;
   const suggested = auction ? auction.currentBid + 5 : 0;
@@ -139,8 +139,20 @@ export default function AuctionRoomScreen({ navigation, route }) {
   const fetchAuction = useCallback(async () => {
     try {
       if (!auctionId) return;
+      console.log('Fetching auction:', auctionId); // ← add
+
       const data = await getAuctionById(auctionId);
+      console.log('Raw response:', JSON.stringify(data)); // ← add
+
+
       const a = data.auction ?? data;
+      console.log('Parsed auction:', JSON.stringify(a)); // ← add
+
+      if (!a || !a._id) {
+        console.error('Invalid auction object:', a);
+        return; // ← guard against undefined
+      }
+
       setAuction({
         id: a._id,
         title: a.title,
@@ -151,7 +163,7 @@ export default function AuctionRoomScreen({ navigation, route }) {
         size: a.size,
         image: a.images?.[0] ?? null,
         currentBid: a.currentBid,
-        currentBidderId: a.currentBidder?._id ?? null,
+        currentBidderId: a.currentBidder?.userId ?? null, 
         currentBidderName: a.currentBidder?.name ?? '—',
         bidCount: a.bids?.length ?? 0,
         endsAt: a.endTime,
@@ -183,12 +195,22 @@ export default function AuctionRoomScreen({ navigation, route }) {
   );
 
   // Show ended modal once when auction ends
-  useEffect(() => {
-    if (isEnded && !endedModalShown.current && auction != null) {
-      endedModalShown.current = true;
-      setEndedModalVisible(true);
-    }
-  }, [isEnded, auction]);
+  const wasActiveRef = useRef(false);
+
+// Track when it was active
+useEffect(() => {
+  if (auction && !isEnded) {
+    wasActiveRef.current = true;
+  }
+}, [auction, isEnded]);
+
+// Only show modal if it transitioned active → ended while screen was open
+useEffect(() => {
+  if (isEnded && wasActiveRef.current && !endedModalShown.current && auction != null) {
+    endedModalShown.current = true;
+    setEndedModalVisible(true);
+  }
+}, [isEnded, auction]);
 
   // ── Success toast ────────────────────────────────────────────
   const showSuccess = () => {

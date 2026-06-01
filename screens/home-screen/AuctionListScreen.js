@@ -45,13 +45,16 @@ const normalize = (a) => ({
   currentBidderName: a.currentBidder?.name ?? '—',
   bidCount: a.bids?.length ?? 0,
   endsAt: a.endTime,
+  status: a.status ?? 'active',
 });
 
 const AuctionCard = ({ auction, onPress }) => {
-  const countdown = useCountdown(auction.endsAt);
+  const countdown = useCountdown(auction?.endsAt ?? new Date(Date.now() + 999999999).toISOString());
+  const isEnded = auction.status === 'ended' || countdown.ended;
   const pulse = useRef(new Animated.Value(1)).current;
+
   useEffect(() => {
-    if (countdown.urgent && !countdown.ended) {
+    if (countdown.urgent && !isEnded) {
       Animated.loop(
         Animated.sequence([
           Animated.timing(pulse, { toValue: 1.25, duration: 600, useNativeDriver: true }),
@@ -69,10 +72,15 @@ const AuctionCard = ({ auction, onPress }) => {
         ) : (
           <MaterialCommunityIcons name="hanger" size={38} color={COLORS.accent} />
         )}
-        {!countdown.ended && (
+        {!isEnded && (
           <View style={styles.liveBadge}>
             <Animated.View style={[styles.liveDot, { transform: [{ scale: pulse }] }]} />
             <Text style={styles.liveText}>LIVE</Text>
+          </View>
+        )}
+        {isEnded && (
+          <View style={styles.endedBadge}>
+            <Text style={styles.endedBadgeText}>ENDED</Text>
           </View>
         )}
         <View style={styles.catBadge}>
@@ -87,12 +95,20 @@ const AuctionCard = ({ auction, onPress }) => {
             {auction.condition}
           </Text>
         </View>
-        <Text style={styles.bidLabel}>Current bid</Text>
+        <Text style={styles.bidLabel}>{isEnded ? 'Final bid' : 'Current bid'}</Text>
         <Text style={styles.bidAmount}>EGP {auction.currentBid}</Text>
         <View style={styles.cardFooter}>
-          <View style={[styles.timeTag, { backgroundColor: countdown.urgent ? COLORS.liveLight : COLORS.accentLight }]}>
-            <Ionicons name="time-outline" size={10} color={countdown.urgent ? COLORS.live : COLORS.accent} />
-            <Text style={[styles.timeText, { color: countdown.urgent ? COLORS.live : COLORS.accent }]}>
+          <View style={[styles.timeTag, {
+            backgroundColor: isEnded ? '#f5f5f5' : countdown.urgent ? COLORS.liveLight : COLORS.accentLight,
+          }]}>
+            <Ionicons
+              name="time-outline"
+              size={10}
+              color={isEnded ? COLORS.muted : countdown.urgent ? COLORS.live : COLORS.accent}
+            />
+            <Text style={[styles.timeText, {
+              color: isEnded ? COLORS.muted : countdown.urgent ? COLORS.live : COLORS.accent,
+            }]}>
               {countdown.label}
             </Text>
           </View>
@@ -110,7 +126,6 @@ export default function AuctionListScreen({ navigation }) {
   const [auctions, setAuctions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [filter, setFilter] = useState('All');
 
   const fetchAuctions = useCallback(async () => {
     try {
@@ -135,7 +150,7 @@ export default function AuctionListScreen({ navigation }) {
 
   const onRefresh = () => { setRefreshing(true); fetchAuctions(); };
 
-  const filteredAll = auctions.filter(a => filter === 'All' || a.category === filter);
+  const activeAuctions = auctions.filter(a => a.status !== 'ended');
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -159,7 +174,7 @@ export default function AuctionListScreen({ navigation }) {
             </View>
             <Text style={styles.headerTitle}>Live Bidding</Text>
           </View>
-          <Text style={styles.headerSub}>{auctions.length} active auctions</Text>
+          <Text style={styles.headerSub}>{activeAuctions.length} active auctions</Text>
         </View>
         <TouchableOpacity style={styles.addBtn} onPress={() => navigation.navigate('CreateAuction')} activeOpacity={0.85}>
           <Feather name="plus" size={20} color={COLORS.white} />
@@ -174,23 +189,19 @@ export default function AuctionListScreen({ navigation }) {
           contentContainerStyle={styles.scrollContent}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.accent} />}
         >
-          
-
-          {filteredAll.length === 0 ? (
+          {activeAuctions.length === 0 ? (
             <View style={styles.emptyWrap}>
               <View style={styles.emptyIcon}>
                 <Ionicons name="hammer-outline" size={44} color={COLORS.accent} />
               </View>
-              <Text style={styles.emptyTitle}>No auctions found</Text>
-              <Text style={styles.emptySub}>Try a different category</Text>
+              <Text style={styles.emptyTitle}>No live auctions</Text>
+              <Text style={styles.emptySub}>Check back soon or start your own</Text>
             </View>
           ) : (
             <>
-              <Text style={styles.sectionLabel}>
-                {filter === 'All' ? 'All Auctions' : filter} · {filteredAll.length} items
-              </Text>
+              <Text style={styles.sectionLabel}>All Auctions · {activeAuctions.length} items</Text>
               <View style={styles.grid}>
-                {filteredAll.map(auction => (
+                {activeAuctions.map(auction => (
                   <AuctionCard
                     key={auction.id}
                     auction={auction}
@@ -222,17 +233,14 @@ const styles = StyleSheet.create({
   addBtn: { width: 40, height: 40, borderRadius: 12, backgroundColor: COLORS.accent, alignItems: 'center', justifyContent: 'center' },
   scrollContent: { paddingHorizontal: 16, paddingBottom: 20 },
   sectionLabel: { fontSize: 11, fontWeight: '700', color: COLORS.accent, marginBottom: 12, textTransform: 'uppercase', letterSpacing: 0.9 },
-  filterRow: { paddingBottom: 14, alignItems: 'center', height: 52 },
-  filterPill: { paddingHorizontal: 14, paddingVertical: 7, borderRadius: 20, backgroundColor: COLORS.card, borderWidth: 1, borderColor: COLORS.border, marginRight: 8, alignSelf: 'center' },
-  filterPillActive: { backgroundColor: COLORS.accent, borderColor: COLORS.accent },
-  filterText: { fontSize: 13, fontWeight: '600', color: COLORS.muted },
-  filterTextActive: { color: COLORS.white },
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
   card: { width: CARD_W, backgroundColor: COLORS.white, borderRadius: 18, overflow: 'hidden', shadowColor: COLORS.accent, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 8, elevation: 3 },
   cardImage: { height: 170, backgroundColor: COLORS.card, alignItems: 'center', justifyContent: 'center' },
   liveBadge: { position: 'absolute', top: 10, left: 10, flexDirection: 'row', alignItems: 'center', backgroundColor: COLORS.live, borderRadius: 8, paddingHorizontal: 8, paddingVertical: 3, gap: 4 },
   liveDot: { width: 5, height: 5, borderRadius: 2.5, backgroundColor: COLORS.white },
   liveText: { fontSize: 9, fontWeight: '800', color: COLORS.white, letterSpacing: 0.5 },
+  endedBadge: { position: 'absolute', top: 10, left: 10, backgroundColor: '#9e9e9e', borderRadius: 8, paddingHorizontal: 8, paddingVertical: 3 },
+  endedBadgeText: { fontSize: 9, fontWeight: '800', color: COLORS.white, letterSpacing: 0.5 },
   catBadge: { position: 'absolute', bottom: 10, right: 10, backgroundColor: 'rgba(255,255,255,0.92)', borderRadius: 8, paddingHorizontal: 8, paddingVertical: 3 },
   catText: { fontSize: 10, fontWeight: '700', color: COLORS.accent },
   cardBody: { padding: 11 },
@@ -243,7 +251,7 @@ const styles = StyleSheet.create({
   bidLabel: { fontSize: 10, color: COLORS.muted, marginTop: 8 },
   bidAmount: { fontSize: 18, fontWeight: '800', color: COLORS.accent },
   cardFooter: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 8 },
-  timeTag: { flexDirection: 'row', alignItems: 'center', gap: 3, paddingHorizontal: 7, paddingVertical: 3, borderRadius: 7, backgroundColor: COLORS.accentLight },
+  timeTag: { flexDirection: 'row', alignItems: 'center', gap: 3, paddingHorizontal: 7, paddingVertical: 3, borderRadius: 7 },
   timeText: { fontSize: 10, fontWeight: '700' },
   bidsRow: { flexDirection: 'row', alignItems: 'center', gap: 3 },
   bidsText: { fontSize: 10, color: COLORS.muted, fontWeight: '600' },
