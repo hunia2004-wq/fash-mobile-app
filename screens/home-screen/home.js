@@ -39,7 +39,7 @@ function HomeContent() {
       .then(data => {
         const all = (data.auctions ?? data ?? []);
         const live = all.filter(a =>
-          a.title === 'YSL Tribute Heels' || a.title === 'miu min brown bag'
+          a.title === 'YSL Tribute Heels' || a.title === 'Miu Miu brown bag'
         );
         setLiveAuctions(live);
       })
