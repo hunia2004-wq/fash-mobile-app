@@ -74,7 +74,7 @@ import Offer from './screens/home-screen/offer';
 import CourierLoginScreen from './screens/courierlogin';
 import CourierPickupScreen from './screens/courierpickup';
 import CourierStatusScreen from './screens/courierstatus';
-import AdminReviewScreen from './screens/adminreview';
+
 
 import { logout, warmupServer, submitPushToken } from './services/authService';
 
@@ -336,7 +336,6 @@ export default function App() {
                         <Stack.Screen name="Premium" component={Premium} />
                         <Stack.Screen name="Offer" component={Offer} />
 
-                        <Stack.Screen name="AdminReviewScreen" component={AdminReviewScreen}  options={{ headerShown: false }}/>
                       </>
                     )}
                   </Stack.Navigator>

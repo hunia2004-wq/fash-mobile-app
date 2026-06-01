@@ -3,6 +3,7 @@ import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity,
   StatusBar, Image, TextInput, KeyboardAvoidingView,
   Platform, Animated, Alert, Dimensions, ActivityIndicator,
+  Modal,
 } from 'react-native';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -14,6 +15,7 @@ import { useFocusEffect } from '@react-navigation/native';
 const { width } = Dimensions.get('window');
 const QUICK = [5, 10, 25, 50];
 
+// ── Countdown ────────────────────────────────────────────────
 const useCountdown = (endsAt) => {
   const calc = () => {
     const diff = new Date(endsAt) - new Date();
@@ -43,6 +45,7 @@ const CountBlock = ({ value, label, urgent }) => (
   </View>
 );
 
+// ── Bid Row ──────────────────────────────────────────────────
 const BidRow = ({ bid, isTop, isMe }) => {
   const slide = useRef(new Animated.Value(-20)).current;
   const fade = useRef(new Animated.Value(0)).current;
@@ -74,32 +77,65 @@ const BidRow = ({ bid, isTop, isMe }) => {
           {new Date(bid.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
         </Text>
       </View>
-      <Text style={[styles.bidAmt, isTop && { color: COLORS.accent }]}>$]EGP{bid.amount}</Text>
+      <Text style={[styles.bidAmt, isTop && { color: COLORS.accent }]}>EGP {bid.amount}</Text>
     </Animated.View>
   );
 };
 
+// ── Auction Ended Modal ──────────────────────────────────────
+const AuctionEndedModal = ({ visible, iWon, finalBid, winnerName, onCheckout, onClose }) => (
+  <Modal visible={visible} animationType="fade" transparent onRequestClose={onClose}>
+    <View style={styles.modalOverlay}>
+      <View style={styles.modalSheet}>
+        <Text style={styles.modalEmoji}>{iWon ? '🏆' : '😔'}</Text>
+        <Text style={[styles.modalTitle, { color: iWon ? '#065F46' : '#991B1B' }]}>
+          {iWon ? 'You Won!' : 'Auction Ended'}
+        </Text>
+        <Text style={styles.modalSub}>
+          {iWon
+            ? `Congratulations! You won with a bid of EGP ${finalBid}. Complete your purchase before the item is relisted.`
+            : `This auction has ended. ${winnerName ? `Won by ${winnerName}.` : ''} Final price was EGP ${finalBid}.`
+          }
+        </Text>
+        {iWon ? (
+          <TouchableOpacity style={styles.checkoutBtn} onPress={onCheckout} activeOpacity={0.85}>
+            <Text style={styles.checkoutBtnText}>Go to Checkout</Text>
+          </TouchableOpacity>
+        ) : (
+          <TouchableOpacity style={styles.closeModalBtn} onPress={onClose} activeOpacity={0.85}>
+            <Text style={styles.closeModalBtnText}>Browse More Auctions</Text>
+          </TouchableOpacity>
+        )}
+      </View>
+    </View>
+  </Modal>
+);
+
+// ── Main Screen ──────────────────────────────────────────────
 export default function AuctionRoomScreen({ navigation, route }) {
-  const { getToken } = useAuth();
+  const { userId, getToken } = useAuth();
   const auctionId = route?.params?.auctionId ?? null;
 
   const [auction, setAuction] = useState(null);
   const [bids, setBids] = useState([]);
-  const [myBids, setMyBids] = useState([]);
   const [bidInput, setBidInput] = useState('');
   const [placing, setPlacing] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [endedModalVisible, setEndedModalVisible] = useState(false);
+  const endedModalShown = useRef(false);
 
   const successAnim = useRef(new Animated.Value(0)).current;
   const scrollRef = useRef(null);
 
-  // derived values 
   const countdown = useCountdown(auction?.endsAt ?? new Date().toISOString());
-  const isEnded = countdown.ended;
-  const isLeading = myBids.length > 0 && bids[0]?.userName === 'You';
+
+  // Derived winner state — uses real server data, not local name matching
+  const isEnded = auction?.status === 'ended' || countdown.ended;
+  const iWon = isEnded && auction?.winnerId != null && auction?.winnerId === userId;
+  const isLeading = !isEnded && auction?.currentBidderId != null && auction?.currentBidderId === userId;
   const suggested = auction ? auction.currentBid + 5 : 0;
 
-  // fetch 
+  // ── Fetch ────────────────────────────────────────────────────
   const fetchAuction = useCallback(async () => {
     try {
       if (!auctionId) return;
@@ -115,9 +151,13 @@ export default function AuctionRoomScreen({ navigation, route }) {
         size: a.size,
         image: a.images?.[0] ?? null,
         currentBid: a.currentBid,
+        currentBidderId: a.currentBidder?._id ?? null,
         currentBidderName: a.currentBidder?.name ?? '—',
         bidCount: a.bids?.length ?? 0,
         endsAt: a.endTime,
+        status: a.status ?? 'active',
+        winnerId: a.winner ?? null,
+        winnerName: a.currentBidder?.name ?? null,
       });
       setBids(
         (a.bids ?? []).map(b => ({
@@ -135,10 +175,22 @@ export default function AuctionRoomScreen({ navigation, route }) {
   }, [auctionId]);
 
   useFocusEffect(
-    useCallback(() => { fetchAuction(); }, [fetchAuction])
+    useCallback(() => {
+      fetchAuction();
+      const interval = setInterval(() => { fetchAuction(); }, 10000);
+      return () => clearInterval(interval);
+    }, [fetchAuction])
   );
 
-  //  showSuccess toast 
+  // Show ended modal once when auction ends
+  useEffect(() => {
+    if (isEnded && !endedModalShown.current && auction != null) {
+      endedModalShown.current = true;
+      setEndedModalVisible(true);
+    }
+  }, [isEnded, auction]);
+
+  // ── Success toast ────────────────────────────────────────────
   const showSuccess = () => {
     Animated.sequence([
       Animated.timing(successAnim, { toValue: 1, duration: 200, useNativeDriver: true }),
@@ -147,32 +199,30 @@ export default function AuctionRoomScreen({ navigation, route }) {
     ]).start();
   };
 
-  //  place bid 
+  // ── Place bid ────────────────────────────────────────────────
   const placeBid = async (amount) => {
     const val = parseFloat(amount || bidInput);
     if (!val || val <= 0) { Alert.alert('Invalid bid', 'Please enter a valid amount.'); return; }
-    if (val <= auction.currentBid) { Alert.alert('Bid too low', `Must be higher than $${auction.currentBid}`); return; }
-    navigation.navigate('ConfirmBid', {
-      bid: val,
-      auctionTitle: auction.title,
-      auctionId: auction.id,
-    });
+    if (val <= auction.currentBid) { Alert.alert('Bid too low', `Must be higher than EGP ${auction.currentBid}`); return; }
 
     setPlacing(true);
     try {
       const token = await getToken();
       const data = await placeBidApi(token, auction.id, val);
       const updated = data.auction ?? data;
-      const newBid = updated.bids?.[0];
 
       setBids(prev => [{
-        id: newBid?._id ?? Date.now(),
+        id: Date.now(),
         userName: 'You',
         amount: val,
         createdAt: new Date().toISOString(),
       }, ...prev]);
-      setMyBids(prev => [...prev, { amount: val }]);
-      setAuction(prev => ({ ...prev, currentBid: val, bidCount: prev.bidCount + 1 }));
+      setAuction(prev => ({
+        ...prev,
+        currentBid: val,
+        currentBidderId: userId,
+        bidCount: prev.bidCount + 1,
+      }));
       setBidInput('');
       showSuccess();
       scrollRef.current?.scrollTo({ y: 0, animated: true });
@@ -183,7 +233,7 @@ export default function AuctionRoomScreen({ navigation, route }) {
     }
   };
 
-  // loading / not found guards 
+  // ── Guards ───────────────────────────────────────────────────
   if (loading) {
     return (
       <SafeAreaView style={styles.safe}>
@@ -213,7 +263,7 @@ export default function AuctionRoomScreen({ navigation, route }) {
     );
   }
 
-  //  main render 
+  // ── Render ───────────────────────────────────────────────────
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
       <StatusBar barStyle="dark-content" />
@@ -271,7 +321,7 @@ export default function AuctionRoomScreen({ navigation, route }) {
             <View style={styles.bidInfoRow}>
               <View>
                 <Text style={styles.bidInfoLabel}>Current bid</Text>
-                <Text style={styles.currentBid}>${auction.currentBid}</Text>
+                <Text style={styles.currentBid}>EGP {auction.currentBid}</Text>
                 <Text style={styles.currentBidder}>
                   {isLeading ? 'You are leading!' : `by ${auction.currentBidderName}`}
                 </Text>
@@ -292,9 +342,13 @@ export default function AuctionRoomScreen({ navigation, route }) {
               </View>
             ) : (
               <View style={styles.endedBanner}>
-                <Ionicons name="checkmark-circle" size={18} color={COLORS.success} />
+                <Ionicons
+                  name={iWon ? 'trophy' : 'checkmark-circle'}
+                  size={18}
+                  color={COLORS.success}
+                />
                 <Text style={styles.endedText}>
-                  {isLeading ? 'You won this auction!' : 'Auction has ended'}
+                  {iWon ? '🎉 You won this auction!' : 'Auction has ended'}
                 </Text>
               </View>
             )}
@@ -316,7 +370,12 @@ export default function AuctionRoomScreen({ navigation, route }) {
               <Text style={styles.noBids}>No bids yet — be the first!</Text>
             ) : (
               bids.map((bid, i) => (
-                <BidRow key={bid.id} bid={bid} isTop={i === 0} isMe={bid.userName === 'You'} />
+                <BidRow
+                  key={bid.id}
+                  bid={bid}
+                  isTop={i === 0}
+                  isMe={bid.userName === 'You' || bid.userId === userId}
+                />
               ))
             )}
           </View>
@@ -380,6 +439,22 @@ export default function AuctionRoomScreen({ navigation, route }) {
           </View>
         )}
       </KeyboardAvoidingView>
+
+      {/* Ended Modal */}
+      <AuctionEndedModal
+        visible={endedModalVisible}
+        iWon={iWon}
+        finalBid={auction.currentBid}
+        winnerName={auction.winnerName}
+        onCheckout={() => {
+          setEndedModalVisible(false);
+          navigation.navigate('Payment', { item: auction, finalBid: auction.currentBid });
+        }}
+        onClose={() => {
+          setEndedModalVisible(false);
+          navigation.navigate('AuctionListScreen');
+        }}
+      />
     </SafeAreaView>
   );
 }
@@ -448,4 +523,15 @@ const styles = StyleSheet.create({
   bidInput: { flex: 1, fontSize: 16, fontWeight: '700', color: COLORS.text },
   placeBidBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: COLORS.accent, borderRadius: 14, paddingHorizontal: 20, paddingVertical: 14 },
   placeBidText: { fontSize: 14, fontWeight: '700', color: COLORS.white },
+
+  // Modal
+  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 32 },
+  modalSheet: { backgroundColor: COLORS.white, borderRadius: 24, padding: 28, alignItems: 'center', width: '100%' },
+  modalEmoji: { fontSize: 52, marginBottom: 12 },
+  modalTitle: { fontSize: 24, fontWeight: '900', marginBottom: 10 },
+  modalSub: { fontSize: 14, color: COLORS.muted, textAlign: 'center', lineHeight: 22, marginBottom: 24 },
+  checkoutBtn: { backgroundColor: COLORS.accent, borderRadius: 14, paddingVertical: 14, paddingHorizontal: 40, width: '100%', alignItems: 'center' },
+  checkoutBtnText: { color: COLORS.white, fontWeight: '700', fontSize: 15 },
+  closeModalBtn: { borderWidth: 1.5, borderColor: COLORS.accent, borderRadius: 14, paddingVertical: 14, paddingHorizontal: 40, width: '100%', alignItems: 'center' },
+  closeModalBtnText: { color: COLORS.accent, fontWeight: '700', fontSize: 15 },
 });
