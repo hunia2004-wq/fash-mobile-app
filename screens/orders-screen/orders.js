@@ -15,18 +15,19 @@ const COLORS = {
 };
 
 const STATUS_CONFIG = {
-  pending: { label: 'Pending', bg: '#FEF3C7', text: '#92400E' },
-  confirmed: { label: 'Confirmed', bg: '#DBEAFE', text: '#1E40AF' },
-  preparing: { label: 'Preparing', bg: '#FFEDD5', text: '#9A3412' },
-  shipped: { label: 'Shipped', bg: '#EDE9FE', text: '#5B21B6' },
-  on_the_way: { label: 'On the Way', bg: '#EDE9FE', text: '#5B21B6' },
-  delivered: { label: 'Delivered', bg: '#D1FAE5', text: '#065F46' },
-  cancelled: { label: 'Cancelled', bg: '#FEE2E2', text: '#991B1B' },
-  cash_on_delivery: { label: 'Cash on Delivery', bg: '#FEF3C7', text: '#92400E' },
-  awaiting_pickup: { label: 'Awaiting Pickup', bg: '#FEF3C7', text: '#92400E' },
+  pending:            { label: 'Pending',            bg: '#FEF3C7', text: '#92400E' },
+  confirmed:          { label: 'Confirmed',          bg: '#DBEAFE', text: '#1E40AF' },
+  awaiting_pickup:    { label: 'Awaiting Pickup',    bg: '#FEF3C7', text: '#92400E' },
   courier_dispatched: { label: 'Courier Dispatched', bg: '#EDE9FE', text: '#5B21B6' },
-  item_verified: { label: 'Item Verified', bg: '#D1FAE5', text: '#065F46' },
-  item_rejected: { label: 'Item Rejected', bg: '#FEE2E2', text: '#991B1B' },
+  sanitizing:         { label: 'Sanitizing',         bg: '#FFEDD5', text: '#9A3412' },
+  ready:              { label: 'Ready for Delivery', bg: '#E0F2FE', text: '#075985' },
+  shipped:            { label: 'Shipped',            bg: '#EDE9FE', text: '#5B21B6' },
+  on_the_way:         { label: 'On the Way',         bg: '#EDE9FE', text: '#5B21B6' },
+  delivered:          { label: 'Delivered',          bg: '#D1FAE5', text: '#065F46' },
+  cancelled:          { label: 'Cancelled',          bg: '#FEE2E2', text: '#991B1B' },
+  rejected:           { label: 'Item Rejected',      bg: '#FEE2E2', text: '#991B1B' },
+  rejection_pending:  { label: 'Return in Progress', bg: '#FFEDD5', text: '#9A3412' },
+  refunded:           { label: 'Refunded',           bg: '#D1FAE5', text: '#065F46' },
 };
 
 const formatDate = (dateStr) => {
