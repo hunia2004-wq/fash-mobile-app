@@ -184,7 +184,6 @@ export default function CourierStatusScreen({ navigation }) {
         )}
         {item.reviewStatus === 'rejected' && (
           <TouchableOpacity style={styles.informBtn}>
-            <Ionicons name="call-outline" size={16} color={C.danger} />
             <Text style={styles.informBtnText}>{t('courier.status.inform_seller')}</Text>
           </TouchableOpacity>
         )}
