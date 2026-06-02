@@ -129,7 +129,6 @@ export default function MarketplaceScreen({ navigation, route }) {
 
       <View style={styles.header}>
         {showSearch ? (
-          // ── Search mode: full-width search bar ──
           <View style={styles.searchBar}>
             <Ionicons name="search-outline" size={wp(16)} color={COLORS.muted} style={{ marginRight: wp(8) }} />
             <TextInput
@@ -145,9 +144,7 @@ export default function MarketplaceScreen({ navigation, route }) {
             </TouchableOpacity>
           </View>
         ) : (
-          // ── Normal mode: title left, actions right ──
           <>
-            {/* Left: back + title — flex:1 so it doesn't push icons off screen */}
             <View style={styles.headerLeft}>
               <TouchableOpacity style={styles.navBtn} onPress={() => navigation.goBack()} activeOpacity={0.8}>
                 <Ionicons name="arrow-back" size={wp(18)} color={COLORS.text} />
@@ -160,7 +157,6 @@ export default function MarketplaceScreen({ navigation, route }) {
               </View>
             </View>
 
-            {/* Right: icon buttons — fixed, never pushed off */}
             <View style={styles.headerActions}>
               <TouchableOpacity style={styles.iconBtn} onPress={() => setShowSearch(true)} activeOpacity={0.8}>
                 <Ionicons name="search-outline" size={wp(18)} color={COLORS.accent} />
@@ -266,10 +262,24 @@ export default function MarketplaceScreen({ navigation, route }) {
                     <Text style={styles.itemTitle} numberOfLines={1}>{item.title}</Text>
                     <Text style={styles.itemBrand}>{item.brand || t('no_brand')} · {item.size || 'N/A'}</Text>
                     <Text style={styles.itemDescription} numberOfLines={2}>{item.description}</Text>
+
+                    {/* ── Price block ──────────────────────────────────────────
+                        Left:  "Secondhand" label + selling price (what buyer pays)
+                        Right: "Retail" label + original new price (for reference only)
+                    ────────────────────────────────────────────────────────── */}
                     <View style={styles.priceRow}>
-                      <Text style={styles.itemPrice}>EGP {item.price}</Text>
-                      {item.originalPrice && <Text style={styles.itemOriginalPrice}>EGP {item.originalPrice}</Text>}
+                      <View>
+                        <Text style={styles.priceLabel}>Secondhand</Text>
+                        <Text style={styles.itemPrice}>EGP {item.price}</Text>
+                      </View>
+                      {item.originalPrice && (
+                        <View style={styles.retailPill}>
+                          <Text style={styles.retailPillLabel}>Retail</Text>
+                          <Text style={styles.itemOriginalPrice}>EGP {item.originalPrice}</Text>
+                        </View>
+                      )}
                     </View>
+
                     {!isOwner && (
                       <TouchableOpacity
                         style={[styles.cartBtn, isInCart(item._id) && styles.cartBtnActive]}
@@ -402,7 +412,6 @@ const styles = StyleSheet.create({
   logoHeader: { paddingBottom: hp(10), alignItems: 'center' },
   logo: { width: wp(120), height: hp(50) },
 
-  // ── Header: flex row, left takes remaining space, right is fixed ──
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -410,22 +419,21 @@ const styles = StyleSheet.create({
     marginBottom: hp(14),
   },
   headerLeft: {
-    flex: 1,                    // takes all remaining width
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     gap: wp(8),
-    marginRight: wp(8),         // breathing room before icons
+    marginRight: wp(8),
   },
   headerActions: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: wp(6),
-    flexShrink: 0,              // never shrink — always fully visible
+    flexShrink: 0,
   },
   headerTitle: { fontSize: fp(17), fontWeight: '700', color: COLORS.accent },
   headerSub: { fontSize: fp(12), color: COLORS.muted },
 
-  // ── Buttons — slightly smaller to fit 4 on any iPhone ──
   navBtn: { width: wp(36), height: wp(36), borderRadius: wp(10), backgroundColor: COLORS.card, alignItems: 'center', justifyContent: 'center' },
   iconBtn: { width: wp(36), height: wp(36), borderRadius: wp(10), backgroundColor: COLORS.card, alignItems: 'center', justifyContent: 'center' },
   addBtn:  { width: wp(36), height: wp(36), borderRadius: wp(10), backgroundColor: COLORS.accent, alignItems: 'center', justifyContent: 'center' },
@@ -457,9 +465,17 @@ const styles = StyleSheet.create({
   itemTitle: { fontSize: fp(13), fontWeight: '700', color: COLORS.text },
   itemBrand: { fontSize: fp(11), color: COLORS.accent, fontWeight: '600', marginTop: hp(2) },
   itemDescription: { fontSize: fp(11), color: COLORS.muted, marginTop: hp(3) },
-  priceRow: { flexDirection: 'row', gap: wp(6), marginTop: hp(4), alignItems: 'center' },
+
+  // ── Price block ──
+  // Left column: "Secondhand" micro-label + bold selling price
+  // Right column: "Retail" micro-label + muted original price (no strikethrough)
+  priceRow: { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', marginTop: hp(6) },
+  priceLabel: { fontSize: fp(9), fontWeight: '600', color: COLORS.muted, textTransform: 'uppercase', letterSpacing: 0.4, marginBottom: hp(1) },
   itemPrice: { fontSize: fp(14), fontWeight: '700', color: COLORS.accent },
-  itemOriginalPrice: { fontSize: fp(11), textDecorationLine: 'line-through', color: COLORS.muted },
+  retailPill: { alignItems: 'flex-end' },
+  retailPillLabel: { fontSize: fp(9), fontWeight: '600', color: COLORS.muted, textTransform: 'uppercase', letterSpacing: 0.4, marginBottom: hp(1) },
+  itemOriginalPrice: { fontSize: fp(11), color: COLORS.muted },   // no strikethrough — retail is reference, not a sale
+
   cartBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginTop: hp(8), borderRadius: wp(10), paddingVertical: hp(7), borderWidth: 1.5, borderColor: COLORS.accent, backgroundColor: COLORS.white },
   cartBtnActive: { backgroundColor: COLORS.accent, borderColor: COLORS.accent },
   cartBtnText: { fontSize: fp(11), fontWeight: '700', color: COLORS.accent },

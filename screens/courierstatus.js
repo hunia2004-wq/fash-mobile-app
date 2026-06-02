@@ -17,7 +17,8 @@ const C = {
   warning: '#FF9500', warningLight: '#FFF3E0',
 };
 
-const getId = (item) => item?._id?.toString() || item?.id?.toString() || null;
+const getId = (item) => item?._id || item?.id;
+
 function timeAgo(dateStr, isRTL) {
   if (!dateStr) return '—';
   const diff = Date.now() - new Date(dateStr).getTime();
@@ -263,7 +264,7 @@ export default function CourierStatusScreen({ navigation }) {
         <FlatList
           data={filtered}
           renderItem={renderItem}
-          keyExtractor={i => getId(i)?.toString() ?? Math.random().toString()}
+          keyExtractor={i => getId(i)}
           contentContainerStyle={{ padding: 16, paddingBottom: 40 }}
           showsVerticalScrollIndicator={false}
           refreshControl={

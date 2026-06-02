@@ -46,7 +46,6 @@ const OfferModal = ({ visible, onClose, itemPrice, itemTitle, itemId, getToken, 
   const pollRef = useRef(null);
   const { addToCart } = useCart();
 
-
   // Check for existing offer on this listing when modal opens
   useEffect(() => {
     if (!visible) {
@@ -86,7 +85,6 @@ const OfferModal = ({ visible, onClose, itemPrice, itemTitle, itemId, getToken, 
     { label: '30% off', value: Math.round(itemPrice * 0.7) },
   ];
 
-  // Replace the simulated handleSendOffer:
   const handleSendOffer = async () => {
     const parsed = parseFloat(offerPrice);
     if (!offerPrice || isNaN(parsed) || parsed <= 0) {
@@ -194,7 +192,6 @@ const OfferModal = ({ visible, onClose, itemPrice, itemTitle, itemId, getToken, 
                 onPress={async () => {
                   if (offerStatus === 'accepted') {
                     onClose();
-                    // Add the accepted offer item to cart at offer price
                     await addToCart({
                       _id: itemId,
                       itemId: itemId,
@@ -328,13 +325,6 @@ export default function ProductDetailScreen({ navigation, route }) {
     return trimmed.length > 0 ? trimmed.charAt(0).toUpperCase() : '?';
   };
 
-  const getSavingsPercent = () => {
-    const price = parseFloat(String(item.price).replace(/[^0-9.]/g, ''));
-    const original = parseFloat(String(item.originalPrice).replace(/[^0-9.]/g, ''));
-    if (!original || original <= 0 || isNaN(price) || isNaN(original)) return 0;
-    return Math.round((1 - price / original) * 100);
-  };
-
   const handleToggleSave = async () => {
     const prev = saved;
     setSaved(!prev);
@@ -431,14 +421,18 @@ export default function ProductDetailScreen({ navigation, route }) {
             <Text style={styles.itemTitle}>{item.title ?? 'Untitled'}</Text>
             <Text style={styles.itemPrice}>EGP {item.price ?? ''}</Text>
           </View>
+
+          {/* ── Retail reference row ─────────────────────────────────────
+              Shows the original new retail price purely for buyer context.
+              No strikethrough — this is NOT a discounted/sale price.
+          ──────────────────────────────────────────────────────────── */}
           {item.originalPrice ? (
-            <View style={styles.savingsRow}>
-              <Text style={styles.originalPrice}>{item.originalPrice}</Text>
-              <View style={styles.savingsBadge}>
-                <Text style={styles.savingsText}>Save {getSavingsPercent()}%</Text>
-              </View>
+            <View style={styles.retailReferenceRow}>
+              <Text style={styles.retailReferenceLabel}>Originally retailed for</Text>
+              <Text style={styles.retailReferencePrice}>EGP {item.originalPrice}</Text>
             </View>
           ) : null}
+
           <View style={styles.locationRow}>
             <Ionicons name="location-outline" size={14} color={COLORS.accent} />
             <Text style={styles.locationText}>{item.location ?? ''}</Text>
@@ -547,8 +541,6 @@ export default function ProductDetailScreen({ navigation, route }) {
         )}
       </View>
 
-
-
       <OfferModal
         visible={offerModalVisible}
         onClose={() => setOfferModalVisible(false)}
@@ -591,10 +583,14 @@ const styles = StyleSheet.create({
   titleRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 6 },
   itemTitle: { fontSize: 20, fontWeight: '800', color: COLORS.text, flex: 1, marginRight: 12 },
   itemPrice: { fontSize: 22, fontWeight: '800', color: COLORS.accent },
-  savingsRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 10 },
-  originalPrice: { fontSize: 13, color: COLORS.muted, textDecorationLine: 'line-through' },
-  savingsBadge: { backgroundColor: '#fce4ec', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8 },
-  savingsText: { fontSize: 11, fontWeight: '700', color: '#c2185b' },
+
+  // ── Retail reference row ──
+  // Replaces the old savingsRow. No strikethrough, no "Save X%" badge.
+  // The label makes clear this is the original new price, not a discounted figure.
+  retailReferenceRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 10 },
+  retailReferenceLabel: { fontSize: 12, color: COLORS.muted },
+  retailReferencePrice: { fontSize: 13, fontWeight: '600', color: COLORS.muted },
+
   locationRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   locationText: { fontSize: 13, color: COLORS.accent, fontWeight: '600' },
   postedAt: { fontSize: 12, color: COLORS.muted },
@@ -627,7 +623,6 @@ const styles = StyleSheet.create({
   },
   offerBtn: { flex: 1, borderWidth: 1.5, borderColor: COLORS.accent, borderRadius: 14, paddingVertical: 14, alignItems: 'center', justifyContent: 'center' },
   offerBtnText: { color: COLORS.accent, fontSize: 15, fontWeight: '700' },
-
   deleteListingBtn: { flex: 1, flexDirection: 'row', backgroundColor: '#E05C5C', borderRadius: 14, paddingVertical: 14, alignItems: 'center', justifyContent: 'center' },
   deleteListingBtnText: { color: COLORS.white, fontSize: 15, fontWeight: '700' },
 
