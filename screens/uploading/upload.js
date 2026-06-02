@@ -176,8 +176,8 @@ export default function UploadScreen({ navigation }) {
       </View>
       <ModeToggle mode={mode} onChange={handleModeChange} />
       <View style={[styles.modeBanner, isMarketplace && styles.modeBannerMarket]}>
-        <Ionicons name={isMarketplace ? 'storefront-outline' : 'shirt-outline'} size={wp(14)} color={isMarketplace ? '#388e3c' : '#C17C74'} style={{ marginRight: wp(6) }} />
-        <Text style={[styles.modeBannerText, isMarketplace && styles.modeBannerTextMarket]}>
+        <Ionicons name={isMarketplace ? 'storefront-outline' : 'shirt-outline'} size={wp(14)} color="#C17C74" style={{ marginRight: wp(6) }} />
+        <Text style={styles.modeBannerText}>
           {isMarketplace ? 'Item will be listed publicly on the Marketplace for sale only' : 'Item will be saved privately to your wardrobe only'}
         </Text>
       </View>
@@ -202,9 +202,9 @@ export default function UploadScreen({ navigation }) {
           </View>
         )}
         {isMarketplace && imageValidation && !validatingImage && (
-          <View style={[styles.validationRow, { backgroundColor: imageValidation.valid ? '#e8f5e9' : '#fce4ec' }]}>
-            <Ionicons name={imageValidation.valid ? 'checkmark-circle' : 'close-circle'} size={wp(16)} color={imageValidation.valid ? '#388e3c' : '#c2185b'} />
-            <Text style={[styles.validationText, { color: imageValidation.valid ? '#388e3c' : '#c2185b' }]}>{imageValidation.message}</Text>
+          <View style={[styles.validationRow, { backgroundColor: imageValidation.valid ? '#F2E6E3' : '#fce4ec' }]}>
+            <Ionicons name={imageValidation.valid ? 'checkmark-circle' : 'close-circle'} size={wp(16)} color={imageValidation.valid ? '#C17C74' : '#c2185b'} />
+            <Text style={[styles.validationText, { color: imageValidation.valid ? '#C17C74' : '#c2185b' }]}>{imageValidation.message}</Text>
           </View>
         )}
 
@@ -302,13 +302,13 @@ export default function UploadScreen({ navigation }) {
         <View style={styles.divider} />
         {isMarketplace && (
           <View style={styles.marketTip}>
-            <Ionicons name="information-circle-outline" size={wp(16)} color="#388e3c" />
+            <Ionicons name="information-circle-outline" size={wp(16)} color="#C17C74" />
             <Text style={styles.marketTipText}>Add a clear photo and fair price — listings with both sell 3× faster.</Text>
           </View>
         )}
 
         <TouchableOpacity
-          style={[styles.btnAccent, isMarketplace && styles.btnAccentMarket, (saving || validatingImage) && { opacity: 0.6 }]}
+          style={[styles.btnAccent, (saving || validatingImage) && { opacity: 0.6 }]}
           onPress={handleSave} disabled={saving || validatingImage} activeOpacity={0.85}
         >
           {saving ? <ActivityIndicator size="small" color="white" style={{ marginRight: wp(8) }} /> : <Ionicons name={isMarketplace ? 'storefront-outline' : 'checkmark'} size={wp(16)} color="white" style={{ marginRight: wp(6) }} />}
@@ -329,12 +329,11 @@ const styles = StyleSheet.create({
   modeBtnText: { fontSize: fp(13), fontWeight: '700', color: '#C17C74' },
   modeBtnTextActive: { color: 'white' },
   modeBanner: { flexDirection: 'row', alignItems: 'flex-start', backgroundColor: '#F2E6E3', marginHorizontal: wp(16), borderRadius: wp(12), padding: wp(10), marginBottom: hp(10) },
-  modeBannerMarket: { backgroundColor: '#e8f5e9' },
+  modeBannerMarket: { backgroundColor: '#F2E6E3' },
   modeBannerText: { flex: 1, fontSize: fp(12), color: '#C17C74', lineHeight: hp(17) },
-  modeBannerTextMarket: { color: '#388e3c' },
   scrollContent: { paddingBottom: hp(60) },
   uploadZone: { margin: wp(16), marginTop: hp(8), backgroundColor: '#F2E6E3', borderWidth: 1.5, borderColor: '#C17C74', borderStyle: 'dashed', borderRadius: wp(20), paddingVertical: hp(32), alignItems: 'center', gap: hp(10) },
-  uploadZoneMarket: { borderColor: '#388e3c', backgroundColor: '#f1f8f2' },
+  uploadZoneMarket: { borderColor: '#C17C74', backgroundColor: '#F2E6E3' },
   previewImage: { width: '100%', height: hp(220), borderRadius: wp(18) },
   uploadIconCircle: { width: wp(60), height: wp(60), borderRadius: wp(30), backgroundColor: 'white', alignItems: 'center', justifyContent: 'center' },
   uploadText: { fontSize: fp(14), fontWeight: '600', color: '#C17C74' },
@@ -367,9 +366,8 @@ const styles = StyleSheet.create({
   sizeHint: { fontSize: fp(11), color: '#888', fontStyle: 'italic', paddingHorizontal: wp(16), marginBottom: hp(8) },
   autoSizeNote: { flexDirection: 'row', alignItems: 'center', gap: wp(8), backgroundColor: '#F2E6E3', marginHorizontal: wp(16), borderRadius: wp(12), paddingHorizontal: wp(14), paddingVertical: hp(12) },
   autoSizeText: { fontSize: fp(13), color: '#C17C74', fontWeight: '600' },
-  marketTip: { flexDirection: 'row', alignItems: 'flex-start', gap: wp(8), backgroundColor: '#e8f5e9', marginHorizontal: wp(16), borderRadius: wp(12), padding: wp(12), marginBottom: hp(4) },
-  marketTipText: { flex: 1, fontSize: fp(12), color: '#2e7d32', lineHeight: hp(18) },
+  marketTip: { flexDirection: 'row', alignItems: 'flex-start', gap: wp(8), backgroundColor: '#F2E6E3', marginHorizontal: wp(16), borderRadius: wp(12), padding: wp(12), marginBottom: hp(4) },
+  marketTipText: { flex: 1, fontSize: fp(12), color: '#C17C74', lineHeight: hp(18) },
   btnAccent: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#C17C74', marginHorizontal: wp(16), marginTop: hp(12), marginBottom: hp(10), borderRadius: wp(16), paddingVertical: hp(16) },
-  btnAccentMarket: { backgroundColor: '#388e3c' },
   btnAccentText: { color: 'white', fontSize: fp(15), fontWeight: '600' },
 });

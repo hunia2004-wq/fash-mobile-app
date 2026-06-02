@@ -14,7 +14,7 @@ const SourceBadge = ({ itemType }) => {
   if (itemType === 'collection') {
     return <View style={[styles.badge, { backgroundColor: '#C17C74' }]}><Text style={[styles.badgeText, { color: 'white' }]}>FASH</Text></View>;
   }
-  return <View style={[styles.badge, { backgroundColor: '#e0ede8' }]}><Text style={[styles.badgeText, { color: '#3a7a5e' }]}>Marketplace</Text></View>;
+  return <View style={[styles.badge, { backgroundColor: '#e8dedd' }]}><Text style={[styles.badgeText, { color: '#7a4f4a' }]}>Marketplace</Text></View>;
 };
 
 const SavedCard = ({ savedItem, onRemove, onOpen, onAddToCart, cartAdded, navigation }) => {
