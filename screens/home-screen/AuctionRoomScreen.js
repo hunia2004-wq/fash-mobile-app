@@ -127,7 +127,7 @@ export default function AuctionRoomScreen({ navigation, route }) {
   const successAnim = useRef(new Animated.Value(0)).current;
   const scrollRef = useRef(null);
 
-  const countdown = useCountdown(auction?.endsAt ?? new Date().toISOString());
+  const countdown = useCountdown(auction?.endsAt ?? new Date(Date.now() + 999999999).toISOString());
 
   // Derived winner state — uses real server data, not local name matching
   const isEnded = auction != null && (auction.status === 'ended' || countdown.ended);
