@@ -13,13 +13,11 @@
   "live_bidding": "LIVE BIDDING",
   "live_bidding_sub": "Bid on exclusive pieces before they're gone",
   "join_auction": "Join the Auction",
-
   "loading": "Loading...",
   "items_available": "items available",
   "listings_near_you": "listings near you",
   "search_collection": "Search collection…",
   "search_listings": "Search listings...",
-
   "badge_new": "New",
   "per_day": "/ day",
   "rent_now": "Rent Now",
@@ -29,30 +27,25 @@
   "new_drops": "New drops added every week",
   "notify_me_btn": "Notify me",
   "notifying": "Notifying",
-
   "notifications_off": "Notifications Off",
   "notifications_off_msg": "You will no longer receive alerts for new FASH drops.",
   "notify_me": "Notify Me 🎉",
   "notify_me_msg": "You'll be notified when new FASH Collection drops arrive!",
   "turn_off": "Turn Off",
   "yes_notify": "Yes, Notify Me",
-
   "no_brand": "No brand",
   "add_to_cart": "Add to Cart",
   "in_cart": "In Cart",
   "retry": "Retry",
   "load_failed": "Failed to load listings",
-
   "my_cart": "My Cart",
   "cart_empty": "Your cart is empty",
   "cart_empty_sub": "Add items from the marketplace",
   "total": "Total",
   "checkout": "Checkout",
-
   "my_wishlist": "My Wishlist",
   "wishlist_empty": "Your wishlist is empty",
   "wishlist_empty_sub": "Tap the heart on any item to save it",
-
   "ai_stylist_title": "AI Stylist",
   "ai_stylist_sub": "Powered by your wardrobe",
   "ai_greeting": "Hi! I'm your FASH AI Stylist 👗\nI can help you build outfits from your wardrobe. What would you like to wear today?",
@@ -63,7 +56,6 @@
   "suggestion_3": "What goes with my jeans?",
   "suggestion_4": "Help me dress for a dinner",
   "suggestion_5": "What to wear for work?",
-
   "settings_title": "Settings",
   "settings_email": "Email Address",
   "settings_email_sub": "Change your email",
@@ -80,9 +72,7 @@
   "settings_address": "Saved Addresses",
   "settings_address_sub": "Your addresses",
   "delete_account": "Delete Account",
-
   "lang_update_failed": "Failed to update language",
-
   "notif_channels": "Channels",
   "notif_preferences": "Preferences",
   "notif_push": "Push Notifications",
@@ -93,13 +83,11 @@
   "notif_promotions_sub": "Deals, sales, and new arrivals",
   "permission_required": "Permission Required",
   "enable_notifications_msg": "Please enable notifications in your device settings.",
-
   "privacy_public_profile": "Public Profile",
   "privacy_show_activity": "Show Activity",
   "privacy_data_collection": "Data Collection",
   "privacy_info": "Your privacy matters to us. We never sell your data to third parties.",
   "update_failed": "Update failed",
-
   "validation": "Validation",
   "fill_all_fields": "Please fill all required fields.",
   "passwords_no_match": "New passwords do not match.",
@@ -112,7 +100,6 @@
   "confirm_new_password": "Confirm New Password",
   "show": "Show",
   "hide": "Hide",
-
   "email_empty": "Email cannot be empty.",
   "email_invalid": "Enter a valid email address.",
   "email_same": "This is already your current email.",
@@ -121,7 +108,6 @@
   "check_email_otp": "Check your email for OTP",
   "something_went_wrong": "Something went wrong",
   "saving": "Saving...",
-
   "no_addresses": "No addresses yet",
   "no_addresses_sub": "Add your first delivery address",
   "add_address": "Add Address",
@@ -151,7 +137,6 @@
   "addr_street": "Street",
   "addr_city": "City",
   "addr_country": "Country",
-
   "no_cards": "No cards saved",
   "no_cards_sub": "Add a card for faster checkout",
   "add_card": "Add Card",
@@ -168,5 +153,67 @@
   "card_delete_title": "Delete Card",
   "card_delete_failed": "Failed to delete card.",
   "cards_load_failed": "Failed to load cards.",
-  "card_security_info": "Your card details are encrypted and stored securely. We never store your full card number."
+  "card_security_info": "Your card details are encrypted and stored securely. We never store your full card number.",
+  "courier": {
+    "login": {
+      "back": "Back",
+      "badge": "Courier Portal",
+      "title": "Welcome back",
+      "subtitle": "Log in to start your pickup session",
+      "id_label": "Courier ID",
+      "id_placeholder": "Your assigned courier ID",
+      "id_required": "Courier ID is required",
+      "login_btn": "Log In",
+      "login_failed": "Login failed. Please check your credentials.",
+      "not_courier": "Not a courier?",
+      "customer_login": "Customer login",
+      "info": "Your Courier ID is provided by FASH operations. Contact your supervisor if you don't have one."
+    },
+    "status": {
+      "title": "Pickup Status",
+      "submit_new": "Submit New Request",
+      "all": "All",
+      "pending": "Pending",
+      "accepted": "Accepted",
+      "rejected": "Rejected",
+      "total": "Total",
+      "no_pickups": "No {{filter}} pickups",
+      "submitted_appear": "Submitted pickups will appear here",
+      "pending_review": "Pending Review",
+      "accepted_label": "Accepted ✓",
+      "rejected_label": "Rejected ✗",
+      "waiting_review": "Waiting for admin review...",
+      "continue_process": "Continue Order Process",
+      "inform_seller": "Inform the Seller",
+      "order": "Order",
+      "item": "Item",
+      "fashion_item": "Fashion Item"
+    },
+    "pickup": {
+      "title": "Courier Pickup",
+      "subtitle": "Submit pickup request",
+      "order_id": "Order ID",
+      "order_placeholder": "e.g. FASH-0042",
+      "item_id": "Item ID",
+      "item_placeholder": "e.g. ITEM-0001",
+      "seller_id": "Seller ID",
+      "seller_placeholder": "e.g. SELR-0001",
+      "courier_name": "Courier Name",
+      "name_placeholder": "Your name",
+      "notes": "Notes",
+      "notes_placeholder": "Optional notes...",
+      "photo": "Item Photo",
+      "upload_photo": "Upload Item Photo",
+      "camera": "Camera",
+      "submit": "Submit Pickup",
+      "order_required": "Order ID is required",
+      "item_required": "Item ID is required",
+      "seller_required": "Seller ID is required",
+      "name_required": "Courier name is required",
+      "photo_required": "Please upload item photo",
+      "failed": "Submission Failed",
+      "try_again": "Please try again.",
+      "permission_needed": "Permission Needed"
+    }
+  }
 }
