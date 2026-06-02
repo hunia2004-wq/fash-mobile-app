@@ -188,26 +188,62 @@ export default function OutfitBuilderScreen({ navigation }) {
           </ScrollView>
         )}
       </View>
-          
-          <ScrollView
-  horizontal
-  showsHorizontalScrollIndicator={false}
-  contentContainerStyle={styles.categoryRow}
-  style={{ flexGrow: 0 }}
->
-  {ITEM_CATEGORIES.map((cat) => (
-    <TouchableOpacity
-      key={cat}
-      style={[styles.categoryPill, activeCategory === cat && styles.categoryPillActive]}
-      onPress={() => setActiveCategory(cat)}
-      activeOpacity={0.8}
-    >
-      <Text style={[styles.categoryText, activeCategory === cat && styles.categoryTextActive]}>
-        {cat}
-      </Text>
-    </TouchableOpacity>
-  ))}
-</ScrollView>
+
+      <View style={styles.categoryContainer}>
+
+        <ScrollView
+
+          horizontal
+
+          showsHorizontalScrollIndicator={false}
+
+          contentContainerStyle={styles.categoryRow}
+
+        >
+
+          {ITEM_CATEGORIES.map((cat) => (
+
+            <TouchableOpacity
+
+              key={cat}
+
+              style={[
+
+                styles.categoryPill,
+
+                activeCategory === cat && styles.categoryPillActive,
+
+              ]}
+
+              onPress={() => setActiveCategory(cat)}
+
+              activeOpacity={0.8}
+
+            >
+
+              <Text
+
+                style={[
+
+                  styles.categoryText,
+
+                  activeCategory === cat && styles.categoryTextActive,
+
+                ]}
+
+              >
+
+                {cat}
+
+              </Text>
+
+            </TouchableOpacity>
+
+          ))}
+
+        </ScrollView>
+
+      </View>
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
 
@@ -351,33 +387,49 @@ const styles = StyleSheet.create({
   },
   previewAIText: { fontSize: 10, fontWeight: '700', color: COLORS.white },
 
-categoryRow: {
-  paddingHorizontal: 16,
-  paddingVertical: 8,
-  alignItems: 'flex-start',
-},
-categoryPill: {
-  paddingHorizontal: 16,
-  paddingVertical: 7,
-  borderRadius: 20,
-  backgroundColor: COLORS.card,
-  borderWidth: 1,
-  borderColor: COLORS.border,
-  marginRight: 8,
-},
-categoryPillActive: { 
-  backgroundColor: COLORS.accent, 
-  borderColor: COLORS.accent 
-},
-categoryText: { 
-  fontSize: 13, 
-  fontWeight: '600', 
-  color: COLORS.muted 
-},
-categoryTextActive: { 
-  color: COLORS.white 
-},
+  categoryRow: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    alignItems: 'center',
+  },
 
+  categoryPill: {
+    height: 36,
+    paddingHorizontal: 14,
+    borderRadius: 18,
+
+    backgroundColor: COLORS.card,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+
+    justifyContent: 'center',
+    alignItems: 'center',
+
+    marginRight: 8,
+
+  },
+
+  categoryPillActive: {
+    backgroundColor: COLORS.accent,
+    borderColor: COLORS.accent,
+  },
+
+  categoryText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: COLORS.muted,
+  },
+
+  categoryTextActive: {
+    color: '#FFF',
+  },
+
+  categoryContainer: {
+    height: 52,
+    marginTop: 8,
+    justifyContent: 'center',
+  },
+  
   scrollContent: { paddingHorizontal: 16, paddingBottom: 100 },
 
   structureCard: {
