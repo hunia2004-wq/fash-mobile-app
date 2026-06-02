@@ -349,7 +349,7 @@ export default function DonationScreen({ navigation }) {
           <TouchableOpacity style={styles.navBtn} onPress={() => navigation.goBack()} activeOpacity={0.8}>
             <Ionicons name="arrow-back" size={20} color={COLORS.text} />
           </TouchableOpacity>
-          <Text style={styles.navTitle}>Donation</Text>
+          <Text style={styles.navTitle}>Donations</Text>
           <View style={{ width: 40 }} />
         </View>
         <ScrollView contentContainerStyle={styles.successScreen}>
@@ -400,7 +400,7 @@ export default function DonationScreen({ navigation }) {
         >
           <Ionicons name="arrow-back" size={20} color={COLORS.text} />
         </TouchableOpacity>
-        <Text style={styles.navTitle}>Donation</Text>
+        <Text style={styles.navTitle}>Donations</Text>
         <View style={{ width: 40 }} />
       </View>
 
@@ -860,7 +860,7 @@ const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: COLORS.bg },
   topNav: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 12, backgroundColor: COLORS.white, borderBottomWidth: 1, borderBottomColor: COLORS.border },
   navBtn: { width: 40, height: 40, borderRadius: 12, backgroundColor: COLORS.card, alignItems: 'center', justifyContent: 'center' },
-  navTitle: { fontSize: 16, fontWeight: '700', color: COLORS.text },
+  navTitle: { fontSize: 18, fontWeight: '700', color: '#C17C74' },
 
   stepWrap: { paddingHorizontal: 16, paddingVertical: 16, backgroundColor: COLORS.white, borderBottomWidth: 1, borderBottomColor: COLORS.border },
   stepRow: { flexDirection: 'row', alignItems: 'center' },

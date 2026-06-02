@@ -316,7 +316,7 @@ const styles = StyleSheet.create({
     width: 40, height: 40, borderRadius: 12,
     backgroundColor: COLORS.card, alignItems: 'center', justifyContent: 'center',
   },
-  navTitle: { fontSize: 16, fontWeight: '700', color: COLORS.text },
+  navTitle: { fontSize: 18, fontWeight: '700', color: '#C17C74' },
   navSaveBtn: {
     backgroundColor: COLORS.accent, borderRadius: 10,
     paddingHorizontal: 16, paddingVertical: 8,
