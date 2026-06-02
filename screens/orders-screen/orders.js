@@ -1,11 +1,13 @@
 import React, { useContext, useState, useCallback, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, Image, StatusBar } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, Image, StatusBar, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { getOrders, getSales } from '../../services/authService';
 import { AuthContext } from '../../context/AuthContext';
 import { useFocusEffect } from '@react-navigation/native';
 import { wp, hp, fp } from '../../utils/responsive';
+import { Linking } from 'react-native';
+
 
 const COLORS = {
   bg: '#F5F5F5', card: '#F2E6E3', accent: '#C17C74',
@@ -15,19 +17,19 @@ const COLORS = {
 };
 
 const STATUS_CONFIG = {
-  pending:            { label: 'Pending',            bg: '#FEF3C7', text: '#92400E' },
-  confirmed:          { label: 'Confirmed',          bg: '#DBEAFE', text: '#1E40AF' },
-  awaiting_pickup:    { label: 'Awaiting Pickup',    bg: '#FEF3C7', text: '#92400E' },
+  pending: { label: 'Pending', bg: '#FEF3C7', text: '#92400E' },
+  confirmed: { label: 'Confirmed', bg: '#DBEAFE', text: '#1E40AF' },
+  awaiting_pickup: { label: 'Awaiting Pickup', bg: '#FEF3C7', text: '#92400E' },
   courier_dispatched: { label: 'Courier Dispatched', bg: '#EDE9FE', text: '#5B21B6' },
-  sanitizing:         { label: 'Sanitizing',         bg: '#FFEDD5', text: '#9A3412' },
-  ready:              { label: 'Ready for Delivery', bg: '#E0F2FE', text: '#075985' },
-  shipped:            { label: 'Shipped',            bg: '#EDE9FE', text: '#5B21B6' },
-  on_the_way:         { label: 'On the Way',         bg: '#EDE9FE', text: '#5B21B6' },
-  delivered:          { label: 'Delivered',          bg: '#D1FAE5', text: '#065F46' },
-  cancelled:          { label: 'Cancelled',          bg: '#FEE2E2', text: '#991B1B' },
-  rejected:           { label: 'Item Rejected',      bg: '#FEE2E2', text: '#991B1B' },
-  rejection_pending:  { label: 'Return in Progress', bg: '#FFEDD5', text: '#9A3412' },
-  refunded:           { label: 'Refunded',           bg: '#D1FAE5', text: '#065F46' },
+  sanitizing: { label: 'Sanitizing', bg: '#FFEDD5', text: '#9A3412' },
+  ready: { label: 'Ready for Delivery', bg: '#E0F2FE', text: '#075985' },
+  shipped: { label: 'Shipped', bg: '#EDE9FE', text: '#5B21B6' },
+  on_the_way: { label: 'On the Way', bg: '#EDE9FE', text: '#5B21B6' },
+  delivered: { label: 'Delivered', bg: '#D1FAE5', text: '#065F46' },
+  cancelled: { label: 'Cancelled', bg: '#FEE2E2', text: '#991B1B' },
+  rejected: { label: 'Item Rejected', bg: '#FEE2E2', text: '#991B1B' },
+  rejection_pending: { label: 'Return in Progress', bg: '#FFEDD5', text: '#9A3412' },
+  refunded: { label: 'Refunded', bg: '#D1FAE5', text: '#065F46' },
 };
 
 const formatDate = (dateStr) => {
@@ -124,10 +126,14 @@ const SellingOrderCard = ({ order, onNavigateToPickup }) => {
         </View>
       </View>
       {needsPickup && !hasPickup && (
-        <ActionRequiredBanner onPress={() => onNavigateToPickup({ orderId: order._id?.toString().toUpperCase(), item: { name: order.items?.[0]?.name ?? 'Item', price: order.total ?? 0, imageUrl: order.items?.[0]?.imageUrl ?? null }, buyerUsername: order.buyerUsername ?? 'buyer', readOnly: false })} />
+        <ActionRequiredBanner onPress={() => onNavigateToPickup({
+          pickupToken: order.pickupToken
+        })} />
       )}
       {hasPickup && (
-        <PickupScheduledBanner onPress={() => onNavigateToPickup({ orderId: order._id?.toString().toUpperCase(), item: { name: order.items?.[0]?.name ?? 'Item', price: order.total ?? 0, imageUrl: order.items?.[0]?.imageUrl ?? null }, buyerUsername: order.buyerUsername ?? 'buyer', readOnly: true })} />
+        <PickupScheduledBanner onPress={() => onNavigateToPickup({
+          pickupToken: order.pickupToken
+        })} />
       )}
     </View>
   );
@@ -157,6 +163,8 @@ const EmptyState = ({ tab, onPress }) => (
       </TouchableOpacity>
     )}
   </View>
+
+
 );
 
 export default function OrdersScreen({ navigation }) {
@@ -182,6 +190,9 @@ export default function OrdersScreen({ navigation }) {
     fetchOrders();
   }, []));
 
+  console.log('Sale pickupTokens:', sales.map(s => ({ id: s.shortId, token: s.pickupToken })));
+
+
   useEffect(() => {
     const interval = setInterval(async () => {
       try {
@@ -198,7 +209,15 @@ export default function OrdersScreen({ navigation }) {
     return () => clearInterval(interval);
   }, [getToken]);
 
-  const handleNavigateToPickup = useCallback((params) => { navigation.navigate('SellerPickupScreen', params); }, [navigation]);
+  const handleNavigateToPickup = useCallback((params) => {
+    if (!params.pickupToken) {
+      Alert.alert('Error', 'Pickup link not available for this order.');
+      return;
+    }
+    const url = `https://fash-backend-cp3n.vercel.app/api/v1/pickup/${params.pickupToken}`;
+    Linking.openURL(url);
+  }, []);
+
   const listData = activeTab === 'buying' ? orders : sales;
 
   if (loading) {
